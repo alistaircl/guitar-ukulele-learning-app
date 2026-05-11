@@ -13,13 +13,19 @@ const TABS = [
 
 function App() {
   const [activeTab, setActiveTab] = useState('tuner');
+  const [practiceSongId, setPracticeSongId] = useState(null);
+
+  const handleStartPractice = (song) => {
+    setPracticeSongId(song.id);
+    setActiveTab('practice');
+  };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'tuner': return <Tuner />;
       case 'chords': return <ChordLibrary />;
-      case 'songs': return <SongLibrary />;
-      case 'practice': return <PracticeMode />;
+      case 'songs': return <SongLibrary onStartPractice={handleStartPractice} />;
+      case 'practice': return <PracticeMode initialSongId={practiceSongId} onDone={() => setPracticeSongId(null)} />;
       default: return <Tuner />;
     }
   };
@@ -40,6 +46,7 @@ function App() {
             key={tab.id}
             className={`nav-btn ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.id)}
+            aria-current={activeTab === tab.id ? 'page' : undefined}
           >
             <span className="nav-icon">{tab.icon}</span>
             <span className="nav-label">{tab.label}</span>

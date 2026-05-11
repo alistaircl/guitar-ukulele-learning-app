@@ -1,9 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const PRACTICE_SONGS = [
-  {
-    id: 1,
-    title: 'Somewhere Over the Rainbow',
+  { id: 1, title: 'Somewhere Over the Rainbow',
     lyrics: [
       { text: 'Someday', chord: 'C' },
       { text: "I'll wish upon a star", chord: null },
@@ -13,9 +11,7 @@ const PRACTICE_SONGS = [
       { text: "That's where you'll find me", chord: 'Am' },
     ]
   },
-  {
-    id: 2,
-    title: 'You Are My Sunshine',
+  { id: 2, title: 'You Are My Sunshine',
     lyrics: [
       { text: 'You are my sunshine', chord: 'C' },
       { text: 'My only sunshine', chord: 'F' },
@@ -27,9 +23,7 @@ const PRACTICE_SONGS = [
       { text: 'My sunshine away', chord: 'G' },
     ]
   },
-  {
-    id: 3,
-    title: 'Let It Be',
+  { id: 3, title: 'Let It Be',
     lyrics: [
       { text: 'When I find myself in times of trouble', chord: 'C' },
       { text: 'Mother Mary comes to me', chord: 'G' },
@@ -41,16 +35,75 @@ const PRACTICE_SONGS = [
       { text: 'Let it be', chord: 'F' },
     ]
   },
+  { id: 4, title: 'House of Gold',
+    lyrics: [
+      { text: 'How do you think I\'m going to feel', chord: 'G' },
+      { text: 'When I\'m coming home again', chord: 'C' },
+      { text: 'Tell me tell me', chord: 'Em' },
+      { text: 'What do you see when you look at me', chord: 'D' },
+    ]
+  },
+  { id: 5, title: 'Stand By Me',
+    lyrics: [
+      { text: 'When the night has come', chord: 'A' },
+      { text: 'And the land is dark', chord: 'F#m' },
+      { text: 'And the moon is the only light we\'ll see', chord: 'D' },
+      { text: 'No I won\'t be afraid', chord: 'E' },
+    ]
+  },
+  { id: 6, title: 'Riptide',
+    lyrics: [
+      { text: 'I was scared of dentists and the dark', chord: 'Am' },
+      { text: 'I was scared of pretty girls and Sunday mornings', chord: 'G' },
+      { text: 'I was scared of little bits of paper in the park', chord: 'C' },
+      { text: 'And I turned around and you were gone', chord: 'F' },
+    ]
+  },
+  { id: 7, title: 'Thinking Out Loud',
+    lyrics: [
+      { text: 'When your legs don\'t work like they used to before', chord: 'Em' },
+      { text: 'And I can\'t sweep you off of your feet', chord: 'G' },
+      { text: 'Will your mouth still remember the taste of my love', chord: 'D' },
+      { text: 'Will your eyes still smile from your cheeks', chord: 'C' },
+    ]
+  },
+  { id: 8, title: 'I\'m Yours',
+    lyrics: [
+      { text: 'Well I\'ve been playing hard to get', chord: 'B' },
+      { text: 'Time to make my heart bet', chord: 'E' },
+      { text: 'I wanna be yours, pretty baby', chord: 'G#m' },
+      { text: 'Don\'t you make me wait too long', chord: 'F#' },
+    ]
+  },
 ];
 
-function PracticeMode() {
-  const [selectedSong, setSelectedSong] = useState(PRACTICE_SONGS[0]);
+function PracticeMode({ initialSongId, onDone }) {
+  const [selectedSong, setSelectedSong] = useState(() => {
+    if (initialSongId) {
+      const found = PRACTICE_SONGS.find(s => s.id === initialSongId);
+      return found || PRACTICE_SONGS[0];
+    }
+    return PRACTICE_SONGS[0];
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showNext, setShowNext] = useState(false);
   const [streak, setStreak] = useState(0);
   const [totalCorrect, setTotalCorrect] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const audioCtxRef = useRef(null);
+
+  // If initialSongId changes (user picks a new song from SongLibrary), switch to it
+  React.useEffect(() => {
+    if (initialSongId) {
+      const found = PRACTICE_SONGS.find(s => s.id === initialSongId);
+      if (found) {
+        setSelectedSong(found);
+        setCurrentIndex(0);
+        setShowNext(false);
+        setFeedback(null);
+      }
+    }
+  }, [initialSongId]);
 
   const playNote = (freq) => {
     if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
