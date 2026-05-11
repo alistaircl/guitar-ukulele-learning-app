@@ -114,13 +114,13 @@ function Tuner() {
       </div>
       <div className="tuning-selector">
         {Object.keys(TUNINGS).map(key => (
-          <button key={key} className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)}>
+          <button key={key} className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)} aria-pressed={tuning === key}>
             {TUNINGS[key].name}
           </button>
         ))}
       </div>
       <div className="tuner-controls">
-        <button className="control-btn" onClick={isListening ? stopTuner : startTuner}>
+        <button className="control-btn" type="button" onClick={isListening ? stopTuner : startTuner}>
           {isListening ? 'Stop' : 'Start'}
         </button>
       </div>

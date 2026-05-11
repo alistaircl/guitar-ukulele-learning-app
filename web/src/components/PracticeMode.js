@@ -170,11 +170,11 @@ function PracticeMode({ initialSongId, onDone }) {
       <div className="practice-container">
         <div className="practice-controls">
           <select
-            value={selectedSong.id}
-            onChange={e => { setSelectedSong(PRACTICE_SONGS.find(s => s.id === +e.target.value)); setCurrentIndex(0); setShowNext(false); setFeedback(null); }}
+            value={selectedSong?.title || ''}
+            onChange={e => { setSelectedSong(PRACTICE_SONGS.find(s => s.title === e.target.value)); setCurrentIndex(0); setShowNext(false); setFeedback(null); }}
             style={{ padding: '0.5rem', borderRadius: 8, border: 'none', background: 'var(--bg-tertiary)', color: 'var(--text-primary)', fontSize: '0.9rem' }}
           >
-            {PRACTICE_SONGS.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+            {PRACTICE_SONGS.map(s => <option key={s.id} value={s.title}>{s.title}</option>)}
           </select>
           <button className="control-btn" onClick={prevLine} disabled={currentIndex === 0}>← Prev</button>
           <button className="control-btn" onClick={revealAnswer} disabled={showNext}>Show Chords</button>
