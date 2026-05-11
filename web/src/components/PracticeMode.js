@@ -50,7 +50,6 @@ function PracticeMode() {
   const [streak, setStreak] = useState(0);
   const [totalCorrect, setTotalCorrect] = useState(0);
   const [feedback, setFeedback] = useState(null);
-  const [started, setStarted] = useState(false);
   const audioCtxRef = useRef(null);
 
   const playNote = (freq) => {
