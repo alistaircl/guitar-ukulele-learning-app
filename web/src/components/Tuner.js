@@ -1,0 +1,135 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+const TUNINGS = {
+  'G4 C4 E4 A4': { name: 'Standard (GCEA)', notes: ['G4', 'C4', 'E4', 'A4'], freq: [392, 261.63, 329.63, 440] },
+  'C4 E4 G4 C5': { name: 'Low G (GCEA)', notes: ['C4', 'E4', 'G4', 'C5'], freq: [261.63, 329.63, 392, 523.25] },
+  'D4 G4 B4 E5': { name: 'Baritone (DGBE)', notes: ['D4', 'G4', 'B4', 'E5'], freq: [293.66, 392, 493.88, 659.25] },
+};
+
+const NOTE_FREQ_MAP = {
+  'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13,
+  'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.00,
+  'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
+  'C5': 523.25, 'G3': 196.00, 'C3': 130.81, 'E3': 164.81,
+};
+
+function getNearestNote(freq) {
+  let nearest = '?';
+  let minDiff = Infinity;
+  for (const [note, f] of Object.entries(NOTE_FREQ_MAP)) {
+    const diff = Math.abs(freq - f);
+    if (diff < minDiff) { minDiff = diff; nearest = note; }
+  }
+  return { note: nearest, diff: minDiff, freq };
+}
+
+function Tuner() {
+  const [tuning, setTuning] = useState('G4 C4 E4 A4');
+  const [isListening, setIsListening] = useState(false);
+  const [detectedNote, setDetectedNote] = useState(null);
+  const [error, setError] = useState(null);
+  const audioCtxRef = useRef(null);
+  const analyserRef = useRef(null);
+  const streamRef = useRef(null);
+  const rafRef = useRef(null);
+
+  const startTuner = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      audioCtxRef.current = audioCtx;
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 4096;
+      analyserRef.current = analyser;
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+      setIsListening(true);
+      setError(null);
+      detectPitch();
+    } catch (err) {
+      setError('Microphone access denied. Please allow microphone access.');
+    }
+  };
+
+  const stopTuner = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    if (audioCtxRef.current) audioCtxRef.current.close();
+    setIsListening(false);
+    setDetectedNote(null);
+  };
+
+  const autoCorrelate = (buffer, sampleRate) => {
+    const SIZE = buffer.length;
+    let rms = 0;
+    for (let i = 0; i < SIZE; i++) rms += buffer[i] * buffer[i];
+    rms = Math.sqrt(rms / SIZE);
+    if (rms < 0.01) return -1;
+    let r1 = 0, r2 = SIZE - 1;
+    const thresh = 0.2;
+    for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buffer[i]) < thresh) { r1 = i; break; }
+    for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buffer[SIZE - i]) < thresh) { r2 = SIZE - i; break; }
+    const buf = buffer.slice(r1, r2);
+    const c = new Array(buf.length).fill(0);
+    for (let i = 0; i < buf.length; i++) for (let j = 0; j < buf.length; j++) c[i] += buf[j] * buf[j + i];
+    let d = 0;
+    while (c[d] > c[d + 1]) d++;
+    let maxVal = -1, maxPos = -1;
+    for (let i = d; i < buf.length; i++) if (c[i] > maxVal) { maxVal = c[i]; maxPos = i; }
+    let T0 = maxPos;
+    if (T0 < 1) return -1;
+    return sampleRate / T0;
+  };
+
+  const detectPitch = () => {
+    const buffer = new Float32Array(analyserRef.current.fftSize);
+    analyserRef.current.getFloatTimeDomainData(buffer);
+    const freq = autoCorrelate(buffer, audioCtxRef.current.sampleRate);
+    if (freq > 50 && freq < 2000) {
+      setDetectedNote(getNearestNote(freq));
+    }
+    rafRef.current = requestAnimationFrame(detectPitch);
+  };
+
+  useEffect(() => () => stopTuner(), []);
+
+  const gaugePercent = detectedNote
+    ? Math.min(100, Math.max(0, 50 + (detectedNote.diff / 10) * 50 * (detectedNote.freq < NOTE_FREQ_MAP[detectedNote.note] ? -1 : 1)))
+    : 50;
+
+  const gaugeColor = detectedNote
+    ? detectedNote.diff < 5 ? 'in-tune' : detectedNote.diff < 15 ? 'sharp' : 'flat'
+    : '';
+
+  return (
+    <div className="section tuner-container">
+      <h2 className="section-title">Tuner</h2>
+      <div className="tuner-display">
+        <div className="note-display">{detectedNote ? detectedNote.note : '—'}</div>
+        <div className="frequency-display">{detectedNote ? `${detectedNote.freq.toFixed(1)} Hz` : '— Hz'}</div>
+      </div>
+      <div className="tuner-gauge">
+        <div className={`gauge-fill ${gaugeColor}`} style={{ width: `${gaugePercent}%` }} />
+      </div>
+      <div className="tuning-selector">
+        {Object.keys(TUNINGS).map(key => (
+          <button key={key} className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)}>
+            {TUNINGS[key].name}
+          </button>
+        ))}
+      </div>
+      <div className="tuner-controls">
+        <button className="control-btn" onClick={isListening ? stopTuner : startTuner}>
+          {isListening ? 'Stop' : 'Start'}
+        </button>
+      </div>
+      {error && <div className="error-message">{error}</div>}
+      <div className={`tuner-status ${isListening ? 'listening' : 'stopped'}`}>
+        {isListening ? '🎤 Listening...' : 'Press Start to begin'}
+      </div>
+    </div>
+  );
+}
+
+export default Tuner;

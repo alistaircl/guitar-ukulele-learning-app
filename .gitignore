@@ -1,0 +1,13 @@
+# Dependencies
+web/node_modules/
+
+# Build output
+web/build/
+
+# Environment
+*.env
+.env.local
+
+# Misc
+.DS_Store
+*.log
