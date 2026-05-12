@@ -8,64 +8,64 @@ const PRACTICE_SONGS = [
     bpm: 66,
     chords: ['C', 'F', 'G', 'Em', 'Am'],
     lyrics: [
-      { text: "Oooooooo ooooo ooooo ooooo", chord: 'C' },
-      { text: "Somewhere over the rainbow", chord: null },
-      { text: "Way up high", chord: 'F' },
-      { text: "There's a land that I heard of", chord: 'G' },
-      { text: "Once in a lullaby", chord: 'Em' },
-      { text: "Somewhere over the rainbow", chord: 'Am' },
-      { text: "Skies are blue", chord: 'C' },
-      { text: "And the dreams that you dare to dream", chord: null },
-      { text: "Really do come true", chord: 'F' },
-      { text: "Someday I'll wish upon a star", chord: 'G' },
-      { text: "And wake up where the clouds are far behind me", chord: 'Em' },
-      { text: "Where trouble melts like lemon drops", chord: 'Am' },
-      { text: "High above the chimney top", chord: 'C' },
-      { text: "That's where you'll find me", chord: null },
-      { text: "Oooooooo ooooo ooooo ooooo", chord: 'F' },
-      { text: "Somewhere over the rainbow", chord: 'G' },
-      { text: "Bluebirds fly", chord: 'Em' },
-      { text: "Birds fly over the rainbow", chord: 'Am' },
-      { text: "Why then oh why can't I?", chord: 'C' },
-      { text: "If happy little bluebirds fly", chord: null },
-      { text: "Beyond the rainbow", chord: 'F' },
-      { text: "Why oh why can't I?", chord: 'G' },
-      { text: "Well I see trees of green", chord: 'Em' },
-      { text: "Red roses too", chord: 'Am' },
-      { text: "I see them bloom", chord: 'C' },
-      { text: "For me and you", chord: null },
-      { text: "And I think to myself", chord: 'F' },
-      { text: "What a wonderful world", chord: 'G' },
-      { text: "Well I see skies of blue", chord: 'Em' },
-      { text: "And I see clouds of white", chord: 'Am' },
-      { text: "And the brightness of day", chord: 'C' },
-      { text: "I like the dark", chord: null },
-      { text: "And I think to myself", chord: 'F' },
-      { text: "What a wonderful world", chord: 'G' },
-      { text: "The colors of the rainbow", chord: 'Em' },
-      { text: "So pretty in the sky", chord: 'Am' },
-      { text: "Are also on the faces", chord: 'C' },
-      { text: "Of people going by", chord: null },
-      { text: "I see friends shaking hands", chord: 'F' },
-      { text: "Saying how do you do", chord: 'G' },
-      { text: "They're really saying", chord: 'Em' },
-      { text: "I I love you", chord: 'Am' },
-      { text: "I hear babies cry", chord: 'C' },
-      { text: "I watch them grow", chord: null },
-      { text: "They'll learn much more", chord: 'F' },
-      { text: "Than we'll ever know", chord: 'G' },
-      { text: "And I think to myself", chord: 'Em' },
-      { text: "What a wonderful world", chord: 'Am' },
-      { text: "Someday I'll wish upon a star", chord: 'C' },
-      { text: "And wake up where the clouds are far behind me", chord: null },
-      { text: "Where trouble melts like lemon drops", chord: 'F' },
-      { text: "High above the chimney top", chord: 'G' },
-      { text: "That's where you'll find me", chord: 'Em' },
-      { text: "Oooooooo ooooo ooooo ooooo", chord: 'Am' },
-      { text: "Somewhere over the rainbow", chord: 'C' },
-      { text: "Way up high", chord: null },
-      { text: "And the dreams that you dare to dream", chord: 'F' },
-      { text: "Really do come true", chord: 'G' },
+      { text: "Oooooooo ooooo ooooo ooooo", chord: 'C', beats: 4 },
+      { text: "Somewhere over the rainbow", chord: null, beats: 2 },
+      { text: "Way up high", chord: 'F', beats: 2 },
+      { text: "There's a land that I heard of", chord: 'G', beats: 2 },
+      { text: "Once in a lullaby", chord: 'Em', beats: 2 },
+      { text: "Somewhere over the rainbow", chord: 'Am', beats: 2 },
+      { text: "Skies are blue", chord: 'C', beats: 2 },
+      { text: "And the dreams that you dare to dream", chord: null, beats: 2 },
+      { text: "Really do come true", chord: 'F', beats: 2 },
+      { text: "Someday I'll wish upon a star", chord: 'G', beats: 2 },
+      { text: "And wake up where the clouds are far behind me", chord: 'Em', beats: 2 },
+      { text: "Where trouble melts like lemon drops", chord: 'Am', beats: 2 },
+      { text: "High above the chimney top", chord: 'C', beats: 2 },
+      { text: "That's where you'll find me", chord: null, beats: 2 },
+      { text: "Oooooooo ooooo ooooo ooooo", chord: 'F', beats: 4 },
+      { text: "Somewhere over the rainbow", chord: 'G', beats: 2 },
+      { text: "Bluebirds fly", chord: 'Em', beats: 2 },
+      { text: "Birds fly over the rainbow", chord: 'Am', beats: 2 },
+      { text: "Why then oh why can't I?", chord: 'C', beats: 2 },
+      { text: "If happy little bluebirds fly", chord: null, beats: 2 },
+      { text: "Beyond the rainbow", chord: 'F', beats: 2 },
+      { text: "Why oh why can't I?", chord: 'G', beats: 2 },
+      { text: "Well I see trees of green", chord: 'Em', beats: 2 },
+      { text: "Red roses too", chord: 'Am', beats: 2 },
+      { text: "I see them bloom", chord: 'C', beats: 2 },
+      { text: "For me and you", chord: null, beats: 2 },
+      { text: "And I think to myself", chord: 'F', beats: 2 },
+      { text: "What a wonderful world", chord: 'G', beats: 2 },
+      { text: "Well I see skies of blue", chord: 'Em', beats: 2 },
+      { text: "And I see clouds of white", chord: 'Am', beats: 2 },
+      { text: "And the brightness of day", chord: 'C', beats: 2 },
+      { text: "I like the dark", chord: null, beats: 2 },
+      { text: "And I think to myself", chord: 'F', beats: 2 },
+      { text: "What a wonderful world", chord: 'G', beats: 2 },
+      { text: "The colors of the rainbow", chord: 'Em', beats: 2 },
+      { text: "So pretty in the sky", chord: 'Am', beats: 2 },
+      { text: "Are also on the faces", chord: 'C', beats: 2 },
+      { text: "Of people going by", chord: null, beats: 2 },
+      { text: "I see friends shaking hands", chord: 'F', beats: 2 },
+      { text: "Saying how do you do", chord: 'G', beats: 2 },
+      { text: "They're really saying", chord: 'Em', beats: 2 },
+      { text: "I I love you", chord: 'Am', beats: 2 },
+      { text: "I hear babies cry", chord: 'C', beats: 2 },
+      { text: "I watch them grow", chord: null, beats: 2 },
+      { text: "They'll learn much more", chord: 'F', beats: 2 },
+      { text: "Than we'll ever know", chord: 'G', beats: 2 },
+      { text: "And I think to myself", chord: 'Em', beats: 2 },
+      { text: "What a wonderful world", chord: 'Am', beats: 2 },
+      { text: "Someday I'll wish upon a star", chord: 'C', beats: 2 },
+      { text: "And wake up where the clouds are far behind me", chord: null, beats: 2 },
+      { text: "Where trouble melts like lemon drops", chord: 'F', beats: 2 },
+      { text: "High above the chimney top", chord: 'G', beats: 2 },
+      { text: "That's where you'll find me", chord: 'Em', beats: 2 },
+      { text: "Oooooooo ooooo ooooo ooooo", chord: 'Am', beats: 4 },
+      { text: "Somewhere over the rainbow", chord: 'C', beats: 2 },
+      { text: "Way up high", chord: null, beats: 2 },
+      { text: "And the dreams that you dare to dream", chord: 'F', beats: 2 },
+      { text: "Really do come true", chord: 'G', beats: 2 },
     ]
   },
   { id: 2, title: 'You Are My Sunshine',
@@ -74,15 +74,15 @@ const PRACTICE_SONGS = [
     key: 'C',
     bpm: 138,
     chords: ['C', 'F', 'G'],
-    lyrics: [
-      { text: 'You are my sunshine', chord: 'C' },
-      { text: 'My only sunshine', chord: 'F' },
-      { text: 'You make me happy', chord: 'C' },
-      { text: "When skies are gray", chord: 'G' },
-      { text: "You'll never know dear", chord: 'C' },
-      { text: 'How much I love you', chord: 'F' },
-      { text: "Please don't take", chord: 'C' },
-      { text: 'My sunshine away', chord: 'G' },
+lyrics: [
+      { text: 'You are my sunshine', chord: 'C', beats: 2 },
+      { text: 'My only sunshine', chord: 'F', beats: 2 },
+      { text: 'You make me happy', chord: 'C', beats: 2 },
+      { text: "When skies are gray", chord: 'G', beats: 2 },
+      { text: "You'll never know dear", chord: 'C', beats: 2 },
+      { text: 'How much I love you', chord: 'F', beats: 2 },
+      { text: "Please don't take", chord: 'C', beats: 2 },
+      { text: 'My sunshine away', chord: 'G', beats: 2 },
     ]
   },
   { id: 3, title: 'Let It Be',
@@ -92,14 +92,14 @@ const PRACTICE_SONGS = [
     bpm: 76,
     chords: ['C', 'G', 'Am', 'F'],
     lyrics: [
-      { text: 'When I find myself in times of trouble', chord: 'C' },
-      { text: 'Mother Mary comes to me', chord: 'G' },
-      { text: 'Speaking words of wisdom', chord: 'Am' },
-      { text: 'Let it be', chord: 'F' },
-      { text: 'And in my hour of darkness', chord: 'C' },
-      { text: 'She is standing right in front of me', chord: 'G' },
-      { text: 'Speaking words of wisdom', chord: 'Am' },
-      { text: 'Let it be', chord: 'F' },
+      { text: 'When I find myself in times of trouble', chord: 'C', beats: 2 },
+      { text: 'Mother Mary comes to me', chord: 'G', beats: 2 },
+      { text: 'Speaking words of wisdom', chord: 'Am', beats: 2 },
+      { text: 'Let it be', chord: 'F', beats: 2 },
+      { text: 'And in my hour of darkness', chord: 'C', beats: 2 },
+      { text: 'She is standing right in front of me', chord: 'G', beats: 2 },
+      { text: 'Speaking words of wisdom', chord: 'Am', beats: 2 },
+      { text: 'Let it be', chord: 'F', beats: 2 },
     ]
   },
   { id: 4, title: 'House of Gold',
@@ -109,10 +109,10 @@ const PRACTICE_SONGS = [
     bpm: 150,
     chords: ['G', 'C', 'Em', 'D'],
     lyrics: [
-      { text: 'How do you think I\'m going to feel', chord: 'G' },
-      { text: 'When I\'m coming home again', chord: 'C' },
-      { text: 'Tell me tell me', chord: 'Em' },
-      { text: 'What do you see when you look at me', chord: 'D' },
+      { text: 'How do you think I\'m going to feel', chord: 'G', beats: 2 },
+      { text: 'When I\'m coming home again', chord: 'C', beats: 2 },
+      { text: 'Tell me tell me', chord: 'Em', beats: 2 },
+      { text: 'What do you see when you look at me', chord: 'D', beats: 2 },
     ]
   },
   { id: 5, title: 'Stand By Me',
@@ -122,10 +122,10 @@ const PRACTICE_SONGS = [
     bpm: 120,
     chords: ['A', 'F#m', 'D', 'E'],
     lyrics: [
-      { text: 'When the night has come', chord: 'A' },
-      { text: 'And the land is dark', chord: 'F#m' },
-      { text: 'And the moon is the only light we\'ll see', chord: 'D' },
-      { text: 'No I won\'t be afraid', chord: 'E' },
+      { text: 'When the night has come', chord: 'A', beats: 2 },
+      { text: 'And the land is dark', chord: 'F#m', beats: 2 },
+      { text: 'And the moon is the only light we\'ll see', chord: 'D', beats: 2 },
+      { text: 'No I won\'t be afraid', chord: 'E', beats: 2 },
     ]
   },
   { id: 6, title: 'Riptide',
@@ -135,10 +135,10 @@ const PRACTICE_SONGS = [
     bpm: 158,
     chords: ['Am', 'G', 'C', 'F'],
     lyrics: [
-      { text: 'I was scared of dentists and the dark', chord: 'Am' },
-      { text: 'I was scared of pretty girls and Sunday mornings', chord: 'G' },
-      { text: 'I was scared of little bits of paper in the park', chord: 'C' },
-      { text: 'And I turned around and you were gone', chord: 'F' },
+      { text: 'I was scared of dentists and the dark', chord: 'Am', beats: 2 },
+      { text: 'I was scared of pretty girls and Sunday mornings', chord: 'G', beats: 2 },
+      { text: 'I was scared of little bits of paper in the park', chord: 'C', beats: 2 },
+      { text: 'And I turned around and you were gone', chord: 'F', beats: 2 },
     ]
   },
   { id: 7, title: 'Thinking Out Loud',
@@ -148,10 +148,10 @@ const PRACTICE_SONGS = [
     bpm: 79,
     chords: ['Em', 'G', 'D', 'C'],
     lyrics: [
-      { text: 'When your legs don\'t work like they used to before', chord: 'Em' },
-      { text: 'And I can\'t sweep you off of your feet', chord: 'G' },
-      { text: 'Will your mouth still remember the taste of my love', chord: 'D' },
-      { text: 'Will your eyes still smile from your cheeks', chord: 'C' },
+      { text: 'When your legs don\'t work like they used to before', chord: 'Em', beats: 2 },
+      { text: 'And I can\'t sweep you off of your feet', chord: 'G', beats: 2 },
+      { text: 'Will your mouth still remember the taste of my love', chord: 'D', beats: 2 },
+      { text: 'Will your eyes still smile from your cheeks', chord: 'C', beats: 2 },
     ]
   },
   { id: 8, title: 'I\'m Yours',
@@ -161,10 +161,10 @@ const PRACTICE_SONGS = [
     bpm: 104,
     chords: ['B', 'E', 'G#m', 'F#'],
     lyrics: [
-      { text: 'Well I\'ve been playing hard to get', chord: 'B' },
-      { text: 'Time to make my heart bet', chord: 'E' },
-      { text: 'I wanna be yours, pretty baby', chord: 'G#m' },
-      { text: 'Don\'t you make me wait too long', chord: 'F#' },
+      { text: 'Well I\'ve been playing hard to get', chord: 'B', beats: 2 },
+      { text: 'Time to make my heart bet', chord: 'E', beats: 2 },
+      { text: 'I wanna be yours, pretty baby', chord: 'G#m', beats: 2 },
+      { text: 'Don\'t you make me wait too long', chord: 'F#', beats: 2 },
     ]
   },
 ];
@@ -248,8 +248,11 @@ function PracticeMode({ initialSongId, onDone }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // BPM-based interval: each lyric line = 2 beats (half a bar in 4/4 time)
-  const getLineDuration = () => (60 / selectedSong.bpm) * 2000;
+  // Per-beat duration: one beat in ms at the current BPM
+  const beatDuration = () => (60 / selectedSong.bpm) * 1000;
+
+  // Per-line duration: beats field × beat duration (defaults to 2 beats if missing)
+  const lineDuration = (line) => beatDuration() * (line.beats || 2);
 
   // Auto-scroll the active line into view
   const scrollToLine = useCallback((idx) => {
@@ -282,8 +285,6 @@ function PracticeMode({ initialSongId, onDone }) {
     setIsPlaying(true);
     setCurrentIndex(0);
     
-    const interval = getLineDuration();
-    
     // Pulse animation on the beat
     setBeatPulse(true);
     setTimeout(() => setBeatPulse(false), 150);
@@ -293,30 +294,37 @@ function PracticeMode({ initialSongId, onDone }) {
       playChord(selectedSong.lyrics[0].chord);
     }
     
-    let idx = 0;
-    timerRef.current = setInterval(() => {
-      idx++;
-      
-      if (idx >= selectedSong.lyrics.length) {
-        // Song finished
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-        setIsPlaying(false);
-        setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
-        return;
-      }
-      
-      setCurrentIndex(idx);
-      setBeatPulse(true);
-      setTimeout(() => setBeatPulse(false), 150);
-      setFeedback(null);
-      scrollToLine(idx);
-      
-      // Play chord on beat
-      if (selectedSong.lyrics[idx].chord) {
-        playChord(selectedSong.lyrics[idx].chord);
-      }
-    }, interval);
+    // Use setTimeout chain: each line advances after its own beats duration
+    const advance = (idx) => {
+      timerRef.current = setTimeout(() => {
+        const next = idx + 1;
+        
+        if (next >= selectedSong.lyrics.length) {
+          // Song finished
+          timerRef.current = null;
+          setIsPlaying(false);
+          setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
+          return;
+        }
+        
+        setCurrentIndex(next);
+        setBeatPulse(true);
+        setTimeout(() => setBeatPulse(false), 150);
+        setFeedback(null);
+        scrollToLine(next);
+        
+        // Play chord on beat
+        if (selectedSong.lyrics[next].chord) {
+          playChord(selectedSong.lyrics[next].chord);
+        }
+        
+        // Schedule the next line with its own beat count
+        advance(next);
+      }, lineDuration(selectedSong.lyrics[idx]));
+    };
+    
+    // Start the chain from the first line
+    advance(0);
   };
 
   const stopAutoplay = () => {
