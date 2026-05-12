@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 const PRACTICE_SONGS = [
   { id: 1, title: 'Somewhere Over the Rainbow',
@@ -178,24 +178,46 @@ function PracticeMode({ initialSongId, onDone }) {
     return PRACTICE_SONGS[0];
   });
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showNext, setShowNext] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [countdown, setCountdown] = useState(null);
   const [streak, setStreak] = useState(0);
   const [totalCorrect, setTotalCorrect] = useState(0);
   const [feedback, setFeedback] = useState(null);
+  const [beatPulse, setBeatPulse] = useState(false);
+  
   const audioCtxRef = useRef(null);
+  const timerRef = useRef(null);
+  const countdownRef = useRef(null);
+  const displayRef = useRef(null);
 
   // If initialSongId changes (user picks a new song from SongLibrary), switch to it
-  React.useEffect(() => {
+  useEffect(() => {
     if (initialSongId) {
       const found = PRACTICE_SONGS.find(s => s.id === initialSongId);
       if (found) {
         setSelectedSong(found);
-        setCurrentIndex(0);
-        setShowNext(false);
-        setFeedback(null);
+        resetSong();
       }
     }
   }, [initialSongId]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (countdownRef.current) clearTimeout(countdownRef.current);
+      if (audioCtxRef.current) audioCtxRef.current.close();
+    };
+  }, []);
+
+  const resetSong = () => {
+    setIsPlaying(false);
+    setCurrentIndex(0);
+    setCountdown(null);
+    setFeedback(null);
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (countdownRef.current) clearTimeout(countdownRef.current);
+  };
 
   const playNote = (freq) => {
     if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -203,108 +225,381 @@ function PracticeMode({ initialSongId, onDone }) {
     const gain = audioCtxRef.current.createGain();
     osc.connect(gain);
     gain.connect(audioCtxRef.current.destination);
+    osc.type = 'triangle';
     osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.3, audioCtxRef.current.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtxRef.current.currentTime + 0.5);
+    gain.gain.setValueAtTime(0.25, audioCtxRef.current.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtxRef.current.currentTime + 0.4);
     osc.start();
-    osc.stop(audioCtxRef.current.currentTime + 0.5);
+    osc.stop(audioCtxRef.current.currentTime + 0.4);
   };
 
-  const CHORD_FREQ = { 'C': 261.63, 'F': 349.23, 'G': 392.00, 'Em': 329.63, 'Am': 440.00, 'E': 329.63 };
+  const CHORD_FREQ = { 
+    'C': 261.63, 'F': 349.23, 'G': 392.00, 'Em': 329.63, 'Am': 440.00, 
+    'E': 329.63, 'D': 293.66, 'A': 440.00, 'B': 493.88, 
+    'F#': 369.99, 'F#m': 369.99, 'G#m': 415.30, 'Dm': 293.66, 
+    'E7': 329.63, 'A7': 440.00, 'B7': 493.88 
+  };
 
-  const playChord = (chord) => {
+  const playChord = useCallback((chord) => {
+    if (!chord) return;
     const freq = CHORD_FREQ[chord] || 440;
     playNote(freq);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // BPM-based interval per line: each line = 1 beat at the given BPM
+  const getBeatDuration = () => (60 / selectedSong.bpm) * 1000;
+
+  const startAutoplay = () => {
+    setCountdown(3);
+    let count = 3;
+    const countdownStep = () => {
+      if (count > 0) {
+        setCountdown(count);
+        count--;
+        countdownRef.current = setTimeout(countdownStep, 800);
+      } else {
+        setCountdown('Go!');
+        countdownRef.current = setTimeout(() => {
+          setCountdown(null);
+          beginPlayback();
+        }, 600);
+      }
+    };
+    countdownStep();
+  };
+
+  const beginPlayback = () => {
+    setIsPlaying(true);
+    setCurrentIndex(0);
+    
+    const interval = getBeatDuration();
+    
+    // Pulse animation on the beat
+    setBeatPulse(true);
+    setTimeout(() => setBeatPulse(false), 150);
+    
+    // Play first chord immediately
+    if (selectedSong.lyrics[0].chord) {
+      playChord(selectedSong.lyrics[0].chord);
+    }
+    
+    let idx = 0;
+    timerRef.current = setInterval(() => {
+      idx++;
+      
+      if (idx >= selectedSong.lyrics.length) {
+        // Song finished
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+        setIsPlaying(false);
+        setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
+        return;
+      }
+      
+      setCurrentIndex(idx);
+      setBeatPulse(true);
+      setTimeout(() => setBeatPulse(false), 150);
+      setFeedback(null);
+      
+      // Play chord on beat
+      if (selectedSong.lyrics[idx].chord) {
+        playChord(selectedSong.lyrics[idx].chord);
+      }
+    }, interval);
+  };
+
+  const stopAutoplay = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setIsPlaying(false);
+  };
+
+  const markCorrect = () => {
+    setFeedback({ type: 'correct', message: '✓ Nice!' });
+    setStreak(s => s + 1);
+    setTotalCorrect(t => t + 1);
+    if (selectedSong.lyrics[currentIndex].chord) {
+      playChord(selectedSong.lyrics[currentIndex].chord);
+    }
+  };
+
+  const markIncorrect = () => {
+    setFeedback({ type: 'incorrect', message: '✗ Keep trying!' });
+    setStreak(0);
+  };
+
+  const goToLine = (idx) => {
+    if (idx >= 0 && idx < selectedSong.lyrics.length) {
+      setCurrentIndex(idx);
+      setFeedback(null);
+    }
   };
 
   const nextLine = () => {
     if (currentIndex < selectedSong.lyrics.length - 1) {
-      setCurrentIndex(i => i + 1);
-      setShowNext(false);
-      setFeedback(null);
+      goToLine(currentIndex + 1);
     }
   };
 
   const prevLine = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(i => i - 1);
-      setShowNext(false);
-      setFeedback(null);
+      goToLine(currentIndex - 1);
     }
   };
-
-  const revealAnswer = () => setShowNext(true);
-
-  const markCorrect = () => {
-    setFeedback('correct');
-    setStreak(s => s + 1);
-    setTotalCorrect(t => t + 1);
-    playChord(selectedSong.lyrics[currentIndex].chord);
-    setTimeout(nextLine, 1500);
-  };
-
-  const markIncorrect = () => {
-    setFeedback('incorrect');
-    setStreak(0);
-    setTimeout(() => setFeedback(null), 1000);
-  };
-
-  useEffect(() => {
-    return () => { if (audioCtxRef.current) audioCtxRef.current.close(); };
-  }, []);
 
   const current = selectedSong.lyrics[currentIndex];
 
   return (
     <div className="section">
-      <h2 className="section-title">Practice Mode</h2>
-
-      <div className="practice-container">
-        <div className="practice-controls">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <select
             value={selectedSong?.title || ''}
-            onChange={e => { setSelectedSong(PRACTICE_SONGS.find(s => s.title === e.target.value)); setCurrentIndex(0); setShowNext(false); setFeedback(null); }}
+            onChange={e => {
+              const song = PRACTICE_SONGS.find(s => s.title === e.target.value);
+              setSelectedSong(song);
+              resetSong();
+            }}
+            disabled={isPlaying}
             style={{ padding: '0.5rem', borderRadius: 8, border: 'none', background: 'var(--bg-tertiary)', color: 'var(--text-primary)', fontSize: '0.9rem' }}
           >
             {PRACTICE_SONGS.map(s => <option key={s.id} value={s.title}>{s.title}</option>)}
           </select>
-          <button className="control-btn" onClick={prevLine} disabled={currentIndex === 0}>← Prev</button>
-          <button className="control-btn" onClick={revealAnswer} disabled={showNext}>Show Chords</button>
-          <button className="control-btn" onClick={nextLine} disabled={currentIndex === selectedSong.lyrics.length - 1}>Next →</button>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+            {selectedSong.bpm} BPM • {selectedSong.artist}
+          </span>
         </div>
+        <div>
+          {!isPlaying && countdown === null && (
+            <button className="control-btn" onClick={startAutoplay} style={{ background: 'var(--accent-primary)', color: 'white', fontSize: '1rem', padding: '0.6rem 1.5rem' }}>
+              ▶ Start
+            </button>
+          )}
+          {isPlaying && (
+            <button className="control-btn" onClick={stopAutoplay} style={{ background: 'var(--danger)', color: 'white' }}>
+              ⏹ Stop
+            </button>
+          )}
+        </div>
+      </div>
 
-        <div className="practice-display">
-          {selectedSong.lyrics.map((line, idx) => (
-            <div
-              key={idx}
-              className="practice-lyrics"
-              style={{ opacity: idx === currentIndex ? 1 : 0.3, fontSize: idx === currentIndex ? '1.5rem' : '1rem' }}
-            >
-              <div className={`practice-chord ${showNext && idx === currentIndex ? 'active' : ''}`}>
-                {showNext || idx < currentIndex ? line.chord || '—' : '♪'}
-              </div>
-              {line.text}
+      {/* Countdown overlay */}
+      {countdown !== null && (
+        <div style={{
+          position: 'relative', height: '300px', display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+          background: 'var(--bg-tertiary)', borderRadius: 'var(--border-radius)',
+          marginBottom: '1rem'
+        }}>
+          <span style={{ 
+            fontSize: countdown === 'Go!' ? '4rem' : '6rem', 
+            fontWeight: 'bold',
+            color: countdown === 'Go!' ? 'var(--success)' : 'var(--accent-primary)',
+            animation: 'countdownPop 0.6s ease-out'
+          }}>
+            {countdown}
+          </span>
+        </div>
+      )}
+
+      {/* Main practice display — karaoke style */}
+      {countdown === null && (
+        <div 
+          ref={displayRef}
+          style={{
+            background: 'var(--bg-tertiary)',
+            borderRadius: 'var(--border-radius)',
+            padding: '1rem 1.25rem',
+            position: 'relative',
+            overflow: 'hidden',
+            marginBottom: '1rem'
+          }}
+        >
+          {/* Current chord display — big and prominent */}
+          {current.chord && (
+            <div style={{
+              textAlign: 'center',
+              marginBottom: '0.5rem',
+              padding: '0.5rem',
+            }}>
+              <span style={{
+                fontSize: '2.2rem',
+                fontWeight: 'bold',
+                color: 'var(--accent-primary)',
+                display: 'inline-block',
+                padding: '0.3rem 1.2rem',
+                borderRadius: '12px',
+                background: beatPulse ? 'rgba(102, 126, 234, 0.2)' : 'transparent',
+                transform: beatPulse ? 'scale(1.15)' : 'scale(1)',
+                transition: 'transform 0.1s ease-out, background 0.1s ease-out',
+                textShadow: beatPulse ? '0 0 20px rgba(102, 126, 234, 0.6)' : 'none',
+              }}>
+                {current.chord}
+              </span>
             </div>
-          ))}
-        </div>
+          )}
 
-        {feedback && (
-          <div className={`practice-status`}>
-            <span className={`status-text ${feedback}`}>{feedback === 'correct' ? '✓ Correct! Keep going!' : '✗ Try again!'}</span>
+          {/* Bouncing dot indicator — follows the active line */}
+          <div style={{
+            position: 'absolute',
+            left: '0.3rem',
+            top: `${(currentIndex * (48 / selectedSong.lyrics.length)) * selectedSong.lyrics.length / 2 + 50}px`,
+            transition: 'top 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+          }}>
+            <span style={{
+              display: 'inline-block',
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              background: 'var(--accent-primary)',
+              boxShadow: '0 0 12px rgba(102, 126, 234, 0.8)',
+              animation: isPlaying ? 'bounce 0.6s infinite alternate' : 'none',
+            }} />
           </div>
-        )}
 
-        <div className="practice-status" style={{ display: 'flex', justifyContent: 'space-around' }}>
-          <span>Streak: {streak} 🔥</span>
-          <span>Progress: {currentIndex + 1}/{selectedSong.lyrics.length}</span>
-          <span>Total: {totalCorrect} ✓</span>
+          {/* Lyrics lines */}
+          <div style={{ 
+            maxHeight: '420px', 
+            overflowY: 'auto',
+            scrollBehavior: 'smooth',
+            padding: '0.5rem 1.5rem',
+          }}>
+            {selectedSong.lyrics.map((line, idx) => {
+              const isCurrent = idx === currentIndex;
+              const isPast = idx < currentIndex;
+              const isUpcoming = idx > currentIndex;
+              
+              return (
+                <div
+                  key={idx}
+                  role="button"
+                  tabIndex={isPlaying ? -1 : 0}
+                  aria-current={isCurrent ? 'step' : undefined}
+                  onClick={() => !isPlaying && goToLine(idx)}
+                  onKeyDown={e => {
+                    if (!isPlaying && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      goToLine(idx);
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    padding: '0.5rem 0.75rem',
+                    margin: '0.15rem 0',
+                    borderRadius: '8px',
+                    cursor: isPlaying ? 'default' : 'pointer',
+                    background: isCurrent 
+                      ? (beatPulse ? 'rgba(102, 126, 234, 0.15)' : 'rgba(255, 255, 255, 0.06)')
+                      : 'transparent',
+                    transition: 'all 0.2s ease',
+                    borderLeft: isCurrent ? '3px solid var(--accent-primary)' : '3px solid transparent',
+                    opacity: isPast ? 0.4 : isUpcoming ? 0.55 : 1,
+                  }}
+                >
+                  {/* Chord hint on each line */}
+                  <span style={{
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    color: isCurrent ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    opacity: line.chord ? 1 : 0,
+                    minHeight: '1rem',
+                    transform: isCurrent && beatPulse ? 'scale(1.1)' : 'scale(1)',
+                    transition: 'transform 0.1s ease',
+                  }}>
+                    {line.chord || '\u00A0'}
+                  </span>
+                  {/* Lyric text */}
+                  <span style={{
+                    fontSize: isCurrent ? '1.3rem' : '1rem',
+                    fontWeight: isCurrent ? '600' : '400',
+                    color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    lineHeight: '1.4',
+                  }}>
+                    {line.text}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
+      )}
 
-        <div className="practice-controls" style={{ marginTop: '1rem' }}>
-          <button className="control-btn" style={{ background: 'var(--success)' }} onClick={markCorrect}>✓ Got it!</button>
-          <button className="control-btn" style={{ background: 'var(--danger)' }} onClick={markIncorrect}>✗ Missed it</button>
-          <button className="control-btn" style={{ background: 'var(--accent-secondary)' }} onClick={() => playChord(current.chord)}>🔊 Play chord</button>
+      {/* Feedback display */}
+      {feedback && (
+        <div style={{
+          textAlign: 'center',
+          padding: '0.75rem',
+          borderRadius: '8px',
+          background: feedback.type === 'correct' ? 'rgba(0, 255, 136, 0.1)' 
+                     : feedback.type === 'incorrect' ? 'rgba(255, 77, 77, 0.1)' 
+                     : feedback.type === 'complete' ? 'rgba(102, 126, 234, 0.15)'
+                     : 'var(--bg-tertiary)',
+          marginBottom: '0.75rem',
+          animation: 'fadeInUp 0.3s ease-out',
+        }}>
+          <span style={{ 
+            fontSize: '1.2rem',
+            color: feedback.type === 'correct' ? 'var(--success)'
+                 : feedback.type === 'incorrect' ? 'var(--danger)'
+                 : feedback.type === 'complete' ? 'var(--accent-primary)'
+                 : 'var(--text-primary)',
+          }}>
+            {feedback.message}
+          </span>
         </div>
+      )}
+
+      {/* Status bar */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        padding: '0.75rem',
+        background: 'var(--bg-tertiary)',
+        borderRadius: 'var(--border-radius)',
+        marginBottom: '0.75rem',
+      }}>
+        <span>🔥 {streak}</span>
+        <span>{currentIndex + 1} / {selectedSong.lyrics.length}</span>
+        <span>✓ {totalCorrect}</span>
+      </div>
+
+      {/* Action buttons */}
+      <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <button className="control-btn" onClick={prevLine} disabled={currentIndex === 0}>
+          ← Prev
+        </button>
+        <button 
+          className="control-btn" 
+          onClick={markCorrect}
+          style={{ background: 'var(--success)', color: 'white' }}
+        >
+          ✓ Got it!
+        </button>
+        <button 
+          className="control-btn" 
+          onClick={markIncorrect}
+          style={{ background: 'var(--danger)', color: 'white' }}
+        >
+          ✗ Missed
+        </button>
+        <button 
+          className="control-btn" 
+          onClick={() => current.chord && playChord(current.chord)}
+          style={{ background: 'var(--accent-secondary)' }}
+        >
+          🔊 Play
+        </button>
+        <button className="control-btn" onClick={nextLine} disabled={currentIndex === selectedSong.lyrics.length - 1}>
+          Next →
+        </button>
       </div>
     </div>
   );
