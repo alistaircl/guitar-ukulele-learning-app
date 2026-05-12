@@ -15,7 +15,7 @@ const CHORDS = [
   { name: 'A7', frets: [2, 2, 1, 2], fingers: [1, 2, 0, 3] },
 ];
 
-function ChordDiagram({ frets, size = 100 }) {
+function ChordDiagram({ frets, size = 100, className }) {
   // Layout constants (proportional)
   const svgW = size;
   const svgH = size + 22; // extra 22px for open/muted markers
@@ -142,12 +142,12 @@ function ChordCard({ chord, selected, onClick }) {
       onClick={onClick}
       role="button"
       aria-pressed={selected}
-      aria-label={`${chord.name} chord`}
+      aria-label={`${chord.name} chord diagram showing ${chord.frets.filter(f => f > 0).length} finger positions`}
       tabIndex={0}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
     >
       <div className="chord-name">{chord.name}</div>
-      <ChordDiagram frets={chord.frets} size={100} />
+      <ChordDiagram frets={chord.frets} size={100} className="chord-diagram" />
       <div className="chord-fingers">
         {fingerCount > 0
           ? `${fingerCount} finger${fingerCount > 1 ? 's' : ''}`
