@@ -31,10 +31,8 @@ function ChordDiagram({ frets, size = 100, className }) {
   // String x positions (4 strings)
   const strX = Array.from({ length: 4 }, (_, i) => strAreaX + (i / 3) * strAreaW);
 
-  // Determine the starting fret (for barre chords that start above fret 1)
-  const fingered = frets.filter(f => f > 0);
-  const minFret = fingered.length > 0 ? Math.min(...fingered) : 1;
-  const startFret = minFret > 1 ? minFret : 1;
+  // Always start from first fret to show open positions clearly
+  const startFret = 1;
 
   // Draw open/muted markers above the nut
   const renderTopMarkers = () => {
