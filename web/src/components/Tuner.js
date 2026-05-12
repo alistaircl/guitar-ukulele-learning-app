@@ -48,7 +48,15 @@ function Tuner() {
       setError(null);
       detectPitch();
     } catch (err) {
-      setError('Microphone access denied. Please allow microphone access.');
+      if (err.name === 'NotAllowedError') {
+        setError('Microphone access denied. Please allow mic access in your browser settings.');
+      } else if (err.name === 'NotFoundError') {
+        setError('No microphone found. Please connect a microphone and try again.');
+      } else if (err.name === 'NotReadableError') {
+        setError('Microphone is in use by another app. Please close other apps and try again.');
+      } else {
+        setError(`Microphone error: ${err.message || 'Unknown error'}. Please check your mic.`);
+      }
     }
   };
 
