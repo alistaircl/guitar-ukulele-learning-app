@@ -2,6 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 
 const PRACTICE_SONGS = [
   { id: 1, title: 'Somewhere Over the Rainbow',
+    artist: 'Israel Kamakawiwo\'ole',
+    difficulty: 'Beginner',
+    key: 'C',
+    bpm: 66,
+    chords: ['C', 'F', 'G', 'Em', 'Am'],
     lyrics: [
       { text: 'Someday', chord: 'C' },
       { text: "I'll wish upon a star", chord: null },
@@ -12,6 +17,11 @@ const PRACTICE_SONGS = [
     ]
   },
   { id: 2, title: 'You Are My Sunshine',
+    artist: 'Traditional',
+    difficulty: 'Beginner',
+    key: 'C',
+    bpm: 138,
+    chords: ['C', 'F', 'G'],
     lyrics: [
       { text: 'You are my sunshine', chord: 'C' },
       { text: 'My only sunshine', chord: 'F' },
@@ -24,6 +34,11 @@ const PRACTICE_SONGS = [
     ]
   },
   { id: 3, title: 'Let It Be',
+    artist: 'The Beatles',
+    difficulty: 'Beginner',
+    key: 'C',
+    bpm: 76,
+    chords: ['C', 'G', 'Am', 'F'],
     lyrics: [
       { text: 'When I find myself in times of trouble', chord: 'C' },
       { text: 'Mother Mary comes to me', chord: 'G' },
@@ -36,6 +51,11 @@ const PRACTICE_SONGS = [
     ]
   },
   { id: 4, title: 'House of Gold',
+    artist: 'Twenty One Pilots',
+    difficulty: 'Intermediate',
+    key: 'G',
+    bpm: 150,
+    chords: ['G', 'C', 'Em', 'D'],
     lyrics: [
       { text: 'How do you think I\'m going to feel', chord: 'G' },
       { text: 'When I\'m coming home again', chord: 'C' },
@@ -44,6 +64,11 @@ const PRACTICE_SONGS = [
     ]
   },
   { id: 5, title: 'Stand By Me',
+    artist: 'Ben E. King',
+    difficulty: 'Intermediate',
+    key: 'A',
+    bpm: 120,
+    chords: ['A', 'F#m', 'D', 'E'],
     lyrics: [
       { text: 'When the night has come', chord: 'A' },
       { text: 'And the land is dark', chord: 'F#m' },
@@ -52,6 +77,11 @@ const PRACTICE_SONGS = [
     ]
   },
   { id: 6, title: 'Riptide',
+    artist: 'Vance Joy',
+    difficulty: 'Intermediate',
+    key: 'Am',
+    bpm: 158,
+    chords: ['Am', 'G', 'C', 'F'],
     lyrics: [
       { text: 'I was scared of dentists and the dark', chord: 'Am' },
       { text: 'I was scared of pretty girls and Sunday mornings', chord: 'G' },
@@ -60,6 +90,11 @@ const PRACTICE_SONGS = [
     ]
   },
   { id: 7, title: 'Thinking Out Loud',
+    artist: 'Ed Sheeran',
+    difficulty: 'Intermediate',
+    key: 'D',
+    bpm: 79,
+    chords: ['Em', 'G', 'D', 'C'],
     lyrics: [
       { text: 'When your legs don\'t work like they used to before', chord: 'Em' },
       { text: 'And I can\'t sweep you off of your feet', chord: 'G' },
@@ -68,6 +103,11 @@ const PRACTICE_SONGS = [
     ]
   },
   { id: 8, title: 'I\'m Yours',
+    artist: 'Jason Mraz',
+    difficulty: 'Beginner',
+    key: 'B',
+    bpm: 104,
+    chords: ['B', 'E', 'G#m', 'F#'],
     lyrics: [
       { text: 'Well I\'ve been playing hard to get', chord: 'B' },
       { text: 'Time to make my heart bet', chord: 'E' },
