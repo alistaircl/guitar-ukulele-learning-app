@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import ChordDiagram from './ChordLibrary'; // Reuse the ChordDiagram from ChordLibrary
-
 // Import the song data with lyrics from PracticeMode
 import { PRACTICE_SONGS } from './PracticeMode';
 
@@ -14,6 +13,9 @@ function SongDetail({ songId, onBack }) {
   if (!song) {
     return <div>Song not found</div>;
   }
+
+  // Get unique chords in order of appearance
+  const uniqueChords = [...new Set(song.chords)];
 
   return (
     <div className="section">
@@ -32,12 +34,12 @@ function SongDetail({ songId, onBack }) {
         {song.artist} • {song.key} major • {song.bpm} BPM
       </div>
 
-      {/* Chords Section */}
+      {/* Concise Chords Section - just show chord names, no diagrams */}
       <div style={{ marginBottom: '1.5rem' }}>
-        <h3 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Chords</h3>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {song.chords.map((chord, index) => (
-            <div 
+        <h3 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Chords in this song</h3>
+        <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+          {uniqueChords.map((chord, index) => (
+            <span 
               key={`${song.id}-chord-${index}`} 
               onClick={() => setSelectedChord(chord)}
               onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedChord(chord); } }}
@@ -46,26 +48,23 @@ function SongDetail({ songId, onBack }) {
               aria-pressed={selectedChord === chord}
               style={{
                 border: selectedChord === chord ? '2px solid var(--accent-primary)' : '1px solid var(--bg-tertiary)',
-                borderRadius: '8px',
-                padding: '0.5rem',
+                borderRadius: '4px',
+                padding: '0.3rem 0.6rem',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                fontSize: '0.85rem',
+                fontWeight: '500',
+                transition: 'all 0.2s ease',
+                background: selectedChord === chord ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                color: selectedChord === chord ? 'white' : 'var(--text-primary)'
               }}
             >
-              <ChordDiagram 
-                frets={getChordFrets(chord)} 
-                size={80} 
-                className="chord-diagram"
-              />
-              <div style={{ textAlign: 'center', marginTop: '0.25rem', fontSize: '0.85rem', fontWeight: '500' }}>
-                {chord}
-              </div>
-            </div>
+              {chord}
+            </span>
           ))}
         </div>
       </div>
 
-      {/* Selected Chord Detail */}
+      {/* Selected Chord Detail (optional - show when chord is clicked) */}
       {selectedChord && (
         <div style={{ background: 'var(--bg-tertiary)', borderRadius: '8px', padding: '1rem', marginBottom: '1.5rem' }}>
           <h3 style={{ marginTop: 0 }}>{selectedChord} Chord</h3>
@@ -86,18 +85,17 @@ function SongDetail({ songId, onBack }) {
         </div>
       )}
 
-      {/* Lyrics Section */}
+      {/* Lyrics Section with chords overlay */}
       <div>
         <h3 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Lyrics</h3>
-        <div style={{ lineHeight: '1.8', fontSize: '1.1rem' }}>
+        <div style={{ lineHeight: '2.0', fontSize: '1.1rem', position: 'relative' }}>
           {song.lyrics.map((line, index) => (
             <div 
               key={`${song.id}-lyric-${index}`} 
               style={{ 
-                display: 'flex', 
-                alignItems: 'baseline', 
-                marginBottom: '0.75rem',
-                position: 'relative'
+                position: 'relative', 
+                marginBottom: '1.5rem',
+                minHeight: '2.5rem'  // Ensure space for chord above
               }}
             >
               {/* Chord above the lyric line */}
@@ -106,8 +104,8 @@ function SongDetail({ songId, onBack }) {
                   style={{ 
                     position: 'absolute', 
                     left: 0, 
-                    top: '-1.5rem', 
-                    fontSize: '0.9rem', 
+                    top: '-1.8rem', 
+                    fontSize: '1rem', 
                     fontWeight: '600',
                     color: 'var(--accent-primary)',
                     textAlign: 'center',
@@ -117,7 +115,7 @@ function SongDetail({ songId, onBack }) {
                   {line.chord}
                 </div>
               )}
-              <div style={{ marginLeft: line.chord ? '2.5rem' : 0 }}>
+              <div style={{ marginLeft: line.chord ? '2.5rem' : 0, lineHeight: '2.0' }}>
                 {line.text}
               </div>
             </div>
@@ -168,7 +166,7 @@ function getChordFingering(chordName) {
     'E7': '1-2-0-3',
     'A7': '0-1-0-0',
     'G#m': '2-1-2-2', // Approximate
-    'F#': '2-1-2-0',   // Approximate
+    'F#': [2, 1, 2, 0],  // Approximate
     // Add more as needed
   };
   
