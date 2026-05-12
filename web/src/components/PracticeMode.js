@@ -188,7 +188,8 @@ function PracticeMode({ initialSongId, onDone }) {
   const audioCtxRef = useRef(null);
   const timerRef = useRef(null);
   const countdownRef = useRef(null);
-  const displayRef = useRef(null);
+  const lyricsContainerRef = useRef(null);
+  const lineRefs = useRef([]);
 
   // If initialSongId changes (user picks a new song from SongLibrary), switch to it
   useEffect(() => {
@@ -247,8 +248,16 @@ function PracticeMode({ initialSongId, onDone }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // BPM-based interval per line: each line = 1 beat at the given BPM
-  const getBeatDuration = () => (60 / selectedSong.bpm) * 1000;
+  // BPM-based interval: each lyric line = 2 beats (half a bar in 4/4 time)
+  const getLineDuration = () => (60 / selectedSong.bpm) * 2000;
+
+  // Auto-scroll the active line into view
+  const scrollToLine = useCallback((idx) => {
+    const el = lineRefs.current[idx];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, []);
 
   const startAutoplay = () => {
     setCountdown(3);
@@ -273,7 +282,7 @@ function PracticeMode({ initialSongId, onDone }) {
     setIsPlaying(true);
     setCurrentIndex(0);
     
-    const interval = getBeatDuration();
+    const interval = getLineDuration();
     
     // Pulse animation on the beat
     setBeatPulse(true);
@@ -301,6 +310,7 @@ function PracticeMode({ initialSongId, onDone }) {
       setBeatPulse(true);
       setTimeout(() => setBeatPulse(false), 150);
       setFeedback(null);
+      scrollToLine(idx);
       
       // Play chord on beat
       if (selectedSong.lyrics[idx].chord) {
@@ -408,7 +418,6 @@ function PracticeMode({ initialSongId, onDone }) {
       {/* Main practice display — karaoke style */}
       {countdown === null && (
         <div 
-          ref={displayRef}
           style={{
             background: 'var(--bg-tertiary)',
             borderRadius: 'var(--border-radius)',
@@ -442,33 +451,16 @@ function PracticeMode({ initialSongId, onDone }) {
             </div>
           )}
 
-          {/* Bouncing dot indicator — follows the active line */}
-          <div style={{
-            position: 'absolute',
-            left: '0.3rem',
-            top: `${(currentIndex * (48 / selectedSong.lyrics.length)) * selectedSong.lyrics.length / 2 + 50}px`,
-            transition: 'top 0.3s ease',
-            display: 'flex',
-            alignItems: 'center',
-          }}>
-            <span style={{
-              display: 'inline-block',
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              background: 'var(--accent-primary)',
-              boxShadow: '0 0 12px rgba(102, 126, 234, 0.8)',
-              animation: isPlaying ? 'bounce 0.6s infinite alternate' : 'none',
-            }} />
-          </div>
-
-          {/* Lyrics lines */}
-          <div style={{ 
-            maxHeight: '420px', 
-            overflowY: 'auto',
-            scrollBehavior: 'smooth',
-            padding: '0.5rem 1.5rem',
-          }}>
+          {/* Lyrics lines — with inline indicator on active line */}
+          <div 
+            ref={lyricsContainerRef}
+            style={{ 
+              maxHeight: '420px', 
+              overflowY: 'auto',
+              scrollBehavior: 'smooth',
+              padding: '0.5rem 1rem',
+            }}
+          >
             {selectedSong.lyrics.map((line, idx) => {
               const isCurrent = idx === currentIndex;
               const isPast = idx < currentIndex;
@@ -477,6 +469,7 @@ function PracticeMode({ initialSongId, onDone }) {
               return (
                 <div
                   key={idx}
+                  ref={el => lineRefs.current[idx] = el}
                   role="button"
                   tabIndex={isPlaying ? -1 : 0}
                   aria-current={isCurrent ? 'step' : undefined}
@@ -489,8 +482,8 @@ function PracticeMode({ initialSongId, onDone }) {
                   }}
                   style={{
                     display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
+                    gap: '0.5rem',
                     padding: '0.5rem 0.75rem',
                     margin: '0.15rem 0',
                     borderRadius: '8px',
@@ -503,27 +496,47 @@ function PracticeMode({ initialSongId, onDone }) {
                     opacity: isPast ? 0.4 : isUpcoming ? 0.55 : 1,
                   }}
                 >
-                  {/* Chord hint on each line */}
+                  {/* Indicator dot — moves with the line */}
                   <span style={{
-                    fontSize: '0.75rem',
-                    fontWeight: '600',
-                    color: isCurrent ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                    opacity: line.chord ? 1 : 0,
-                    minHeight: '1rem',
-                    transform: isCurrent && beatPulse ? 'scale(1.1)' : 'scale(1)',
-                    transition: 'transform 0.1s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '1.2rem',
+                    height: '1.2rem',
+                    flexShrink: 0,
                   }}>
-                    {line.chord || '\u00A0'}
+                    <span style={{
+                      display: 'inline-block',
+                      width: isCurrent ? '10px' : '6px',
+                      height: isCurrent ? '10px' : '6px',
+                      borderRadius: '50%',
+                      background: isCurrent ? 'var(--accent-primary)' : 'transparent',
+                      boxShadow: isCurrent ? '0 0 10px rgba(102, 126, 234, 0.7)' : 'none',
+                      animation: isPlaying && isCurrent ? 'bounce 0.5s infinite alternate' : 'none',
+                      transition: 'all 0.2s ease',
+                    }} />
                   </span>
-                  {/* Lyric text */}
-                  <span style={{
-                    fontSize: isCurrent ? '1.3rem' : '1rem',
-                    fontWeight: isCurrent ? '600' : '400',
-                    color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    lineHeight: '1.4',
-                  }}>
-                    {line.text}
-                  </span>
+                  {/* Lyric content */}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {line.chord && (
+                      <span style={{
+                        fontSize: '0.7rem',
+                        fontWeight: '600',
+                        color: isCurrent ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                        opacity: isCurrent ? 1 : 0.6,
+                      }}>
+                        {line.chord}
+                      </span>
+                    )}
+                    <span style={{
+                      fontSize: isCurrent ? '1.3rem' : '1rem',
+                      fontWeight: isCurrent ? '600' : '400',
+                      color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      lineHeight: '1.4',
+                    }}>
+                      {line.text}
+                    </span>
+                  </div>
                 </div>
               );
             })}
