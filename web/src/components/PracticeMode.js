@@ -219,3 +219,4 @@ function PracticeMode({ initialSongId, onDone }) {
 }
 
 export default PracticeMode;
+export { PRACTICE_SONGS };
