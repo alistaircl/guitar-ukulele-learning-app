@@ -646,12 +646,92 @@ useEffect(() => {
                                 }}
                               />
                             )}
-                          );
-                        });
+                          </span>
+                        );
+                      })}
                       {' '}
                     </span>
                   </div>
                 </div>
               );
-            })
-          });
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Feedback display */}
+      {feedback && (
+        <div style={{
+          textAlign: 'center',
+          padding: '0.75rem',
+          borderRadius: '8px',
+          background: feedback.type === 'correct' ? 'rgba(0, 255, 136, 0.1)' 
+                     : feedback.type === 'incorrect' ? 'rgba(255, 77, 77, 0.1)' 
+                     : feedback.type === 'complete' ? 'rgba(102, 126, 234, 0.15)'
+                     : 'var(--bg-tertiary)',
+          marginBottom: '0.75rem',
+          animation: 'fadeInUp 0.3s ease-out',
+        }}>
+          <span style={{ 
+            fontSize: '1.2rem',
+            color: feedback.type === 'correct' ? 'var(--success)'
+                 : feedback.type === 'incorrect' ? 'var(--danger)'
+                 : feedback.type === 'complete' ? 'var(--accent-primary)'
+                 : 'var(--text-primary)',
+          }}>
+            {feedback.message}
+          </span>
+        </div>
+      )}
+
+      {/* Status bar */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        padding: '0.75rem',
+        background: 'var(--bg-tertiary)',
+        borderRadius: 'var(--border-radius)',
+        marginBottom: '0.75rem',
+      }}>
+        <span>🔥 {streak}</span>
+        <span>{currentIndex + 1} / {selectedSong.lyrics.length}</span>
+        <span>✓ {totalCorrect}</span>
+      </div>
+
+      {/* Action buttons */}
+      <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <button className="control-btn" onClick={prevLine} disabled={currentIndex === 0}>
+          ← Prev
+        </button>
+        <button 
+          className="control-btn" 
+          onClick={markCorrect}
+          style={{ background: 'var(--success)', color: 'white' }}
+        >
+          ✓ Got it!
+        </button>
+        <button 
+          className="control-btn" 
+          onClick={markIncorrect}
+          style={{ background: 'var(--danger)', color: 'white' }}
+        >
+          ✗ Missed
+        </button>
+        <button 
+          className="control-btn" 
+          onClick={() => current.chord && playChord(current.chord)}
+          style={{ background: 'var(--accent-secondary)' }}
+        >
+          🔊 Play
+        </button>
+        <button className="control-btn" onClick={nextLine} disabled={currentIndex === selectedSong.lyrics.length - 1}>
+          Next →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default PracticeMode;
+export { PRACTICE_SONGS };
