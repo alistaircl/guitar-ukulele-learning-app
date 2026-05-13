@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { generateSongTiming, findPosition } from '../utils/lyricTiming';  // eslint-disable-line
+
 
 const PRACTICE_SONGS = [
   { id: 1, title: 'Somewhere Over the Rainbow',
-    artist: 'Israel Kamakawiwo\'ole',
+    artist: "Israel Kamakawiwo'ole",
     difficulty: 'Beginner',
     key: 'C',
     bpm: 66,
@@ -74,7 +76,7 @@ const PRACTICE_SONGS = [
     key: 'C',
     bpm: 138,
     chords: ['C', 'F', 'G'],
-lyrics: [
+    lyrics: [
       { text: 'You are my sunshine', chord: 'C', beats: 4 },
       { text: 'My only sunshine', chord: 'F', beats: 4 },
       { text: 'You make me happy', chord: 'C', beats: 4 },
@@ -109,8 +111,8 @@ lyrics: [
     bpm: 150,
     chords: ['G', 'C', 'Em', 'D'],
     lyrics: [
-      { text: 'How do you think I\'m going to feel', chord: 'G', beats: 4 },
-      { text: 'When I\'m coming home again', chord: 'C', beats: 4 },
+      { text: "How do you think I'm going to feel", chord: 'G', beats: 4 },
+      { text: "When I'm coming home again", chord: 'C', beats: 4 },
       { text: 'Tell me tell me', chord: 'Em', beats: 4 },
       { text: 'What do you see when you look at me', chord: 'D', beats: 4 },
     ]
@@ -122,10 +124,10 @@ lyrics: [
     bpm: 120,
     chords: ['A', 'F#m', 'D', 'E'],
     lyrics: [
-      { text: 'When the night has come', chord: 'A', beats: 4 },
-      { text: 'And the land is dark', chord: 'F#m', beats: 4 },
-      { text: 'And the moon is the only light we\'ll see', chord: 'D', beats: 4 },
-      { text: 'No I won\'t be afraid', chord: 'E', beats: 4 },
+      { text: "When the night has come", chord: 'A', beats: 4 },
+      { text: "And the land is dark", chord: 'F#m', beats: 4 },
+      { text: "And the moon is the only light we'll see", chord: 'D', beats: 4 },
+      { text: "No I won't be afraid", chord: 'E', beats: 4 },
     ]
   },
   { id: 6, title: 'Riptide',
@@ -148,26 +150,37 @@ lyrics: [
     bpm: 79,
     chords: ['Em', 'G', 'D', 'C'],
     lyrics: [
-      { text: 'When your legs don\'t work like they used to before', chord: 'Em', beats: 4 },
-      { text: 'And I can\'t sweep you off of your feet', chord: 'G', beats: 4 },
-      { text: 'Will your mouth still remember the taste of my love', chord: 'D', beats: 4 },
-      { text: 'Will your eyes still smile from your cheeks', chord: 'C', beats: 4 },
+      { text: "When your legs don't work like they used to before", chord: 'Em', beats: 4 },
+      { text: "And I can't sweep you off of your feet", chord: 'G', beats: 4 },
+      { text: "Will your mouth still remember the taste of my love", chord: 'D', beats: 4 },
+      { text: "Will your eyes still smile from your cheeks", chord: 'C', beats: 4 },
     ]
   },
-  { id: 8, title: 'I\'m Yours',
+  { id: 8, title: "I'm Yours",
     artist: 'Jason Mraz',
     difficulty: 'Beginner',
     key: 'B',
     bpm: 104,
     chords: ['B', 'E', 'G#m', 'F#'],
     lyrics: [
-      { text: 'Well I\'ve been playing hard to get', chord: 'B', beats: 4 },
-      { text: 'Time to make my heart bet', chord: 'E', beats: 4 },
-      { text: 'I wanna be yours, pretty baby', chord: 'G#m', beats: 4 },
-      { text: 'Don\'t you make me wait too long', chord: 'F#', beats: 4 },
+      { text: "Well I've been playing hard to get", chord: 'B', beats: 4 },
+      { text: "Time to make my heart bet", chord: 'E', beats: 4 },
+      { text: "I wanna be yours, pretty baby", chord: 'G#m', beats: 4 },
+      { text: "Don't you make me wait too long", chord: 'F#', beats: 4 },
     ]
   },
 ];
+
+/* ─── Helper: convert a text into word tokens ─── */
+function tokenise(text) {
+  const regexp = /([^\s]+)/g; // keep punctuation attached
+  const tokens = [];
+  let m;
+  while ((m = regexp.exec(text)) !== null) {
+    tokens.push({ word: m[0], start: m.index, end: m.index + m[0].length });
+  }
+  return tokens;
+}
 
 function PracticeMode({ initialSongId, onDone }) {
   const [selectedSong, setSelectedSong] = useState(() => {
@@ -177,6 +190,7 @@ function PracticeMode({ initialSongId, onDone }) {
     }
     return PRACTICE_SONGS[0];
   });
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [countdown, setCountdown] = useState(null);
@@ -184,12 +198,20 @@ function PracticeMode({ initialSongId, onDone }) {
   const [totalCorrect, setTotalCorrect] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const [beatPulse, setBeatPulse] = useState(false);
-  
+
   const audioCtxRef = useRef(null);
   const timerRef = useRef(null);
   const countdownRef = useRef(null);
   const lyricsContainerRef = useRef(null);
   const lineRefs = useRef([]);
+
+  // Karaoke-specific state
+  const [currentLine, setCurrentLine] = useState(0);
+  const [currentWord, setCurrentWord] = useState(0);
+  const [showKaraoke, setShowKaraoke] = useState(true);
+
+  const wordTimersRef = useRef([]);
+  const startTimeRef = useRef(0);
 
   // If initialSongId changes (user picks a new song from SongLibrary), switch to it
   useEffect(() => {
@@ -205,19 +227,26 @@ function PracticeMode({ initialSongId, onDone }) {
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (countdownRef.current) clearTimeout(countdownRef.current);
+      clearAllTimers();
       if (audioCtxRef.current) audioCtxRef.current.close();
     };
   }, []);
+
+  const clearAllTimers = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (countdownRef.current) clearTimeout(countdownRef.current);
+    wordTimersRef.current.forEach(t => clearTimeout(t));
+    wordTimersRef.current = [];
+  };
 
   const resetSong = () => {
     setIsPlaying(false);
     setCurrentIndex(0);
     setCountdown(null);
     setFeedback(null);
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (countdownRef.current) clearTimeout(countdownRef.current);
+    setCurrentLine(0);
+    setCurrentWord(0);
+    clearAllTimers();
   };
 
   const playNote = (freq) => {
@@ -234,18 +263,17 @@ function PracticeMode({ initialSongId, onDone }) {
     osc.stop(audioCtxRef.current.currentTime + 0.4);
   };
 
-  const CHORD_FREQ = { 
-    'C': 261.63, 'F': 349.23, 'G': 392.00, 'Em': 329.63, 'Am': 440.00, 
-    'E': 329.63, 'D': 293.66, 'A': 440.00, 'B': 493.88, 
-    'F#': 369.99, 'F#m': 369.99, 'G#m': 415.30, 'Dm': 293.66, 
-    'E7': 329.63, 'A7': 440.00, 'B7': 493.88 
+  const CHORD_FREQ = {
+    'C': 261.63, 'F': 349.23, 'G': 392.00, 'Em': 329.63, 'Am': 440.00,
+    'E': 329.63, 'D': 293.66, 'A': 440.00, 'B': 493.88,
+    'F#': 369.99, 'F#m': 369.99, 'G#m': 415.30, 'Dm': 293.66,
+    'E7': 329.63, 'A7': 440.00, 'B7': 493.88
   };
 
   const playChord = useCallback((chord) => {
     if (!chord) return;
     const freq = CHORD_FREQ[chord] || 440;
     playNote(freq);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Per-bar duration: one bar (4 beats) at the current BPM
@@ -281,58 +309,77 @@ function PracticeMode({ initialSongId, onDone }) {
     countdownStep();
   };
 
+  // ─── Karaoke-style playback engine ───
   const beginPlayback = () => {
     setIsPlaying(true);
     setCurrentIndex(0);
-    
+    setCurrentLine(0);
+    setCurrentWord(0);
+
     // Pulse animation on the beat
     setBeatPulse(true);
     setTimeout(() => setBeatPulse(false), 150);
-    
+
     // Play first chord immediately
     if (selectedSong.lyrics[0].chord) {
       playChord(selectedSong.lyrics[0].chord);
     }
-    
-    // Use setTimeout chain: each line advances after its own beats duration
-    const advance = (idx) => {
-      timerRef.current = setTimeout(() => {
-        const next = idx + 1;
-        
-        if (next >= selectedSong.lyrics.length) {
-          // Song finished
-          timerRef.current = null;
-          setIsPlaying(false);
-          setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
-          return;
-        }
-        
-        setCurrentIndex(next);
-        setBeatPulse(true);
-        setTimeout(() => setBeatPulse(false), 150);
-        setFeedback(null);
-        scrollToLine(next);
-        
-        // Play chord on beat
-        if (selectedSong.lyrics[next].chord) {
-          playChord(selectedSong.lyrics[next].chord);
-        }
-        
-        // Schedule the next line with its own beat count
-        advance(next);
-      }, lineDuration(selectedSong.lyrics[idx]));
-    };
-    
-    // Start the chain from the first line
-    advance(0);
+
+    startTimeRef.current = performance.now();
+    let globalOffset = 0; // accumulated ms
+
+    // Build per-word timing for each line
+    selectedSong.lyrics.forEach((line, lineIdx) => {
+      const duration = lineDuration(line);
+      const words = tokenise(line.text);
+      const wordCount = words.length || 1;
+      const wordDuration = duration / wordCount;
+
+      // Chord change at line start
+      if (line.chord && lineIdx > 0) {
+        const chordTimer = setTimeout(() => {
+          playChord(line.chord);
+        }, globalOffset);
+        wordTimersRef.current.push(chordTimer);
+      }
+
+      words.forEach((word, wordIdx) => {
+        const wordTime = globalOffset + wordDuration * wordIdx;
+
+        const timer = setTimeout(() => {
+          setCurrentLine(lineIdx);
+          setCurrentWord(wordIdx);
+
+          // Highlight synchronization
+          if (wordIdx === 0) {
+            setCurrentIndex(lineIdx);
+            scrollToLine(lineIdx);
+          }
+
+          // Beat pulse on word
+          setBeatPulse(true);
+          setTimeout(() => setBeatPulse(false), 100);
+        }, wordTime);
+
+        wordTimersRef.current.push(timer);
+      });
+
+      globalOffset += duration;
+    });
+
+    // Song completion timer
+    const finishTimer = setTimeout(() => {
+      setIsPlaying(false);
+      setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
+    }, globalOffset + 500);
+    wordTimersRef.current.push(finishTimer);
   };
 
   const stopAutoplay = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    clearAllTimers();
     setIsPlaying(false);
+    setCurrentWord(0);
+    setCurrentLine(0);
   };
 
   const markCorrect = () => {
@@ -391,6 +438,17 @@ function PracticeMode({ initialSongId, onDone }) {
           </span>
         </div>
         <div>
+          {/* Toggle karaoke/line modes */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginRight: '1rem', color: 'var(--text-secondary)', fontSize: '0.85rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={showKaraoke}
+              onChange={() => setShowKaraoke(v => !v)}
+              disabled={isPlaying}
+              style={{ cursor: 'pointer' }}
+            />
+            Karaoke mode
+          </label>
           {!isPlaying && countdown === null && (
             <button className="control-btn" onClick={startAutoplay} style={{ background: 'var(--accent-primary)', color: 'white', fontSize: '1rem', padding: '0.6rem 1.5rem' }}>
               ▶ Start
@@ -423,7 +481,7 @@ function PracticeMode({ initialSongId, onDone }) {
         </div>
       )}
 
-      {/* Main practice display — karaoke style */}
+      {/* Main practice display — karaoke style with word-level timing */}
       {countdown === null && (
         <div 
           style={{
@@ -459,11 +517,11 @@ function PracticeMode({ initialSongId, onDone }) {
             </div>
           )}
 
-          {/* Lyrics lines — with inline indicator on active line */}
+          {/* Karaoke-style lyrics with word-level highlighting */}
           <div 
             ref={lyricsContainerRef}
             style={{ 
-              maxHeight: '420px', 
+              maxHeight: showKaraoke ? '420px' : 'auto', 
               overflowY: 'auto',
               scrollBehavior: 'smooth',
               padding: '0.5rem 1rem',
@@ -473,7 +531,8 @@ function PracticeMode({ initialSongId, onDone }) {
               const isCurrent = idx === currentIndex;
               const isPast = idx < currentIndex;
               const isUpcoming = idx > currentIndex;
-              
+              const words = tokenise(line.text);
+
               return (
                 <div
                   key={idx}
@@ -524,8 +583,9 @@ function PracticeMode({ initialSongId, onDone }) {
                       transition: 'all 0.2s ease',
                     }} />
                   </span>
-                  {/* Lyric content */}
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+
+                  {/* Karaoke word-level display */}
+                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                     {line.chord && (
                       <span style={{
                         fontSize: '0.7rem',
@@ -536,13 +596,60 @@ function PracticeMode({ initialSongId, onDone }) {
                         {line.chord}
                       </span>
                     )}
+
+                    {/* Words with individual highlighting */}
                     <span style={{
                       fontSize: isCurrent ? '1.3rem' : '1rem',
                       fontWeight: isCurrent ? '600' : '400',
-                      color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      color: 'var(--text-secondary)',
                       lineHeight: '1.4',
+                      display: 'inline',
                     }}>
-                      {line.text}
+                      {words.map((wordObj, wIdx) => {
+                        const isWordActive = isPlaying && isCurrent && showKaraoke && wIdx === currentWord;
+                        const isWordPast = isCurrent && wIdx < currentWord;
+                        const isWordUpcoming = isCurrent && wIdx > currentWord;
+                        const isStaticActive = !isPlaying && wIdx === 0 && isCurrent;
+                        const isActive = isWordActive || isStaticActive;
+
+                        return (
+                          <span
+                            key={wIdx}
+                            style={{
+                              color: isActive ? 'var(--accent-primary)' : isWordPast ? 'var(--text-primary)' : 'var(--text-secondary)',
+                              fontWeight: isActive ? '700' : isWordPast ? '600' : '400',
+                              textShadow: isActive ? '0 0 12px rgba(102, 126, 234, 0.5)' : 'none',
+                              transition: 'all 0.15s ease',
+                              display: 'inline',
+                              padding: '0 2px',
+                              borderRadius: '3px',
+                              background: isActive ? 'rgba(102, 126, 234, 0.1)' : 'transparent',
+                              position: 'relative',
+                            }}
+                          >
+                            {wordObj.word}
+                            {/* Bouncing ball above active word */}
+                            {isPlaying && isCurrent && showKaraoke && wIdx === currentWord && (
+                              <span
+                                style={{
+                                  position: 'absolute',
+                                  top: '-14px',
+                                  left: '50%',
+                                  transform: 'translateX(-50%)',
+                                  width: '8px',
+                                  height: '8px',
+                                  borderRadius: '50%',
+                                  background: 'var(--accent-primary)',
+                                  boxShadow: '0 0 10px rgba(102, 126, 234, 0.7)',
+                                  animation: 'karaokeBallBounce 0.4s infinite alternate',
+                                  zIndex: 10,
+                                }}
+                              />
+                            )}
+                          </span>
+                        );
+                      })}
+                      {' '}
                     </span>
                   </div>
                 </div>
