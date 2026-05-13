@@ -630,3 +630,28 @@ useEffect(() => {
                             {wordObj.word}
                             {/* Bouncing ball above active word */}
                             {isPlaying && isCurrent && showKaraoke && wIdx === currentWord && (
+                              <span
+                                style={{
+                                  position: 'absolute',
+                                  top: '-14px',
+                                  left: '50%',
+                                  transform: 'translateX(-50%)',
+                                  width: '8px',
+                                  height: '8px',
+                                  borderRadius: '50%',
+                                  background: 'var(--accent-primary)',
+                                  boxShadow: '0 0 10px rgba(102, 126, 234, 0.7)',
+                                  animation: 'karaokeBallBounce 0.4s infinite alternate',
+                                  zIndex: 10,
+                                }}
+                              />
+                            )}
+                          );
+                        });
+                      {' '}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          });
