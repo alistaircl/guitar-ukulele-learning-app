@@ -385,10 +385,6 @@ body {
 }
 
 /* Karaoke bouncing ball animation */
-@keyframes karaokeBallBounce {
-  0%   { transform: translateX(-50%) translateY(0); }
-  100% { transform: translateX(-50%) translateY(-6px); }
-}
 
 .chord-card:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 .chord-card.selected { box-shadow: 0 0 0 1px var(--accent-secondary); }
