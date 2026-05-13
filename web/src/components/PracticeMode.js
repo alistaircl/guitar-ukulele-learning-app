@@ -182,6 +182,17 @@ function tokenise(text) {
   return tokens;
 }
 
+
+
+
+
+const CHORD_FREQ = {
+    'C': 261.63, 'F': 349.23, 'G': 392.00, 'Em': 329.63, 'Am': 440.00,
+    'E': 329.63, 'D': 293.66, 'A': 440.00, 'B': 493.88,
+    'F#': 369.99, 'F#m': 369.99, 'G#m': 415.30, 'Dm': 293.66,
+    'E7': 329.63, 'A7': 440.00, 'B7': 493.88
+  };
+
 function PracticeMode({ initialSongId, onDone }) {
   const [selectedSong, setSelectedSong] = useState(() => {
     if (initialSongId) {
@@ -206,7 +217,6 @@ function PracticeMode({ initialSongId, onDone }) {
   const lineRefs = useRef([]);
 
   // Karaoke-specific state
-  const [currentLine, setCurrentLine] = useState(0);
   const [currentWord, setCurrentWord] = useState(0);
   const [showKaraoke, setShowKaraoke] = useState(true);
 
@@ -214,7 +224,17 @@ function PracticeMode({ initialSongId, onDone }) {
   const startTimeRef = useRef(0);
 
   // If initialSongId changes (user picks a new song from SongLibrary), switch to it
-  useEffect(() => {
+    const resetSong = useCallback(() => {
+    
+        setIsPlaying(false);
+        setCurrentIndex(0);
+        setCountdown(null);
+        setFeedback(null);
+        setCurrentWord(0);
+        clearAllTimers();
+    
+  }, []);
+useEffect(() => {
     if (initialSongId) {
       const found = PRACTICE_SONGS.find(s => s.id === initialSongId);
       if (found) {
@@ -222,9 +242,7 @@ function PracticeMode({ initialSongId, onDone }) {
         resetSong();
       }
     }
-  }, [initialSongId]);
-
-  // Cleanup timers on unmount
+  }, [initialSongId, resetSong]);// Cleanup timers on unmount
   useEffect(() => {
     return () => {
       clearAllTimers();
@@ -239,16 +257,7 @@ function PracticeMode({ initialSongId, onDone }) {
     wordTimersRef.current = [];
   };
 
-  const resetSong = () => {
-    setIsPlaying(false);
-    setCurrentIndex(0);
-    setCountdown(null);
-    setFeedback(null);
-    setCurrentLine(0);
-    setCurrentWord(0);
-    clearAllTimers();
-  };
-
+  
   const playNote = (freq) => {
     if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
     const osc = audioCtxRef.current.createOscillator();
@@ -263,12 +272,7 @@ function PracticeMode({ initialSongId, onDone }) {
     osc.stop(audioCtxRef.current.currentTime + 0.4);
   };
 
-  const CHORD_FREQ = {
-    'C': 261.63, 'F': 349.23, 'G': 392.00, 'Em': 329.63, 'Am': 440.00,
-    'E': 329.63, 'D': 293.66, 'A': 440.00, 'B': 493.88,
-    'F#': 369.99, 'F#m': 369.99, 'G#m': 415.30, 'Dm': 293.66,
-    'E7': 329.63, 'A7': 440.00, 'B7': 493.88
-  };
+  
 
   const playChord = useCallback((chord) => {
     if (!chord) return;
@@ -313,7 +317,6 @@ function PracticeMode({ initialSongId, onDone }) {
   const beginPlayback = () => {
     setIsPlaying(true);
     setCurrentIndex(0);
-    setCurrentLine(0);
     setCurrentWord(0);
 
     // Pulse animation on the beat
@@ -347,7 +350,6 @@ function PracticeMode({ initialSongId, onDone }) {
         const wordTime = globalOffset + wordDuration * wordIdx;
 
         const timer = setTimeout(() => {
-          setCurrentLine(lineIdx);
           setCurrentWord(wordIdx);
 
           // Highlight synchronization
@@ -379,7 +381,6 @@ function PracticeMode({ initialSongId, onDone }) {
     clearAllTimers();
     setIsPlaying(false);
     setCurrentWord(0);
-    setCurrentLine(0);
   };
 
   const markCorrect = () => {
@@ -608,7 +609,6 @@ function PracticeMode({ initialSongId, onDone }) {
                       {words.map((wordObj, wIdx) => {
                         const isWordActive = isPlaying && isCurrent && showKaraoke && wIdx === currentWord;
                         const isWordPast = isCurrent && wIdx < currentWord;
-                        const isWordUpcoming = isCurrent && wIdx > currentWord;
                         const isStaticActive = !isPlaying && wIdx === 0 && isCurrent;
                         const isActive = isWordActive || isStaticActive;
 

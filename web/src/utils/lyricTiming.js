@@ -46,7 +46,6 @@ export function generateLineTiming(text, beats, bpm) {
   const totalSyllables = wordSyllables.reduce((sum, ws) => sum + ws.syllables, 0);
 
   let currentOffset = 0;
-  const offsets = [];
   const syllableMap = [];
 
   wordSyllables.forEach(({ word, syllables: sylCount }, wordIdx) => {
