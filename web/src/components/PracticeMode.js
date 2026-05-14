@@ -175,21 +175,21 @@ lyrics: [
     chords: ["Am", "E7", "G", "D", "F", "C", "Dm", "E7"],
     lyrics: [
       { text: "(Instrumental Intro - Fingerpicking Pattern)", chord: null, beats: 8 },
-      { text: "Am → E7: 4-3-2-1-2-1, 4-3-2-1-2-1", chord: "Am", beats: 4 },
+      { text: "Am → E7: 4-3-2-1-2-1, 3-2-1 // 4-3-2-1-2-1 //", chord: "Am", beats: 4 },
       { text: "(Pick pattern on Am)", chord: null, beats: 4 },
-      { text: "Am → E7: 4-3-2-1-2-1, 4-3-2-1-2-1", chord: "E7", beats: 4 },
+      { text: "Am → E7: 4-3-2-1-2-1, 3-2-1 // 4-3-2-1-2-1 //", chord: "E7", beats: 4 },
       { text: "(Pick pattern on E7)", chord: null, beats: 4 },
-      { text: "G → D: 4-3-2-1-2-1, 4-3-2-1-2-1", chord: "G", beats: 4 },
+      { text: "G → D: 4-3-2-1-2-1, 3-2-1 // 4-3-2-1-2-1 //", chord: "G", beats: 4 },
       { text: "(Pick pattern on G)", chord: null, beats: 4 },
-      { text: "G → D: 4-3-2-1-2-1, 4-3-2-1-2-1", chord: "D", beats: 4 },
+      { text: "G → D: 4-3-2-1-2-1, 3-2-1 // 4-3-2-1-2-1 //", chord: "D", beats: 4 },
       { text: "(Pick pattern on D)", chord: null, beats: 4 },
-      { text: "F → C: 4-3-2-1-2-1, 4-3-2-1-2-1", chord: "F", beats: 4 },
+      { text: "F → C: 4-3-2-1-2-1, 3-2-1 // 4-3-2-1-2-1 //", chord: "F", beats: 4 },
       { text: "(Pick pattern on F)", chord: null, beats: 4 },
-      { text: "F → C: 4-3-2-1-2-1, 4-3-2-1-2-1", chord: "C", beats: 4 },
+      { text: "F → C: 4-3-2-1-2-1, 3-2-1 // 4-3-2-1-2-1 //", chord: "C", beats: 4 },
       { text: "(Pick pattern on C)", chord: null, beats: 4 },
-      { text: "Dm → E7: 4-3-2-1-2-1, 4-3-2-1-2-1", chord: "Dm", beats: 4 },
+      { text: "Dm → E7: 4-3-2-1-2-1, 3-2-1 // 4-3-2-1-2-1 //", chord: "Dm", beats: 4 },
       { text: "(Pick pattern on Dm)", chord: null, beats: 4 },
-      { text: "Dm → E7: 4-3-2-1-2-1, 4-3-2-1-2-1 (Let ring)", chord: "E7", beats: 8 },
+      { text: "Dm → E7: 4-3-2-1-2-1, 3-2-1 // 4-3-2-1-2-1 // (Let ring)", chord: "E7", beats: 8 },
       { text: "", chord: null, beats: 4 },
       { text: "On a dark desert highway", chord: "Am", beats: 4 },
       { text: "Cool wind in my hair", chord: "E7", beats: 4 },
@@ -301,13 +301,12 @@ function PracticeMode({ initialSongId, onDone }) {
     'B7': 493.88,
     // Expanded frequencies for all used chords
   };
-***
-End Patch
+
+  const playChord = (chord) => {
     if (!chord) return;
     const freq = CHORD_FREQ[chord] || 440;
     playNote(freq);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
 
   // Per-bar duration: one bar (4 beats) at the current BPM
   const barDuration = () => (60 / selectedSong.bpm) * 4000;
