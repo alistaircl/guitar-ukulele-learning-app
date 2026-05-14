@@ -282,14 +282,27 @@ function PracticeMode({ initialSongId, onDone }) {
     osc.stop(audioCtxRef.current.currentTime + 0.4);
   };
 
-  const CHORD_FREQ = { 
-    'C': 261.63, 'F': 349.23, 'G': 392.00, 'Em': 329.63, 'Am': 440.00, 
-    'E': 329.63, 'D': 293.66, 'A': 440.00, 'B': 493.88, 
-    'F#': 369.99, 'F#m': 369.99, 'G#m': 415.30, 'Dm': 293.66, 
-    'E7': 329.63, 'A7': 440.00, 'B7': 493.88 
+  const CHORD_FREQ = {
+    'C': 261.63,
+    'D': 293.66,
+    'E': 329.63,
+    'F': 349.23,
+    'F#': 369.99,
+    'G': 392.00,
+    'G#': 415.30,
+    'A': 440.00,
+    'B': 493.88,
+    'Em': 329.63,
+    'F#m': 369.99,
+    'G#m': 415.30,
+    'Dm': 293.66,
+    'E7': 329.63,
+    'A7': 440.00,
+    'B7': 493.88,
+    // Expanded frequencies for all used chords
   };
-
-  const playChord = useCallback((chord) => {
+***
+End Patch
     if (!chord) return;
     const freq = CHORD_FREQ[chord] || 440;
     playNote(freq);
