@@ -442,6 +442,7 @@ function PracticeMode({ initialSongId, onDone }) {
     if (idx >= 0 && idx < selectedSong.lyrics.length) {
       setCurrentIndex(idx);
       setFeedback(null);
+      scrollToLine(idx);
     }
   };
 
