@@ -68,6 +68,26 @@ function Tuner() {
     setDetectedNote(null);
   };
 
+  const playReferenceTone = (freq) => {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    
+    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 1);
+  };
+
+
   const autoCorrelate = (buffer, sampleRate) => {
     const SIZE = buffer.length;
     let rms = 0;
@@ -122,9 +142,20 @@ function Tuner() {
       </div>
       <div className="tuning-selector">
         {Object.keys(TUNINGS).map(key => (
-          <button key={key} className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)} aria-pressed={tuning === key}>
-            {TUNINGS[key].name}
-          </button>
+          <div key={key} className="tuning-option">
+            <button className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)} aria-pressed={tuning === key}>
+              {TUNINGS[key].name}
+            </button>
+            {tuning === key && (
+              <div className="reference-tones">
+                {TUNINGS[key].notes.map((note, idx) => (
+                  <button key={note} className="tone-btn" onClick={() => playReferenceTone(TUNINGS[key].freq[idx])} aria-label={`Play reference tone for ${note}`}>
+                    {note}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
       </div>
       <div className="tuner-controls">
