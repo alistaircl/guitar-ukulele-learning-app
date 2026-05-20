@@ -3,19 +3,14 @@ import ChordDiagram from './ChordDiagram';
 
 function ChordDetail({ chord, showPrimaryLabel = false }) {
   const variations = chord.variations || [];
-  const allVariations = [
-    {
-      ...chord,
-      label: showPrimaryLabel ? 'Primary' : chord.name,
-      frets: chord.frets,
-      fingers: chord.fingers,
-    },
-    ...variations,
-  ];
-
+  const allVariations = variations.map((v, index) => ({
+    ...v,
+    label: showPrimaryLabel && index === 0 ? 'Primary' : v.label,
+  }));
+  
   return (
     <div className="chord-detail">
-      {showPrimaryLabel && <h2>{chord.name}</h2>}
+      {!showPrimaryLabel && <h2>{chord.name}</h2>}
       <div className="variations-grid">
         {allVariations.map((v, i) => (
           <div key={i} className="variation-item">

@@ -19,6 +19,87 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
   // Always start from first fret to show open positions clearly
   const startFret = 1;
 
+  // Detect barre chords (same finger used on 2+ adjacent strings)
+  const detectBarres = () => {
+    const barres = [];
+    const fingerGroups = {};
+    
+    // Group strings by finger number (ignore 0 and negative)
+    frets.forEach((fret, stringIdx) => {
+      const finger = fingers[stringIdx] || 0;
+      if (finger > 0 && fret > 0) {
+        if (!fingerGroups[finger]) {
+          fingerGroups[finger] = [];
+        }
+        fingerGroups[finger].push({ stringIdx, fret });
+      }
+    });
+    
+    // Find consecutive strings with same finger
+    Object.keys(fingerGroups).forEach(finger => {
+      const strings = fingerGroups[finger].sort((a, b) => a.stringIdx - b.stringIdx);
+      let currentBarre = [];
+      
+      strings.forEach((stringObj, idx) => {
+        if (currentBarre.length === 0) {
+          currentBarre.push(stringObj);
+        } else {
+          const last = currentBarre[currentBarre.length - 1];
+          // Check if consecutive string and same fret
+          if (stringObj.stringIdx === last.stringIdx + 1 && stringObj.fret === last.fret) {
+            currentBarre.push(stringObj);
+          } else {
+            // End of current barre, check if it's valid (2+ strings)
+            if (currentBarre.length >= 2) {
+              barres.push({
+                finger: parseInt(finger),
+                fret: currentBarre[0].fret,
+                startString: currentBarre[0].stringIdx,
+                endString: currentBarre[currentBarre.length - 1].stringIdx
+              });
+            }
+            currentBarre = [stringObj];
+          }
+        }
+        
+        // Check last barre
+        if (idx === strings.length - 1 && currentBarre.length >= 2) {
+          barres.push({
+            finger: parseInt(finger),
+            fret: currentBarre[0].fret,
+            startString: currentBarre[0].stringIdx,
+            endString: currentBarre[currentBarre.length - 1].stringIdx
+          });
+        }
+      });
+    });
+    
+    return barres;
+  };
+
+  // Render barre indicators
+  const renderBarres = () => {
+    const barres = detectBarres();
+    return barres.map((barre, idx) => {
+      const startX = strX[barre.startString];
+      const endX = strX[barre.endString];
+      const yPos = fretTop + (barre.fret - startFret) * fretH + fretH / 2;
+      
+      return (
+        <line
+          key={`barre-${idx}`}
+          x1={startX}
+          y1={yPos}
+          x2={endX}
+          y2={yPos}
+          stroke="#ef4444"
+          strokeWidth={6}
+          strokeLinecap="round"
+        />
+      );
+    });
+  };
+
   // Draw open/muted markers above the nut
   const renderTopMarkers = () => {
     return strX.map((x, stringIdx) => {
@@ -71,6 +152,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
       ))}
     </>
   );
+
   // Render finger dots on the correct fret positions, with finger numbers if provided
   const renderDots = () => {
     return frets.map((fret, stringIdx) => {
@@ -82,12 +164,12 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
       const finger = fingers[stringIdx] || 0;
       return (
         <g key={`dot-${stringIdx}`}>
-          <circle cx={cx} cy={cy} r={5}
-            fill="#6366f1" stroke="#8b5cf6" strokeWidth="1.5" />
+          <circle cx={cx} cy={cy} r={9}
+            fill="#6366f1" stroke="#8b5cf6" strokeWidth="2" />
           {finger > 0 && (
-            <text x={cx} y={cy + 4} textAnchor="middle"
-              fill="white" fontSize="3" fontFamily="sans-serif" fontWeight="bold">
-              {finger}
+            <text x={cx} y={cy + 12} textAnchor="middle"
+              fill="white" fontSize="14" fontFamily="sans-serif" fontWeight="bold">
+                {finger}
             </text>
           )}
         </g>
@@ -102,7 +184,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
     return (
       <text x={midX} y={fretTop - 6} textAnchor="middle"
         fill="#9090a0" fontSize="10" fontFamily="sans-serif">
-        {startFret}fr
+          {startFret}fr
       </text>
     );
   };
@@ -114,13 +196,14 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
       viewBox={`0 0 ${svgW + marginX * 2} ${svgH}`}
       style={{ display: 'block' }}
       role="img"
-      aria-label={`Chord diagram showing finger positions`}
+      aria-label="Chord diagram showing finger positions"
     >
       {renderTopMarkers()}
       {renderStartFretMarker()}
       {renderNut()}
       {renderStrings()}
       {renderFrets()}
+      {renderBarres()}
       {renderDots()}
     </svg>
   );
