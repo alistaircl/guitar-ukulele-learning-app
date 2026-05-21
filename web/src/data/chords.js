@@ -85,8 +85,9 @@ export const ALL_CHORDS = [
   { name: 'Emaj7', frets: [4, 4, 4, 4], fingers: [4, 4, 4, 4], variations: [
     { frets: [4, 4, 4, 4], fingers: [4, 4, 4, 4], label: 'Emaj7 (standard)' }
   ] },
-  { name: 'Fmaj7', frets: [5, 5, 5, 5], fingers: [4, 4, 4, 4], variations: [
-    { frets: [5, 5, 5, 5], fingers: [4, 4, 4, 4], label: 'Fmaj7 (barre)' }
+  { name: 'Fmaj7', frets: [2, 4, 1, 3], fingers: [2, 4, 1, 3], variations: [
+    { frets: [2, 4, 1, 3], fingers: [2, 4, 1, 3], label: 'Fmaj7 (standard)' },
+    { frets: [5, 5, 5, 7], fingers: [4, 4, 4, 3], label: 'Fmaj7 (barre)' }
   ] },
   { name: 'Gmaj7', frets: [0, 2, 2, 2], fingers: [1, 2, 2, 2], variations: [
     { frets: [0, 2, 2, 2], fingers: [1, 2, 2, 2], label: 'Gmaj7 (standard)' }
