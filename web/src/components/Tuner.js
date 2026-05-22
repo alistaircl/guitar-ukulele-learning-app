@@ -35,6 +35,20 @@ function Tuner() {
 
   const startTuner = async () => {
     try {
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Browser does not support microphone access.');
+      }
+
+      // Explicitly check for available audio input devices
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const hasMic = devices.some(device => device.kind === 'audioinput');
+      
+      if (!hasMic) {
+        setError('No microphone found. Please connect a microphone and try again.');
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -48,6 +62,7 @@ function Tuner() {
       setError(null);
       detectPitch();
     } catch (err) {
+      console.error('Microphone access error:', err);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setError('Microphone access denied. Please enable microphone permissions in your browser settings and refresh the page.');
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
