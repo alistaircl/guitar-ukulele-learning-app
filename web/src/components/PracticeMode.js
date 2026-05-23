@@ -458,7 +458,23 @@ function PracticeMode({ initialSongId, onDone }) {
     }
   };
 
-  const current = selectedSong.lyrics[currentIndex];
+  const current = selectedSong?.lyrics ? selectedSong.lyrics[currentIndex] : null;
+
+  if (!selectedSong) {
+    return (
+      <div className="section" style={{ textAlign: 'center', padding: '2rem' }}>
+        <p>Song not found. Please select a song from the dropdown.</p>
+      </div>
+    );
+  }
+
+  if (!current) {
+    return (
+      <div className="section" style={{ textAlign: 'center', padding: '2rem' }}>
+        <p>Lyrics not found for the selected song.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="section">
