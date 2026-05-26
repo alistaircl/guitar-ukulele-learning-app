@@ -320,6 +320,7 @@ function PracticeMode({ initialSongId, onDone }) {
     'G': 392.00,
     'G#': 415.30,
     'A': 440.00,
+    'Am': 220.00,
     'B': 493.88,
     'Em': 329.63,
     'F#m': 369.99,
