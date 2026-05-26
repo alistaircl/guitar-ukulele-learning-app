@@ -27,6 +27,9 @@ export const ALL_CHORDS = [
   { name: 'B', frets: [4, 3, 2, 2], fingers: [4, 3, 2, 2], variations: [
     { frets: [4, 3, 2, 2], fingers: [4, 3, 2, 2], label: 'B (standard)' }
   ] },
+  { name: 'F#', frets: [1, 1, 2, 1], fingers: [1, 1, 2, 1], variations: [
+    { frets: [1, 1, 2, 1], fingers: [1, 1, 2, 1], label: 'F# (standard)' }
+  ] },
 
   // Minor chords
   { name: 'Am', frets: [2, 0, 0, 0], fingers: [1, 0, 0, 0], variations: [
@@ -50,6 +53,12 @@ export const ALL_CHORDS = [
   ] },
   { name: 'Gm', frets: [0, 2, 3, 1], fingers: [2, 1, 3, 2], variations: [
     { frets: [0, 2, 3, 1], fingers: [2, 1, 3, 2], label: 'Gm (standard)' }
+  ] },
+  { name: 'F#m', frets: [2, 1, 2, 0], fingers: [2, 1, 3, 0], variations: [
+    { frets: [2, 1, 2, 0], fingers: [2, 1, 3, 0], label: 'F#m (standard)' }
+  ] },
+  { name: 'G#m', frets: [4, 3, 4, 2], fingers: [4, 3, 4, 2], variations: [
+    { frets: [4, 3, 4, 2], fingers: [4, 3, 4, 2], label: 'G#m (standard)' }
   ] },
 
   // 7th chords
