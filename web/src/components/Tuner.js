@@ -115,7 +115,7 @@ function Tuner() {
     for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buffer[SIZE - i]) < thresh) { r2 = SIZE - i; break; }
     const buf = buffer.slice(r1, r2);
     const c = new Array(buf.length).fill(0);
-    for (let i = 0; i < buf.length; i++) for (let j = 0; j < buf.length; j++) c[i] += buf[j] * buf[j + i];
+    for (let i = 0; i < buf.length; i++) for (let j = 0; j < buf.length - i; j++) c[i] += buf[j] * buf[j + i];
     let d = 0;
     while (c[d] > c[d + 1]) d++;
     let maxVal = -1, maxPos = -1;
