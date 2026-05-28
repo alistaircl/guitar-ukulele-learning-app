@@ -36,7 +36,7 @@ export const ALL_CHORDS = [
     { frets: [2, 0, 0, 0], fingers: [1, 0, 0, 0], label: 'Am (standard)' }
   ] },
   { name: 'Bm', frets: [4, 2, 2, 2], fingers: [4, 2, 2, 2], variations: [
-    { frets: [7, 7, 7, 5], fingers: [6, 6, 6, 4], label: 'Bm (barre)' }
+    { frets: [7, 7, 7, 5], fingers: [1, 1, 1, 4], label: 'Bm (barre)' }
   ] },
   { name: 'Cm', frets: [0, 3, 3, 3], fingers: [0, 3, 3, 3], variations: [
     { frets: [0, 3, 3, 3], fingers: [0, 3, 3, 3], label: 'Cm (standard)' }
