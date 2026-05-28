@@ -103,11 +103,11 @@ export const ALL_CHORDS = [
   ] },
 
   // Suspended chords
-  { name: 'Csus2', frets: [0, 0, 0, 2], fingers: [0, 0, 0, 2], variations: [
-    { frets: [0, 0, 0, 2], fingers: [0, 0, 0, 2], label: 'Csus2 (standard)' }
+  { name: 'Csus2', frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], variations: [
+    { frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], label: 'Csus2 (standard)' }
   ] },
-  { name: 'Csus4', frets: [0, 0, 0, 1], fingers: [0, 0, 0, 1], variations: [
-    { frets: [0, 0, 0, 1], fingers: [0, 0, 0, 1], label: 'Csus4 (standard)' }
+  { name: 'Csus4', frets: [0, 0, 1, 3], fingers: [0, 0, 1, 3], variations: [
+    { frets: [0, 0, 1, 3], fingers: [0, 0, 1, 3], label: 'Csus4 (standard)' }
   ] },
   { name: 'Dsus2', frets: [2, 2, 0, 0], fingers: [1, 2, 0, 0], variations: [
     { frets: [2, 2, 0, 0], fingers: [1, 2, 0, 0], label: 'Dsus2 (standard)' }
