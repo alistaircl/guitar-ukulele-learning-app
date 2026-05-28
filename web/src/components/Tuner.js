@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const TUNINGS = {
   'G4 C4 E4 A4': { name: 'Standard (GCEA)', notes: ['G4', 'C4', 'E4', 'A4'], freq: [392, 261.63, 329.63, 440] },
-  'C4 E4 G4 C5': { name: 'Low G (GCEA)', notes: ['C4', 'E4', 'G4', 'C5'], freq: [261.63, 329.63, 392, 523.25] },
+  'G3 C4 E4 A4': { name: 'Low G (GCEA)', notes: ['G3', 'C4', 'E4', 'A4'], freq: [196.0, 261.63, 329.63, 440] },
   'D4 G4 B4 E5': { name: 'Baritone (DGBE)', notes: ['D4', 'G4', 'B4', 'E5'], freq: [293.66, 392, 493.88, 659.25] },
 };
 
