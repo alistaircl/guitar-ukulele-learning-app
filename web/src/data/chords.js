@@ -109,8 +109,8 @@ export const ALL_CHORDS = [
   { name: 'Csus4', frets: [0, 0, 0, 1], fingers: [0, 0, 0, 1], variations: [
     { frets: [0, 0, 0, 1], fingers: [0, 0, 0, 1], label: 'Csus4 (standard)' }
   ] },
-  { name: 'Dsus2', frets: [2, 2, 2, 3], fingers: [1, 2, 3, 4], variations: [
-    { frets: [2, 2, 2, 3], fingers: [1, 2, 3, 4], label: 'Dsus2 (standard)' }
+  { name: 'Dsus2', frets: [2, 2, 0, 0], fingers: [1, 2, 0, 0], variations: [
+    { frets: [2, 2, 0, 0], fingers: [1, 2, 0, 0], label: 'Dsus2 (standard)' }
   ] },
   { name: 'Dsus4', frets: [2, 2, 2, 5], fingers: [1, 2, 3, 4], variations: [
     { frets: [2, 2, 2, 5], fingers: [1, 2, 3, 4], label: 'Dsus4 (standard)' }
