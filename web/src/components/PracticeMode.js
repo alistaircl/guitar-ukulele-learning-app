@@ -394,7 +394,8 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const playChord = (chord) => {
     if (!chord) return;
-    const freqs = CHORD_FREQ[chord] || [440];
+    const chordKey = Object.keys(CHORD_FREQ).find(k => k.toLowerCase() === chord.toLowerCase());
+    const freqs = CHORD_FREQ[chordKey] || [440];
     freqs.forEach(freq => playNote(freq));
   };
 
