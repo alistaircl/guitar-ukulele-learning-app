@@ -16,11 +16,16 @@ const NOTE_FREQ_MAP = {
 function getNearestNote(freq) {
   let nearest = '?';
   let minDiff = Infinity;
+  let signedDiff = 0;
   for (const [note, f] of Object.entries(NOTE_FREQ_MAP)) {
     const diff = Math.abs(freq - f);
-    if (diff < minDiff) { minDiff = diff; nearest = note; }
+    if (diff < minDiff) {
+      minDiff = diff;
+      nearest = note;
+      signedDiff = freq - f;
+    }
   }
-  return { note: nearest, diff: minDiff, freq };
+  return { note: nearest, diff: signedDiff, freq };
 }
 
 function Tuner() {
@@ -142,7 +147,7 @@ function Tuner() {
     : 50;
 
   const gaugeColor = detectedNote
-    ? detectedNote.diff < 5 ? 'in-tune' : detectedNote.diff < 15 ? 'sharp' : 'flat'
+    ? Math.abs(detectedNote.diff) < 5 ? 'in-tune' : detectedNote.diff > 0 ? 'sharp' : 'flat'
     : '';
 
   return (
