@@ -305,41 +305,41 @@ lyrics: [
       { text: "But you can never leave", chord: "F", beats: 8 }
     ]
   }
-+  { id: 10, title: 'Sweet Caroline',
-+    artist: 'Neil Diamond',
-+    difficulty: 'Beginner',
-+    key: 'G',
-+    bpm: 120,
-+    chords: ['G', 'C', 'D', 'Em'],
-+    lyrics: [
-+      { text: "Where it began, I can't begin to knowing", chord: 'G', beats: 4 },
-+      { text: "But then I know it's growing strong", chord: 'C', beats: 4 },
-+      { text: "Was in the spring", chord: 'G', beats: 4 },
-+      { text: "And spring became the summer", chord: 'D', beats: 4 },
-+      { text: "Who'd have believed you'd come along", chord: 'G', beats: 4 },
-+      { text: "Hands, touching hands", chord: 'C', beats: 4 },
-+      { text: "Reaching out, touching me, touching you", chord: 'G', beats: 4 },
-+      { text: "Sweet Caroline", chord: 'Em', beats: 4 },
-+      { text: "Good times never seemed so good", chord: 'G', beats: 4 },
-+      { text: "Good times never seemed so good", chord: 'C', beats: 4 },
-+      { text: "Good times never seemed so good", chord: 'D', beats: 4 },
-+      { text: "Good times never seemed so good", chord: 'Em', beats: 4 },
-+      { text: "I've been inclined", chord: 'G', beats: 4 },
-+      { text: "To believe they never would", chord: 'C', beats: 4 },
-+      { text: "But now I", chord: 'G', beats: 4 },
-+      { text: "Look at the night", chord: 'Em', beats: 4 },
-+      { text: "And it don't seem so lonely", chord: 'C', beats: 4 },
-+      { text: "We fill it up with only two", chord: 'G', beats: 4 },
-+      { text: "And when I hurt", chord: 'Em', beats: 4 },
-+      { text: "Hurting runs off my shoulder", chord: 'C', beats: 4 },
-+      { text: "How can I hurt when holding you?", chord: 'G', beats: 4 },
-+      { text: "Sweet Caroline", chord: 'Em', beats: 4 },
-+      { text: "Good times never seemed so good", chord: 'G', beats: 4 },
-+      { text: "Good times never seemed so good", chord: 'C', beats: 4 },
-+      { text: "Good times never seemed so good", chord: 'D', beats: 4 },
-+      { text: "Good times never seemed so good", chord: 'Em', beats: 4 }
-+    ]
-+  }
+  { id: 10, title: 'Sweet Caroline',
+    artist: 'Neil Diamond',
+    difficulty: 'Beginner',
+    key: 'G',
+    bpm: 120,
+    chords: ['G', 'C', 'D', 'Em'],
+    lyrics: [
+      { text: "Where it began, I can't begin to knowing", chord: 'G', beats: 4 },
+      { text: "But then I know it's growing strong", chord: 'C', beats: 4 },
+      { text: "Was in the spring", chord: 'G', beats: 4 },
+      { text: "And spring became the summer", chord: 'D', beats: 4 },
+      { text: "Who'd have believed you'd come along", chord: 'G', beats: 4 },
+      { text: "Hands, touching hands", chord: 'C', beats: 4 },
+      { text: "Reaching out, touching me, touching you", chord: 'G', beats: 4 },
+      { text: "Sweet Caroline", chord: 'Em', beats: 4 },
+      { text: "Good times never seemed so good", chord: 'G', beats: 4 },
+      { text: "Good times never seemed so good", chord: 'C', beats: 4 },
+      { text: "Good times never seemed so good", chord: 'D', beats: 4 },
+      { text: "Good times never seemed so good", chord: 'Em', beats: 4 },
+      { text: "I've been inclined", chord: 'G', beats: 4 },
+      { text: "To believe they never would", chord: 'C', beats: 4 },
+      { text: "But now I", chord: 'G', beats: 4 },
+      { text: "Look at the night", chord: 'Em', beats: 4 },
+      { text: "And it don't seem so lonely", chord: 'C', beats: 4 },
+      { text: "We fill it up with only two", chord: 'G', beats: 4 },
+      { text: "And when I hurt", chord: 'Em', beats: 4 },
+      { text: "Hurting runs off my shoulder", chord: 'C', beats: 4 },
+      { text: "How can I hurt when holding you?", chord: 'G', beats: 4 },
+      { text: "Sweet Caroline", chord: 'Em', beats: 4 },
+      { text: "Good times never seemed so good", chord: 'G', beats: 4 },
+      { text: "Good times never seemed so good", chord: 'C', beats: 4 },
+      { text: "Good times never seemed so good", chord: 'D', beats: 4 },
+      { text: "Good times never seemed so good", chord: 'Em', beats: 4 }
+    ]
+  }
 ];
 
 function PracticeMode({ initialSongId, onDone }) {
