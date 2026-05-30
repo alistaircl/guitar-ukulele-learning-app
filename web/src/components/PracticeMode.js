@@ -412,6 +412,14 @@ function PracticeMode({ initialSongId, onDone }) {
     }
   }, []);
 
+  const cancelCountdown = () => {
+    if (countdownRef.current) {
+      clearTimeout(countdownRef.current);
+      countdownRef.current = null;
+    }
+    setCountdown(null);
+  };
+
   const startAutoplay = () => {
     setCountdown(3);
     let count = 3;
@@ -587,6 +595,20 @@ function PracticeMode({ initialSongId, onDone }) {
           }}>
             {countdown}
           </span>
+          <button 
+            onClick={cancelCountdown}
+            className="control-btn" 
+            style={{ 
+              position: 'absolute', 
+              bottom: '20px', 
+              background: 'var(--bg-secondary)', 
+              color: 'var(--text-primary)',
+              fontSize: '1rem',
+              padding: '0.4rem 1rem'
+            }}
+          >
+            Cancel
+          </button>
         </div>
       )}
 
