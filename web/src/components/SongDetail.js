@@ -24,7 +24,7 @@ function SongDetail({ songId, onBack }) {
       </div>
       
       <div style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-        {song.artist} • {song.key} major • {song.bpm} BPM
+        {song.artist} • Key: {song.key} • {song.bpm} BPM
       </div>
 
       {/* Chord sheet view: chords inline above lyrics — Ultimate Guitar style */}
