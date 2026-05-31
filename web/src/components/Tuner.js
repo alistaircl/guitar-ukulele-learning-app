@@ -143,7 +143,7 @@ function Tuner() {
   useEffect(() => () => stopTuner(), []);
 
   const gaugePercent = detectedNote
-    ? Math.min(100, Math.max(0, 50 + (detectedNote.diff / 10) * 50 * (detectedNote.freq < NOTE_FREQ_MAP[detectedNote.note] ? -1 : 1)))
+    ? Math.min(100, Math.max(0, 50 + (detectedNote.diff / 50) * 50))
     : 50;
 
   const gaugeColor = detectedNote

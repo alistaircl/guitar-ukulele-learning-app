@@ -22,7 +22,7 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
             />
             <div className="variation-info">
               <p className="variation-label">{v.label}</p>
-              {v.label !== 'Primary' && <p className="variation-desc">{getVariationDescription(v.label)}</p>}
+              {v.label !== 'Primary' && getVariationDescription(v.label) && <p className="variation-desc">{getVariationDescription(v.label)}</p>}
             </div>
           </div>
         ))}
@@ -35,16 +35,16 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
 }
 
 function getVariationDescription(label) {
-  const descriptions = {
-    'G (barre)': 'Barre chord shape - great for moving up the neck',
-    'G (no pinky)': 'Simplified version - easier for beginners',
-    'F (easy)': 'Simplified F chord - no barre required',
-    'D (barre)': 'Barre shape at 5th fret - fuller sound',
-    'D (standard)': 'Standard open position D chord',
-    'Dm (barre)': 'Barre shape at 5th fret - richer tone',
-    'Dm (standard)': 'Standard open position D minor chord',
-  };
-  return descriptions[label] || '';
+  if (!label) return '';
+  
+  const lowerLabel = label.toLowerCase();
+  if (lowerLabel.includes('barre')) return 'Barre chord shape — great for moving up the neck';
+  if (lowerLabel.includes('easy')) return 'Simplified fingering — great for learners';
+  if (lowerLabel.includes('no pinky')) return 'Simplified version — easier for beginners';
+  if (lowerLabel.includes('standard')) return 'Standard open position voicing';
+  if (lowerLabel.includes('pinky')) return 'Alternative fingering using pinky';
+  
+  return '';
 }
 
 export default ChordDetail;

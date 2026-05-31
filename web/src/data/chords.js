@@ -52,7 +52,7 @@ export const ALL_CHORDS = [
     { frets: [1, 0, 1, 3], fingers: [2, 1, 1, 4], label: 'Fm (standard)' }
   ] },
   { name: 'Gm', frets: [0, 2, 3, 1], fingers: [2, 1, 3, 2], variations: [
-    { frets: [0, 2, 3, 1], fingers: [2, 1, 3, 2], label: 'Gm (standard)' }
+    { frets: [0, 2, 3, 1], fingers: [0, 1, 3, 2], label: 'Gm (standard)' }
   ] },
   { name: 'F#m', frets: [2, 1, 2, 0], fingers: [2, 1, 3, 0], variations: [
     { frets: [2, 1, 2, 0], fingers: [2, 1, 3, 0], label: 'F#m (standard)' }
@@ -81,7 +81,7 @@ export const ALL_CHORDS = [
     { frets: [2, 3, 1, 3], fingers: [2, 3, 1, 3], label: 'F7 (standard)' }
   ] },
   { name: 'G7', frets: [0, 2, 1, 2], fingers: [1, 2, 1, 2], variations: [
-    { frets: [0, 2, 1, 2], fingers: [1, 2, 1, 2], label: 'G7 (standard)' }
+    { frets: [0, 2, 1, 2], fingers: [0, 2, 1, 3], label: 'G7 (standard)' }
   ] },
 
   // Major 7th chords
@@ -103,8 +103,8 @@ export const ALL_CHORDS = [
   ] },
 
   // Suspended chords
-  { name: 'Csus2', frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], variations: [
-    { frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], label: 'Csus2 (standard)' }
+  { name: 'Csus2', frets: [0, 2, 3, 3], fingers: [0, 1, 2, 4], variations: [
+    { frets: [0, 2, 3, 3], fingers: [0, 1, 2, 4], label: 'Csus2 (standard)' }
   ] },
   { name: 'Csus4', frets: [0, 0, 1, 3], fingers: [0, 0, 1, 3], variations: [
     { frets: [0, 0, 1, 3], fingers: [0, 0, 1, 3], label: 'Csus4 (standard)' }
@@ -112,8 +112,8 @@ export const ALL_CHORDS = [
   { name: 'Dsus2', frets: [2, 2, 0, 0], fingers: [1, 2, 0, 0], variations: [
     { frets: [2, 2, 0, 0], fingers: [1, 2, 0, 0], label: 'Dsus2 (standard)' }
   ] },
-  { name: 'Dsus4', frets: [2, 2, 2, 5], fingers: [1, 2, 3, 4], variations: [
-    { frets: [2, 2, 2, 5], fingers: [1, 2, 3, 4], label: 'Dsus4 (standard)' }
+  { name: 'Dsus4', frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], variations: [
+    { frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], label: 'Dsus4 (standard)' }
   ] },
   { name: 'Esus2', frets: [1, 4, 0, 2], fingers: [1, 4, 0, 2], variations: [
     { frets: [1, 4, 0, 2], fingers: [1, 4, 0, 2], label: 'Esus2 (standard)' }

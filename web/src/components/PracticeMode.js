@@ -304,7 +304,7 @@ lyrics: [
       { text: "You can check out any time you like", chord: "G", beats: 4 },
       { text: "But you can never leave", chord: "F", beats: 8 }
     ]
-  }
+  },
   { id: 10, title: 'Sweet Caroline',
     artist: 'Neil Diamond',
     difficulty: 'Beginner',
@@ -523,7 +523,7 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const stopAutoplay = () => {
     if (timerRef.current) {
-      clearInterval(timerRef.current);
+      clearTimeout(timerRef.current);
       timerRef.current = null;
     }
     setIsPlaying(false);
