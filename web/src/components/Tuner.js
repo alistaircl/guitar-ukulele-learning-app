@@ -109,24 +109,59 @@ function Tuner() {
 
 
   const autoCorrelate = (buffer, sampleRate) => {
-    const SIZE = buffer.length;
+    let SIZE = buffer.length;
     let rms = 0;
-    for (let i = 0; i < SIZE; i++) rms += buffer[i] * buffer[i];
+    for (let i = 0; i < SIZE; i++) {
+      rms += buffer[i] * buffer[i];
+    }
     rms = Math.sqrt(rms / SIZE);
     if (rms < 0.01) return -1;
+
     let r1 = 0, r2 = SIZE - 1;
     const thresh = 0.2;
-    for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buffer[i]) < thresh) { r1 = i; break; }
-    for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buffer[SIZE - i]) < thresh) { r2 = SIZE - i; break; }
+    for (let i = 0; i < SIZE / 2; i++) {
+      if (Math.abs(buffer[i]) < thresh) {
+        r1 = i;
+        break;
+      }
+    }
+    for (let i = 1; i < SIZE / 2; i++) {
+      if (Math.abs(buffer[SIZE - i]) < thresh) {
+        r2 = SIZE - i;
+        break;
+      }
+    }
+
     const buf = buffer.slice(r1, r2);
     const c = new Array(buf.length).fill(0);
-    for (let i = 0; i < buf.length; i++) for (let j = 0; j < buf.length - i; j++) c[i] += buf[j] * buf[j + i];
+    for (let i = 0; i < buf.length; i++) {
+      for (let j = 0; j < buf.length - i; j++) {
+        c[i] = c[i] + buf[j] * buf[j + i];
+      }
+    }
+
     let d = 0;
     while (c[d] > c[d + 1]) d++;
+
     let maxVal = -1, maxPos = -1;
-    for (let i = d; i < buf.length; i++) if (c[i] > maxVal) { maxVal = c[i]; maxPos = i; }
+    for (let i = d; i < buf.length; i++) {
+      if (c[i] > maxVal) {
+        maxVal = c[i];
+        maxPos = i;
+      }
+    }
+
     let T0 = maxPos;
     if (T0 < 1) return -1;
+
+    // Interpolate for better accuracy
+    let x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
+    let a = (x1 + x3 - 2 * x2) / 2;
+    let b = (x3 - x1) / 2;
+    if (a !== 0) {
+      T0 = T0 - b / (2 * a);
+    }
+
     return sampleRate / T0;
   };
 

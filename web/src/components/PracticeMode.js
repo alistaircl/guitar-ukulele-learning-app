@@ -241,7 +241,7 @@ lyrics: [
     difficulty: 'Intermediate',
     key: 'Am',
     bpm: 75,
-    chords: ["Am", "E7", "G", "D", "F", "C", "Dm", "E7"],
+    chords: ["Am", "E7", "G", "D", "F", "C", "Dm"],
     lyrics: [
       { text: "(Instrumental Intro - Fingerpicking Pattern)", chord: null, beats: 8 },
       { text: "Am: 4-3-2-1-2-1, 3-2-1", chord: "Am", beats: 4 },
@@ -470,6 +470,7 @@ function PracticeMode({ initialSongId, onDone }) {
           timerRef.current = null;
           setIsPlaying(false);
           setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
+          if (onDone) onDone();
           return;
         }
         

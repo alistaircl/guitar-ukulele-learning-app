@@ -147,13 +147,13 @@ export function getAllChordNames() {
 
 // Helper function to search chords by name (partial match)
 export function searchChords(query) {
-  const lowerQuery = query.toLowerCase();
+  const lowerQuery = query.toLowerCase().trim();
   
-  // Handle common aliases
-  let normalizedQuery = lowerQuery;
-  if (normalizedQuery.includes(' minor')) normalizedQuery = normalizedQuery.replace(' minor', 'm');
-  if (normalizedQuery.includes(' major')) normalizedQuery = normalizedQuery.replace(' major', '');
-  if (normalizedQuery.includes(' seventh') || normalizedQuery.includes(' 7th')) normalizedQuery = normalizedQuery.replace(/ seventh| 7th/, '7');
+  // Handle common aliases and normalize to shorthand
+  let normalizedQuery = lowerQuery
+    .replace(/\s*minor\b/g, 'm')
+    .replace(/\s*major\b/g, '')
+    .replace(/\s*(seventh|7th)\b/g, '7');
   
   return ALL_CHORDS.filter(chord => 
     chord.name.toLowerCase().includes(normalizedQuery)
