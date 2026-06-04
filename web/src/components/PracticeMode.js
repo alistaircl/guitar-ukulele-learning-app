@@ -518,6 +518,11 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const goToLine = (idx) => {
     if (idx >= 0 && idx < selectedSong.lyrics.length) {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      setIsPlaying(false);
       setCurrentIndex(idx);
       setFeedback(null);
       scrollToLine(idx);
