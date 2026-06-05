@@ -67,7 +67,6 @@ function Tuner() {
       setError(null);
       detectPitch();
     } catch (err) {
-      console.error('Microphone access error:', err);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setError('Microphone access denied. Please enable microphone permissions in your browser settings and refresh the page.');
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
