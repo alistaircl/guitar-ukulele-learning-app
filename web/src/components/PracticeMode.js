@@ -324,6 +324,7 @@ function PracticeMode({ initialSongId, onDone }) {
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const [streak, setStreak] = useState(0);
   const [totalCorrect, setTotalCorrect] = useState(0);
@@ -335,6 +336,8 @@ function PracticeMode({ initialSongId, onDone }) {
   const countdownRef = useRef(null);
   const lyricsContainerRef = useRef(null);
   const lineRefs = useRef([]);
+  const playbackStartTimeRef = useRef(null);
+  const playbackElapsedRef = useRef(0);
 
   // If initialSongId changes (user picks a new song from SongLibrary), switch to it
   useEffect(() => {
@@ -358,9 +361,12 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const resetSong = () => {
     setIsPlaying(false);
+    setIsPaused(false);
     setCurrentIndex(0);
     setCountdown(null);
     setFeedback(null);
+    playbackStartTimeRef.current = null;
+    playbackElapsedRef.current = 0;
     if (timerRef.current) clearInterval(timerRef.current);
     if (countdownRef.current) clearTimeout(countdownRef.current);
   };
@@ -449,7 +455,10 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const beginPlayback = () => {
     setIsPlaying(true);
+    setIsPaused(false);
     setCurrentIndex(0);
+    playbackStartTimeRef.current = Date.now();
+    playbackElapsedRef.current = 0;
     
     // Pulse animation on the beat
     setBeatPulse(true);
@@ -462,19 +471,24 @@ function PracticeMode({ initialSongId, onDone }) {
     
     // Use setTimeout chain: each line advances after its own beats duration
     const advance = (idx) => {
+      const lineDur = lineDuration(selectedSong.lyrics[idx]);
       timerRef.current = setTimeout(() => {
         const next = idx + 1;
         
         if (next >= selectedSong.lyrics.length) {
           // Song finished
           timerRef.current = null;
+          playbackStartTimeRef.current = null;
+          playbackElapsedRef.current = 0;
           setIsPlaying(false);
+          setIsPaused(false);
           setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
           if (onDone) onDone();
           return;
         }
         
         setCurrentIndex(next);
+        playbackStartTimeRef.current = Date.now();
         setBeatPulse(true);
         setTimeout(() => setBeatPulse(false), 150);
         setFeedback(null);
@@ -487,11 +501,86 @@ function PracticeMode({ initialSongId, onDone }) {
         
         // Schedule the next line with its own beat count
         advance(next);
-      }, lineDuration(selectedSong.lyrics[idx]));
+      }, lineDur);
     };
     
     // Start the chain from the first line
     advance(0);
+  };
+
+  const pauseAutoplay = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    // Calculate how much time has elapsed on the current line
+    if (playbackStartTimeRef.current) {
+      playbackElapsedRef.current = Date.now() - playbackStartTimeRef.current;
+      playbackStartTimeRef.current = null;
+    }
+    setIsPaused(true);
+  };
+
+  const resumeAutoplay = () => {
+    if (!isPaused) return;
+    
+    setIsPaused(false);
+    playbackStartTimeRef.current = Date.now();
+    
+    // Calculate remaining time for current line
+    const currentLine = selectedSong.lyrics[currentIndex];
+    const lineDur = lineDuration(currentLine);
+    const remainingTime = lineDur - playbackElapsedRef.current;
+    
+    // Pulse animation on resume
+    setBeatPulse(true);
+    setTimeout(() => setBeatPulse(false), 150);
+    
+    // Resume the advance chain with remaining time
+    const advance = (idx) => {
+      const dur = lineDuration(selectedSong.lyrics[idx]);
+      timerRef.current = setTimeout(() => {
+        const next = idx + 1;
+        
+        if (next >= selectedSong.lyrics.length) {
+          // Song finished
+          timerRef.current = null;
+          playbackStartTimeRef.current = null;
+          playbackElapsedRef.current = 0;
+          setIsPlaying(false);
+          setIsPaused(false);
+          setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
+          if (onDone) onDone();
+          return;
+        }
+        
+        setCurrentIndex(next);
+        playbackStartTimeRef.current = Date.now();
+        playbackElapsedRef.current = 0;
+        setBeatPulse(true);
+        setTimeout(() => setBeatPulse(false), 150);
+        setFeedback(null);
+        scrollToLine(next);
+        
+        // Play chord on beat
+        if (selectedSong.lyrics[next].chord) {
+          playChord(selectedSong.lyrics[next].chord);
+        }
+        
+        // Schedule the next line with its own beat count
+        advance(next);
+      }, dur);
+    };
+    
+    // If we have remaining time on current line, wait for it, otherwise advance immediately
+    if (remainingTime > 0) {
+      timerRef.current = setTimeout(() => {
+        advance(currentIndex + 1);
+      }, remainingTime);
+    } else {
+      // Already past the duration, advance immediately
+      advance(currentIndex + 1);
+    }
   };
 
   const stopAutoplay = () => {
@@ -585,10 +674,25 @@ function PracticeMode({ initialSongId, onDone }) {
               ▶ Start
             </button>
           )}
-          {isPlaying && (
-            <button className="control-btn" onClick={stopAutoplay} style={{ background: 'var(--danger)', color: 'white' }}>
-              ⏹ Stop
-            </button>
+          {isPlaying && !isPaused && (
+            <>
+              <button className="control-btn" onClick={pauseAutoplay} style={{ background: 'var(--warning)', color: 'white', marginRight: '0.5rem' }}>
+                ⏸ Pause
+              </button>
+              <button className="control-btn" onClick={stopAutoplay} style={{ background: 'var(--danger)', color: 'white' }}>
+                ⏹ Stop
+              </button>
+            </>
+          )}
+          {isPlaying && isPaused && (
+            <>
+              <button className="control-btn" onClick={resumeAutoplay} style={{ background: 'var(--success)', color: 'white', marginRight: '0.5rem' }}>
+                ▶ Resume
+              </button>
+              <button className="control-btn" onClick={stopAutoplay} style={{ background: 'var(--danger)', color: 'white' }}>
+                ⏹ Stop
+              </button>
+            </>
           )}
         </div>
       </div>
