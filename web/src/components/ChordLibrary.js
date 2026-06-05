@@ -79,13 +79,14 @@ function ChordPage({ chord, onGoBack }) {
 
 function ChordCard({ chord, selected, onClick }) {
   const fingerCount = chord.frets.filter(f => f > 0).length;
+  const variationCount = chord.variations ? chord.variations.length : 0;
   return (
     <div
       className={`chord-card ${selected ? 'selected' : ''}`}
       onClick={onClick}
       role="button"
       aria-pressed={selected}
-      aria-label={`${chord.name} chord diagram showing ${chord.frets.filter(f => f > 0).length} finger positions`}
+      aria-label={`${chord.name} chord diagram showing ${chord.frets.filter(f => f > 0).length} finger positions${variationCount > 0 ? `, ${variationCount} variations available` : ''}`}
       tabIndex={0}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
     >
@@ -96,6 +97,20 @@ function ChordCard({ chord, selected, onClick }) {
           ? `${fingerCount} finger${fingerCount > 1 ? 's' : ''}`
           : 'Open chords'}
       </div>
+      {variationCount > 0 && (
+        <div className="variations-badge" style={{
+          marginTop: '0.5rem',
+          padding: '0.25rem 0.5rem',
+          background: 'rgba(102, 126, 234, 0.15)',
+          borderRadius: '4px',
+          fontSize: '0.75rem',
+          color: 'var(--accent-primary)',
+          fontWeight: '600',
+          textAlign: 'center'
+        }}>
+          {variationCount} variation{variationCount > 1 ? 's' : ''} available
+        </div>
+      )}
     </div>
   );
 }
