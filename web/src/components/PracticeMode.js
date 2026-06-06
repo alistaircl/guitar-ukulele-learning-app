@@ -372,7 +372,11 @@ function PracticeMode({ initialSongId, onDone }) {
   };
 
   const playNote = (freq) => {
-    if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    // AudioContext should be initialized by initAudioContext() before first playNote call
+    if (!audioCtxRef.current) {
+      // Fallback: create if somehow not initialized (shouldn't happen)
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
     const osc = audioCtxRef.current.createOscillator();
     const gain = audioCtxRef.current.createGain();
     osc.connect(gain);
@@ -434,7 +438,20 @@ function PracticeMode({ initialSongId, onDone }) {
     setCountdown(null);
   };
 
+  // Initialize and resume AudioContext on user gesture
+  const initAudioContext = () => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // Browsers start AudioContext in 'suspended' state - must resume on user gesture
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+  };
+
   const startAutoplay = () => {
+    // Initialize audio context on user gesture (required by browsers)
+    initAudioContext();
     setCountdown(3);
     let count = 3;
     const countdownStep = () => {
