@@ -16,8 +16,19 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
   // String x positions (4 strings)
   const strX = Array.from({ length: 4 }, (_, i) => strAreaX + (i / 3) * strAreaW);
 
-  // Always start from first fret to show open positions clearly
-  const startFret = 1;
+  // Calculate dynamic start fret based on chord data
+  // Find minimum positive fret (ignore -1 muted and 0 open strings)
+  const startFret = (() => {
+    const positiveFrets = frets.filter(f => f > 0);
+    if (positiveFrets.length === 0) return 1;
+    const minFret = Math.min(...positiveFrets);
+    const maxFret = Math.max(...positiveFrets);
+    // If fret range spans more than 4 frets, shift window to start from min
+    if (maxFret - minFret >= 4) {
+      return minFret;
+    }
+    return minFret > 1 ? minFret : 1;
+  })();
 
   // Detect barre chords (same finger used on 2+ adjacent strings)
   const detectBarres = () => {
