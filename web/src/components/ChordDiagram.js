@@ -137,10 +137,13 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
   };
 
   // Render the nut (thick bar at top of fret grid)
-  const renderNut = () => (
-    <rect x={strX[0] - 2} y={fretTop - nutH} width={strX[3] - strX[0] + 4} height={nutH}
-      fill="#e8e8f0" rx={1} />
-  );
+  const renderNut = () => {
+    if (startFret > 1) return null;
+    return (
+      <rect x={strX[0] - 2} y={fretTop - nutH} width={strX[3] - strX[0] + 4} height={nutH}
+        fill="#e8e8f0" rx={1} />
+    );
+  };
 
   // Render the 4 vertical string lines
   const renderStrings = () => (
