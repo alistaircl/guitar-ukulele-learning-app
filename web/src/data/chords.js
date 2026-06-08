@@ -151,9 +151,25 @@ export function searchChords(query) {
   
   // Handle common aliases and normalize to shorthand
   let normalizedQuery = lowerQuery
+    .replace(/\s*chords\b/g, '')
     .replace(/\s*minor\b/g, 'm')
     .replace(/\s*major\b/g, '')
-    .replace(/\s*(seventh|7th)\b/g, '7');
+    .replace(/\s*(seventh|7th)\b/g, '7')
+    .trim();
+  
+  if (normalizedQuery === '') {
+    // If the user searched for 'major', 'major chords', or just whitespace, 
+    // we should probably return an empty list or a sensible default.
+    // But based on the issue, if they search for 'major', they want major chords.
+    if (lowerQuery.includes('major')) {
+      return ALL_CHORDS.filter(chord => {
+        // Major chords in this DB are those without 'm', '7', 'maj7', 'sus' in the name
+        const name = chord.name.toLowerCase();
+        return !name.includes('m') && !name.includes('7') && !name.includes('sus');
+      });
+    }
+    return ALL_CHORDS;
+  }
   
   return ALL_CHORDS.filter(chord => 
     chord.name.toLowerCase().includes(normalizedQuery)
