@@ -57,6 +57,12 @@ function Tuner() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Ensure the AudioContext is active. Some browsers start it in 'suspended' state.
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+      
       audioCtxRef.current = audioCtx;
       const analyser = audioCtx.createAnalyser();
       analyser.fftSize = 4096;
