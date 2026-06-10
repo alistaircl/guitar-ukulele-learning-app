@@ -171,6 +171,19 @@ export function searchChords(query) {
     return ALL_CHORDS;
   }
   
+  // Special handling for 'm' (minor) to avoid matching 'maj7' chords
+  // The letter 'm' alone should match minor chords (Am, Bm, Cm, etc.) but not maj7 chords
+  if (normalizedQuery === 'm') {
+    return ALL_CHORDS.filter(chord => {
+      const name = chord.name.toLowerCase();
+      // Match chords where 'm' indicates minor quality:
+      // - Ends with 'm' (e.g., Am, Bbm, Cm)
+      // - Has 'm' followed by a number (e.g., Am7, Bm7)
+      // Exclude 'maj' which contains 'm' but indicates major
+      return /^[a-g][#b]?m(7|$)/.test(name);
+    });
+  }
+  
   return ALL_CHORDS.filter(chord => 
     chord.name.toLowerCase().includes(normalizedQuery)
   );
