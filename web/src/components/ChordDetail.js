@@ -12,6 +12,21 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
     <div className="chord-detail">
       {!showPrimaryLabel && <h2>{chord.name}</h2>}
       <div className="variations-grid">
+        {/* Always display the primary chord first */}
+        <div className="variation-item">
+          <ChordDiagram
+            frets={chord.frets}
+            fingers={chord.fingers}
+            size={120}
+            className="chord-detail-diagram"
+          />
+          <div className="variation-info">
+            <p className="variation-label">{showPrimaryLabel ? 'Primary' : 'Standard'}</p>
+            <p className="variation-desc">Standard open position voicing</p>
+          </div>
+        </div>
+        
+        {/* Display variations if they exist */}
         {allVariations.map((v, i) => (
           <div key={i} className="variation-item">
             <ChordDiagram
