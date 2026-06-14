@@ -150,11 +150,12 @@ export function searchChords(query) {
   const lowerQuery = query.toLowerCase().trim();
   
   // Handle common aliases and normalize to shorthand
+  // Important: Remove spaces before quality words to ensure "c minor" -> "cm" not "c m"
   let normalizedQuery = lowerQuery
     .replace(/\s*chords\b/g, '')
-    .replace(/\s*minor\b/g, 'm')
-    .replace(/\s*major\b/g, '')
-    .replace(/\s*(seventh|7th)\b/g, '7')
+    .replace(/\s+minor\b/g, 'm')      // "c minor" -> "cm"
+    .replace(/\s+major\b/g, '')       // "c major" -> "c"
+    .replace(/\s+(seventh|7th)\b/g, '7')  // "c seventh" -> "c7"
     .trim();
   
   if (normalizedQuery === '') {
