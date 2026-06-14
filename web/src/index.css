@@ -101,6 +101,7 @@ body {
   height: 100%;
   transition: width 0.1s, background 0.2s;
   border-radius: 10px;
+  background: var(--text-secondary);
 }
 
 .gauge-fill.flat { background: var(--danger); }
