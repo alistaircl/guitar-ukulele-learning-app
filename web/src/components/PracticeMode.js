@@ -508,16 +508,11 @@ function PracticeMode({ initialSongId, onDone }) {
     setIsPaused(false);
     playbackStartTimeRef.current = Date.now();
     
-    // Calculate remaining time for current line
-    const currentLine = selectedSong.lyrics[currentIndex];
-    const lineDur = lineDuration(currentLine);
-    const remainingTime = lineDur - playbackElapsedRef.current;
-    
     // Pulse animation on resume
     setBeatPulse(true);
     setTimeout(() => setBeatPulse(false), 150);
     
-    // Resume the advance chain with remaining time
+    // Resume the advance chain - stay on current line for remaining time
     const advance = (idx) => {
       const dur = lineDuration(selectedSong.lyrics[idx]);
       timerRef.current = setTimeout(() => {
@@ -553,15 +548,8 @@ function PracticeMode({ initialSongId, onDone }) {
       }, dur);
     };
     
-    // If we have remaining time on current line, wait for it, otherwise advance immediately
-    if (remainingTime > 0) {
-      timerRef.current = setTimeout(() => {
-        advance(currentIndex + 1);
-      }, remainingTime);
-    } else {
-      // Already past the duration, advance immediately
-      advance(currentIndex + 1);
-    }
+    // Resume on current line - advance() will handle progressing to next line after full duration
+    advance(currentIndex);
   };
 
   const stopAutoplay = () => {
