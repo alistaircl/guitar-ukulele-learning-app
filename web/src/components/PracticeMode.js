@@ -388,9 +388,6 @@ function PracticeMode({ initialSongId, onDone }) {
   // Per-bar duration: one bar (4 beats) at the current BPM
   const barDuration = () => (60 / selectedSong.bpm) * 4000;
 
-  // Per-line duration: beats field × bar duration (defaults to 4 beats = 1 bar if missing)
-  const lineDuration = (line) => barDuration() * ((line.beats || 4) / 4);
-
   // Auto-scroll the active line into view
   const scrollToLine = useCallback((idx) => {
     const el = lineRefs.current[idx];
