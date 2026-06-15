@@ -298,10 +298,11 @@ function PracticeMode({ initialSongId, onDone }) {
   const audioCtxRef = useRef(null);
   const timerRef = useRef(null);
   const countdownRef = useRef(null);
+  const rAFRef = useRef(null);
   const lyricsContainerRef = useRef(null);
   const lineRefs = useRef([]);
   const playbackStartTimeRef = useRef(null);
-  const playbackElapsedRef = useRef(0);
+  const cumulativeDurationsRef = useRef([]); // Cache of cumulative line durations
 
   // If initialSongId changes (user picks a new song from SongLibrary), switch to it
   useEffect(() => {
@@ -330,7 +331,11 @@ function PracticeMode({ initialSongId, onDone }) {
     setCountdown(null);
     setFeedback(null);
     playbackStartTimeRef.current = null;
-    playbackElapsedRef.current = 0;
+    cumulativeDurationsRef.current = [];
+    if (rAFRef.current) {
+      cancelAnimationFrame(rAFRef.current);
+      rAFRef.current = null;
+    }
     if (timerRef.current) clearInterval(timerRef.current);
     if (countdownRef.current) clearTimeout(countdownRef.current);
   };
@@ -434,124 +439,121 @@ function PracticeMode({ initialSongId, onDone }) {
     countdownStep();
   };
 
-  const beginPlayback = () => {
-    setIsPlaying(true);
-    setIsPaused(false);
-    setCurrentIndex(0);
-    playbackStartTimeRef.current = Date.now();
-    playbackElapsedRef.current = 0;
+  // Pre-calculate cumulative durations for all lines (for rAF timing)
+    const calculateCumulativeDurations = useCallback(() => {
+      const durations = [];
+      let cumulative = 0;
+      for (const line of selectedSong.lyrics) {
+        cumulative += lineDuration(line);
+        durations.push(cumulative);
+      }
+      return durations;
+    }, [selectedSong]);
+  
+    // rAF-based playback loop - self-correcting timing
+    const playbackLoop = useCallback(() => {
+      if (!playbackStartTimeRef.current || isPaused) return;
     
-    // Pulse animation on the beat
-    setBeatPulse(true);
-    setTimeout(() => setBeatPulse(false), 150);
+      const elapsed = Date.now() - playbackStartTimeRef.current;
+      const cumulative = cumulativeDurationsRef.current;
     
-    // Play first chord immediately
-    if (selectedSong.lyrics[0].chord) {
-      playChord(selectedSong.lyrics[0].chord);
-    }
-    
-    // Use setTimeout chain: each line advances after its own beats duration
-    const advance = (idx) => {
-      const lineDur = lineDuration(selectedSong.lyrics[idx]);
-      timerRef.current = setTimeout(() => {
-        const next = idx + 1;
-        
-        if (next >= selectedSong.lyrics.length) {
-          // Song finished
-          timerRef.current = null;
-          playbackStartTimeRef.current = null;
-          playbackElapsedRef.current = 0;
-          setIsPlaying(false);
-          setIsPaused(false);
-          setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
-          if (onDone) onDone();
-          return;
+      // Find which line we should be on based on elapsed time
+      let targetIndex = 0;
+      for (let i = 0; i < cumulative.length; i++) {
+        if (elapsed >= cumulative[i]) {
+          targetIndex = i + 1;
+        } else {
+          break;
         }
-        
-        setCurrentIndex(next);
-        playbackStartTimeRef.current = Date.now();
+      }
+    
+      // If we've reached the end
+      if (targetIndex >= selectedSong.lyrics.length) {
+        if (rAFRef.current) {
+          cancelAnimationFrame(rAFRef.current);
+          rAFRef.current = null;
+        }
+        playbackStartTimeRef.current = null;
+        setIsPlaying(false);
+        setIsPaused(false);
+        setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
+        if (onDone) onDone();
+        return;
+      }
+    
+      // If we've advanced to a new line
+      if (targetIndex !== currentIndex) {
+        setCurrentIndex(targetIndex);
         setBeatPulse(true);
         setTimeout(() => setBeatPulse(false), 150);
         setFeedback(null);
-        scrollToLine(next);
-        
+        scrollToLine(targetIndex);
+      
         // Play chord on beat
-        if (selectedSong.lyrics[next].chord) {
-          playChord(selectedSong.lyrics[next].chord);
+        const chord = selectedSong.lyrics[targetIndex].chord;
+        if (chord) {
+          playChord(chord);
         }
-        
-        // Schedule the next line with its own beat count
-        advance(next);
-      }, lineDur);
+      }
+    
+      // Continue the loop
+      rAFRef.current = requestAnimationFrame(playbackLoop);
+    }, [currentIndex, isPaused, selectedSong, onDone, scrollToLine, playChord]);
+
+    const beginPlayback = () => {
+      setIsPlaying(true);
+      setIsPaused(false);
+      setCurrentIndex(0);
+      playbackStartTimeRef.current = Date.now();
+      cumulativeDurationsRef.current = calculateCumulativeDurations();
+    
+      // Pulse animation on the beat
+      setBeatPulse(true);
+      setTimeout(() => setBeatPulse(false), 150);
+    
+      // Play first chord immediately
+      if (selectedSong.lyrics[0].chord) {
+        playChord(selectedSong.lyrics[0].chord);
+      }
+    
+      // Start rAF loop
+      rAFRef.current = requestAnimationFrame(playbackLoop);
     };
-    
-    // Start the chain from the first line
-    advance(0);
-  };
-
-  const pauseAutoplay = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    // Calculate how much time has elapsed on the current line
-    if (playbackStartTimeRef.current) {
-      playbackElapsedRef.current = Date.now() - playbackStartTimeRef.current;
-      playbackStartTimeRef.current = null;
-    }
-    setIsPaused(true);
-  };
-
-  const resumeAutoplay = () => {
-    if (!isPaused) return;
-    
-    setIsPaused(false);
-    playbackStartTimeRef.current = Date.now();
-    
-    // Pulse animation on resume
-    setBeatPulse(true);
-    setTimeout(() => setBeatPulse(false), 150);
-    
-    // Resume the advance chain - stay on current line for remaining time
-    const advance = (idx) => {
-      const dur = lineDuration(selectedSong.lyrics[idx]);
-      timerRef.current = setTimeout(() => {
-        const next = idx + 1;
-        
-        if (next >= selectedSong.lyrics.length) {
-          // Song finished
-          timerRef.current = null;
-          playbackStartTimeRef.current = null;
-          playbackElapsedRef.current = 0;
-          setIsPlaying(false);
-          setIsPaused(false);
-          setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
-          if (onDone) onDone();
-          return;
-        }
-        
-        setCurrentIndex(next);
-        playbackStartTimeRef.current = Date.now();
-        playbackElapsedRef.current = 0;
-        setBeatPulse(true);
-        setTimeout(() => setBeatPulse(false), 150);
-        setFeedback(null);
-        scrollToLine(next);
-        
-        // Play chord on beat
-        if (selectedSong.lyrics[next].chord) {
-          playChord(selectedSong.lyrics[next].chord);
-        }
-        
-        // Schedule the next line with its own beat count
-        advance(next);
-      }, dur);
+  
+    const pauseAutoplay = () => {
+      if (rAFRef.current) {
+        cancelAnimationFrame(rAFRef.current);
+        rAFRef.current = null;
+      }
+      // Adjust start time so elapsed time is preserved on resume
+      if (playbackStartTimeRef.current) {
+        const elapsed = Date.now() - playbackStartTimeRef.current;
+        // We'll subtract this elapsed from the new start time on resume
+        playbackStartTimeRef.current = null;
+        // Store elapsed in a way resume can use it
+        window._pausedPlaybackElapsed = elapsed;
+      }
+      setIsPaused(true);
     };
+  
+    const resumeAutoplay = () => {
+      if (!isPaused) return;
     
-    // Resume on current line - advance() will handle progressing to next line after full duration
-    advance(currentIndex);
-  };
-
+      setIsPaused(false);
+      // Start from where we left off, accounting for elapsed time
+      const elapsedWhilePaused = window._pausedPlaybackElapsed || 0;
+      window._pausedPlaybackElapsed = null;
+      playbackStartTimeRef.current = Date.now() - elapsedWhilePaused;
+      cumulativeDurationsRef.current = calculateCumulativeDurations();
+    
+      // Pulse animation on resume
+      setBeatPulse(true);
+      setTimeout(() => setBeatPulse(false), 150);
+    
+      // Resume rAF loop
+      rAFRef.current = requestAnimationFrame(playbackLoop);
+    };
+  
   const stopAutoplay = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
