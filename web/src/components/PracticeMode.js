@@ -339,25 +339,7 @@ function PracticeMode({ initialSongId, onDone }) {
     if (timerRef.current) clearInterval(timerRef.current);
     if (countdownRef.current) clearTimeout(countdownRef.current);
   };
-
-  const playNote = (freq) => {
-    // AudioContext should be initialized by initAudioContext() before first playNote call
-    if (!audioCtxRef.current) {
-      // Fallback: create if somehow not initialized (shouldn't happen)
-      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    const osc = audioCtxRef.current.createOscillator();
-    const gain = audioCtxRef.current.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtxRef.current.destination);
-    osc.type = 'triangle';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.25, audioCtxRef.current.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtxRef.current.currentTime + 0.4);
-    osc.start();
-    osc.stop(audioCtxRef.current.currentTime + 0.4);
-  };
-
+  
   const CHORD_FREQ = {
     'C': [261.63, 329.63, 392.0],
     'D': [293.66, 369.99, 440.0],
@@ -378,12 +360,30 @@ function PracticeMode({ initialSongId, onDone }) {
     'B7': [493.88, 622.25, 739.99, 880.0],
   };
 
-  const playChord = (chord) => {
+  const playNote = useCallback((freq) => {
+    // AudioContext should be initialized by initAudioContext() before first playNote call
+    if (!audioCtxRef.current) {
+      // Fallback: create if somehow not initialized (shouldn't happen)
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    const osc = audioCtxRef.current.createOscillator();
+    const gain = audioCtxRef.current.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtxRef.current.destination);
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.25, audioCtxRef.current.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtxRef.current.currentTime + 0.4);
+    osc.start();
+    osc.stop(audioCtxRef.current.currentTime + 0.4);
+  }, []);
+
+  const playChord = useCallback((chord) => {
     if (!chord) return;
     const chordKey = Object.keys(CHORD_FREQ).find(k => k.toLowerCase() === chord.toLowerCase());
     const freqs = CHORD_FREQ[chordKey] || [440];
     freqs.forEach(freq => playNote(freq));
-  };
+  }, [playNote]);
 
   // Per-bar duration: one bar (4 beats) at the current BPM
   const barDuration = () => (60 / selectedSong.bpm) * 4000;
@@ -443,8 +443,11 @@ function PracticeMode({ initialSongId, onDone }) {
     const calculateCumulativeDurations = useCallback(() => {
       const durations = [];
       let cumulative = 0;
+      // Inline duration calculation to avoid dependency on unstable lineDuration function
+      const barDur = (60 / selectedSong.bpm) * 4000;
       for (const line of selectedSong.lyrics) {
-        cumulative += lineDuration(line);
+        const lineDur = barDur * ((line.beats || 4) / 4);
+        cumulative += lineDur;
         durations.push(cumulative);
       }
       return durations;
