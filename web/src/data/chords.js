@@ -185,7 +185,26 @@ export function searchChords(query) {
     });
   }
   
-  return ALL_CHORDS.filter(chord => 
-    chord.name.toLowerCase().includes(normalizedQuery)
-  );
+  // Handle multiple search terms (e.g., "C minor G major" → ["cm", "g"])
+  const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
+  
+  if (searchTerms.length === 1) {
+    // Single term: direct includes match
+    return ALL_CHORDS.filter(chord => 
+      chord.name.toLowerCase().includes(searchTerms[0])
+    );
+  }
+  
+  // Multiple terms: find chords matching ANY term, return unique results
+  const matchingChords = new Set();
+  for (const term of searchTerms) {
+    const matches = ALL_CHORDS.filter(chord => 
+      chord.name.toLowerCase().includes(term)
+    );
+    for (const chord of matches) {
+      matchingChords.add(chord);
+    }
+  }
+  
+  return Array.from(matchingChords);
 }
