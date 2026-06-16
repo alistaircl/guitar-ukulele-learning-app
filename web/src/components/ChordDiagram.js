@@ -73,14 +73,24 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
           }
         }
         
-        // Check last barre
+        // Add barre if we're at the last string and have a valid barre that wasn't already added
+        // A barre is already added if the else block fired on this iteration
         if (idx === strings.length - 1 && currentBarre.length >= 2) {
-          barres.push({
-            finger: parseInt(finger),
-            fret: currentBarre[0].fret,
-            startString: currentBarre[0].stringIdx,
-            endString: currentBarre[currentBarre.length - 1].stringIdx
-          });
+          // Check if this exact barre already exists (prevent duplicates)
+          const exists = barres.some(b => 
+            b.finger === parseInt(finger) && 
+            b.fret === currentBarre[0].fret && 
+            b.startString === currentBarre[0].stringIdx &&
+            b.endString === currentBarre[currentBarre.length - 1].stringIdx
+          );
+          if (!exists) {
+            barres.push({
+              finger: parseInt(finger),
+              fret: currentBarre[0].fret,
+              startString: currentBarre[0].stringIdx,
+              endString: currentBarre[currentBarre.length - 1].stringIdx
+            });
+          }
         }
       });
     });
