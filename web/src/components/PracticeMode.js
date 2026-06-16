@@ -1,5 +1,25 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
+const CHORD_FREQ = {
+  'C': [261.63, 329.63, 392.0],
+  'D': [293.66, 369.99, 440.0],
+  'E': [329.63, 415.3, 493.88],
+  'F': [349.23, 440.0, 523.25],
+  'F#': [369.99, 466.16, 554.37],
+  'G': [392.0, 493.88, 587.33],
+  'G#': [415.3, 523.25, 622.25],
+  'A': [440.0, 554.37, 659.26],
+  'Am': [440.0, 523.25, 659.26],
+  'B': [493.88, 622.25, 739.99],
+  'Em': [329.63, 392.0, 493.88],
+  'F#m': [369.99, 440.0, 554.37],
+  'G#m': [415.3, 493.88, 622.25],
+  'Dm': [293.66, 349.23, 440.0],
+  'E7': [329.63, 415.3, 493.88, 587.33],
+  'A7': [440.0, 554.37, 659.26, 783.99],
+  'B7': [493.88, 622.25, 739.99, 880.0],
+};
+
 const PRACTICE_SONGS = [
   { id: 1, title: 'Somewhere Over the Rainbow',
     artist: 'Israel Kamakawiwo\'ole',
@@ -340,26 +360,6 @@ function PracticeMode({ initialSongId, onDone }) {
     if (countdownRef.current) clearTimeout(countdownRef.current);
   };
   
-  const CHORD_FREQ = {
-    'C': [261.63, 329.63, 392.0],
-    'D': [293.66, 369.99, 440.0],
-    'E': [329.63, 415.3, 493.88],
-    'F': [349.23, 440.0, 523.25],
-    'F#': [369.99, 466.16, 554.37],
-    'G': [392.0, 493.88, 587.33],
-    'G#': [415.3, 523.25, 622.25],
-    'A': [440.0, 554.37, 659.26],
-    'Am': [440.0, 523.25, 659.26],
-    'B': [493.88, 622.25, 739.99],
-    'Em': [329.63, 392.0, 493.88],
-    'F#m': [369.99, 440.0, 554.37],
-    'G#m': [415.3, 493.88, 622.25],
-    'Dm': [293.66, 349.23, 440.0],
-    'E7': [329.63, 415.3, 493.88, 587.33],
-    'A7': [440.0, 554.37, 659.26, 783.99],
-    'B7': [493.88, 622.25, 739.99, 880.0],
-  };
-
   const playNote = useCallback((freq) => {
     // AudioContext should be initialized by initAudioContext() before first playNote call
     if (!audioCtxRef.current) {
@@ -383,7 +383,7 @@ function PracticeMode({ initialSongId, onDone }) {
     const chordKey = Object.keys(CHORD_FREQ).find(k => k.toLowerCase() === chord.toLowerCase());
     const freqs = CHORD_FREQ[chordKey] || [440];
     freqs.forEach(freq => playNote(freq));
-  }, [playNote, CHORD_FREQ]);
+  }, [playNote]);
 
   // Auto-scroll the active line into view
   const scrollToLine = useCallback((idx) => {
