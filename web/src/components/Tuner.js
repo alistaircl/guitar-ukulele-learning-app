@@ -182,8 +182,10 @@ function Tuner() {
 
   useEffect(() => () => stopTuner(), []);
 
+  // Gauge uses a centered marker that moves left (flat) or right (sharp)
+  // 50% = center (in tune), <50% = flat (left), >50% = sharp (right)
   const gaugePercent = detectedNote
-    ? Math.min(100, Math.max(0, 50 + (detectedNote.diff / 50) * 50))
+    ? Math.min(100, Math.max(0, 50 + detectedNote.diff))
     : 50;
 
   const gaugeColor = detectedNote
@@ -198,7 +200,8 @@ function Tuner() {
         <div className="frequency-display">{detectedNote ? `${detectedNote.freq.toFixed(1)} Hz` : '— Hz'}</div>
       </div>
       <div className="tuner-gauge">
-        <div className={`gauge-fill ${gaugeColor}`} style={{ width: `${gaugePercent}%` }} />
+        <div className="gauge-center-marker" />
+        <div className={`gauge-indicator ${gaugeColor}`} style={{ left: `${gaugePercent}%` }} />
       </div>
       <div className="tuning-selector">
         {Object.keys(TUNINGS).map(key => (
