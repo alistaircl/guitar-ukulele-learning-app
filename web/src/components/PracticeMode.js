@@ -383,10 +383,7 @@ function PracticeMode({ initialSongId, onDone }) {
     const chordKey = Object.keys(CHORD_FREQ).find(k => k.toLowerCase() === chord.toLowerCase());
     const freqs = CHORD_FREQ[chordKey] || [440];
     freqs.forEach(freq => playNote(freq));
-  }, [playNote]);
-
-  // Per-bar duration: one bar (4 beats) at the current BPM
-  const barDuration = () => (60 / selectedSong.bpm) * 4000;
+  }, [playNote, CHORD_FREQ]);
 
   // Auto-scroll the active line into view
   const scrollToLine = useCallback((idx) => {
