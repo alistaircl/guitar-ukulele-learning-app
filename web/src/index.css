@@ -146,6 +146,29 @@ body {
 .tuning-btn:hover { background: var(--accent-primary); color: white; }
 .tuning-btn.active { background: var(--accent-primary); color: white; }
 
+/* Reference tone buttons for tuner */
+.reference-tones {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tone-btn {
+  padding: 0.4rem 0.8rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--accent-primary);
+  border-radius: 6px;
+  color: var(--accent-primary);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tone-btn:hover { background: var(--accent-primary); color: white; }
+
 .tuner-controls {
   display: flex;
   gap: 1rem;
