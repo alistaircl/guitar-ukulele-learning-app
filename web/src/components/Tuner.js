@@ -37,10 +37,12 @@ function Tuner() {
   const [isListening, setIsListening] = useState(false);
   const [detectedNote, setDetectedNote] = useState(null);
   const [error, setError] = useState(null);
+  const [isCalibrating, setIsCalibrating] = useState(false);
   const audioCtxRef = useRef(null);
   const analyserRef = useRef(null);
   const streamRef = useRef(null);
   const rafRef = useRef(null);
+  const silenceThresholdRef = useRef(0.01); // Default threshold, will be calibrated
 
   const startTuner = async () => {
     try {
@@ -75,6 +77,8 @@ function Tuner() {
       source.connect(analyser);
       setIsListening(true);
       setError(null);
+      // Calibrate threshold before starting pitch detection
+      await calibrateThreshold();
       detectPitch();
     } catch (err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
@@ -116,6 +120,32 @@ function Tuner() {
     oscillator.stop(audioCtx.currentTime + 1);
   };
 
+  // Calibrate silence threshold by measuring ambient noise
+  const calibrateThreshold = async () => {
+    setIsCalibrating(true);
+    const samples = [];
+    const numSamples = 30; // ~500ms at 60fps
+    
+    for (let i = 0; i < numSamples; i++) {
+      const buffer = new Float32Array(analyserRef.current.fftSize);
+      analyserRef.current.getFloatTimeDomainData(buffer);
+      
+      let rms = 0;
+      for (let j = 0; j < buffer.length; j++) {
+        rms += buffer[j] * buffer[j];
+      }
+      rms = Math.sqrt(rms / buffer.length);
+      samples.push(rms);
+      
+      await new Promise(resolve => setTimeout(resolve, 16)); // ~60fps
+    }
+    
+    // Calculate average noise floor
+    const avgNoise = samples.reduce((a, b) => a + b, 0) / samples.length;
+    // Set threshold at 1.5x noise floor, with minimum floor of 0.005
+    silenceThresholdRef.current = Math.max(0.005, avgNoise * 1.5);
+    setIsCalibrating(false);
+  };
 
   const autoCorrelate = (buffer, sampleRate) => {
     let SIZE = buffer.length;
@@ -124,7 +154,7 @@ function Tuner() {
       rms += buffer[i] * buffer[i];
     }
     rms = Math.sqrt(rms / SIZE);
-    if (rms < 0.01) return -1;
+    if (rms < silenceThresholdRef.current) return -1;
 
     let r1 = 0, r2 = SIZE - 1;
     const thresh = 0.2;
@@ -237,7 +267,7 @@ function Tuner() {
       </div>
       {error && <div className="error-message">{error}</div>}
       <div className={`tuner-status ${isListening ? 'listening' : 'stopped'}`}>
-        {isListening ? '🎤 Listening...' : 'Press Start to begin'}
+        {isCalibrating ? '🎤 Calibrating...' : isListening ? '🎤 Listening...' : 'Press Start to begin'}
       </div>
     </div>
   );
