@@ -210,7 +210,7 @@ lyrics: [
       { text: 'I fell right through the cracks', chord: 'G#m', beats: 4 },
       { text: 'And now I\'m trying to get back', chord: 'F#', beats: 4 },
       { text: 'Before the cool done run out', chord: 'B', beats: 4 },
-      { text: 'I\'ll be giving it my bestest', chord: 'E', beats: 4 },
+      { text: 'I\'ll be giving it my best', chord: 'E', beats: 4 },
       { text: 'Nothing\'s going to stop me but divine intervention', chord: 'G#m', beats: 4 },
       { text: 'I reckon it\'s again my turn', chord: 'F#', beats: 4 },
       { text: 'To win some or learn some', chord: 'B', beats: 4 },
