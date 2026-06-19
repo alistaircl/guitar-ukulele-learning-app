@@ -242,6 +242,13 @@ function Tuner() {
         <div className="gauge-center-marker" />
         <div className={`gauge-indicator ${gaugeColor}`} style={{ left: `${gaugePercent}%` }} />
       </div>
+      {detectedNote && detectedNote.note !== '?' && (
+        <div className="gauge-text-indicator" aria-live="polite">
+          {gaugeColor === 'flat' && '♭ Flat'}
+          {gaugeColor === 'in-tune' && '♪ In Tune'}
+          {gaugeColor === 'sharp' && '♯ Sharp'}
+        </div>
+      )}
       <div className="tuning-selector">
         {Object.keys(TUNINGS).map(key => (
           <div key={key} className="tuning-option">
