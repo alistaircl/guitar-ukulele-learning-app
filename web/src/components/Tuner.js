@@ -17,15 +17,19 @@ function getNearestNote(freq) {
   let nearest = '?';
   let minDiff = Infinity;
   let signedDiff = 0;
+  let targetFreq = 0;
   for (const [note, f] of Object.entries(NOTE_FREQ_MAP)) {
     const diff = Math.abs(freq - f);
     if (diff < minDiff) {
       minDiff = diff;
       nearest = note;
       signedDiff = freq - f;
+      targetFreq = f;
     }
   }
-  return { note: nearest, diff: signedDiff, freq };
+  // Calculate cents: 1200 * log2(detectedFreq / targetFreq)
+  const cents = targetFreq > 0 ? Math.round(1200 * Math.log2(freq / targetFreq)) : 0;
+  return { note: nearest, diff: signedDiff, freq, targetFreq, cents };
 }
 
 function Tuner() {
@@ -198,6 +202,11 @@ function Tuner() {
       <div className="tuner-display">
         <div className="note-display">{detectedNote ? detectedNote.note : '—'}</div>
         <div className="frequency-display">{detectedNote ? `${detectedNote.freq.toFixed(1)} Hz` : '— Hz'}</div>
+        {detectedNote && detectedNote.note !== '?' && (
+          <div className="cents-display">
+            {detectedNote.cents > 0 ? '+' : ''}{detectedNote.cents}¢
+          </div>
+        )}
       </div>
       <div className="tuner-gauge">
         <div className="gauge-center-marker" />
