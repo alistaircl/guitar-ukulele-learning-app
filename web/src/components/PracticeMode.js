@@ -236,7 +236,6 @@ lyrics: [
       { text: "C: 4-3-2-1-2-1", chord: "C", beats: 4 },
       { text: "Dm: 4-3-2-1-2-1, 3-2-1", chord: "Dm", beats: 4 },
       { text: "E7: 4-3-2-1-2-1 (Let ring)", chord: "E7", beats: 8 },
-      { text: "", chord: null, beats: 4 },
       { text: "On a dark desert highway", chord: "Am", beats: 4 },
       { text: "Cool wind in my hair", chord: "E7", beats: 4 },
       { text: "Warm smell of colitas", chord: "G", beats: 4 },
