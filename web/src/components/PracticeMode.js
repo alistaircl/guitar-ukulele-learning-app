@@ -323,6 +323,7 @@ function PracticeMode({ initialSongId, onDone }) {
   const lineRefs = useRef([]);
   const playbackStartTimeRef = useRef(null);
   const cumulativeDurationsRef = useRef([]); // Cache of cumulative line durations
+  const pausedElapsedRef = useRef(null); // Track elapsed time during pause (replaces window._pausedPlaybackElapsed)
 
   // If initialSongId changes (user picks a new song from SongLibrary), switch to it
   useEffect(() => {
@@ -527,8 +528,8 @@ function PracticeMode({ initialSongId, onDone }) {
         const elapsed = Date.now() - playbackStartTimeRef.current;
         // We'll subtract this elapsed from the new start time on resume
         playbackStartTimeRef.current = null;
-        // Store elapsed in a way resume can use it
-        window._pausedPlaybackElapsed = elapsed;
+        // Store elapsed in a ref (replaces window._pausedPlaybackElapsed)
+        pausedElapsedRef.current = elapsed;
       }
       setIsPaused(true);
     };
@@ -538,8 +539,8 @@ function PracticeMode({ initialSongId, onDone }) {
     
       setIsPaused(false);
       // Start from where we left off, accounting for elapsed time
-      const elapsedWhilePaused = window._pausedPlaybackElapsed || 0;
-      window._pausedPlaybackElapsed = null;
+      const elapsedWhilePaused = pausedElapsedRef.current || 0;
+      pausedElapsedRef.current = null;
       playbackStartTimeRef.current = Date.now() - elapsedWhilePaused;
       cumulativeDurationsRef.current = calculateCumulativeDurations();
     
