@@ -160,6 +160,7 @@ body {
 
 .tuning-btn:hover { background: var(--accent-primary); color: white; }
 .tuning-btn.active { background: var(--accent-primary); color: white; }
+.tuning-btn:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 
 /* Reference tone buttons for tuner */
 .reference-tones {
@@ -183,6 +184,7 @@ body {
 }
 
 .tone-btn:hover { background: var(--accent-primary); color: white; }
+.tone-btn:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 
 .tuner-controls {
   display: flex;
@@ -242,6 +244,7 @@ body {
 }
 
 .chord-card:hover { border-color: var(--accent-primary); transform: translateY(-2px); }
+.chord-card:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 .chord-card.selected { border-color: var(--accent-secondary); background: var(--bg-secondary); }
 
 .chord-name {
@@ -389,6 +392,7 @@ body {
 }
 
 .bottom-nav .nav-btn:hover { background: var(--bg-tertiary); }
+.bottom-nav .nav-btn:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 .bottom-nav .nav-btn.active { color: var(--accent-primary); }
 
 .nav-icon { font-size: 1.2rem; }
