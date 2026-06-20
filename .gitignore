@@ -11,3 +11,6 @@ web/build/
 # Misc
 .DS_Store
 *.log
+*.backup
+*.backup2
+*.orig
