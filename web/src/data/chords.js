@@ -164,9 +164,9 @@ export function searchChords(query) {
     // But based on the issue, if they search for 'major', they want major chords.
     if (lowerQuery.includes('major')) {
       return ALL_CHORDS.filter(chord => {
-        // Major chords in this DB are those without 'm', '7', 'maj7', 'sus' in the name
         const name = chord.name.toLowerCase();
-        return !name.includes('m') && !name.includes('7') && !name.includes('sus');
+        // Match basic major (e.g., C, F#) or major 7th (e.g., Cmaj7, F#maj7)
+        return /^[a-g][#b]?(maj7)?$/.test(name);
       });
     }
     return ALL_CHORDS;
