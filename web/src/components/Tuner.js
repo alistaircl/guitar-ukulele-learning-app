@@ -1,9 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const TUNINGS = {
+  // Ukulele tunings
   'G4 C4 E4 A4': { name: 'Standard (GCEA)', notes: ['G4', 'C4', 'E4', 'A4'], freq: [392, 261.63, 329.63, 440] },
   'G3 C4 E4 A4': { name: 'Low G (GCEA)', notes: ['G3', 'C4', 'E4', 'A4'], freq: [196.0, 261.63, 329.63, 440] },
   'D4 G4 B4 E5': { name: 'Baritone (DGBE)', notes: ['D4', 'G4', 'B4', 'E5'], freq: [293.66, 392, 493.88, 659.25] },
+  // Guitar tunings
+  'E2 A2 D3 G3 B3 E4': { name: 'Standard (EADGBE)', notes: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [82.41, 110.0, 146.83, 196.0, 246.94, 329.63] },
+  'D2 A2 D3 G3 B3 E4': { name: 'Drop D (DADGBE)', notes: ['D2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [73.42, 110.0, 146.83, 196.0, 246.94, 329.63] },
+  'D2 A2 D3 G4 A4 D4': { name: 'DADGAD', notes: ['D2', 'A2', 'D3', 'G4', 'A4', 'D4'], freq: [73.42, 110.0, 146.83, 392.0, 440.0, 293.66] },
+  'D2 G2 D3 G3 B3 D4': { name: 'Open G (DGDGBD)', notes: ['D2', 'G2', 'D3', 'G3', 'B3', 'D4'], freq: [73.42, 98.0, 146.83, 196.0, 246.94, 293.66] },
+  'D2 A2 D3 F#3 A3 D4': { name: 'Open D (DADF#AD)', notes: ['D2', 'A2', 'D3', 'F#3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 185.0, 220.0, 293.66] },
+  'D#2 G#2 D#3 G#3 A#3 D#4': { name: 'Half-step down (Eb Ab Db Gb Bb Eb)', notes: ['D#2', 'G#2', 'D#3', 'G#3', 'A#3', 'D#4'], freq: [77.78, 103.83, 155.56, 207.65, 233.08, 311.13] },
 };
 
 const NOTE_FREQ_MAP = {
