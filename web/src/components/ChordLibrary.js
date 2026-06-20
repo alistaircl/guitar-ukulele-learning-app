@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import ChordDetail from './ChordDetail';
 import ChordDiagram from './ChordDiagram';
-import { FaArrowLeft } from 'react-icons/fa';
-import { FaSearch } from 'react-icons/fa';
+import { FaArrowLeft, FaSearch } from 'react-icons/fa';
 import { ALL_CHORDS, searchChords } from '../data/chords';
 
 function ChordLibrary() {
