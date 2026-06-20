@@ -126,6 +126,9 @@ function Tuner() {
 
     oscillator.start();
     oscillator.stop(audioCtx.currentTime + 1);
+    
+    // Close the AudioContext after the tone finishes to prevent memory leaks
+    setTimeout(() => audioCtx.close(), 1100);
   };
 
   // Calibrate silence threshold by measuring ambient noise
