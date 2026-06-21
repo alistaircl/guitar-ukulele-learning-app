@@ -202,7 +202,7 @@ function Tuner() {
     }
 
     let T0 = maxPos;
-    if (T0 < 1) return -1;
+    if (T0 < 1 || T0 >= buf.length - 1) return sampleRate / T0;
 
     // Interpolate for better accuracy
     let x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
@@ -229,12 +229,14 @@ function Tuner() {
 
   // Gauge uses a centered marker that moves left (flat) or right (sharp)
   // 50% = center (in tune), <50% = flat (left), >50% = sharp (right)
-  const gaugePercent = detectedNote
-    ? Math.min(100, Math.max(0, 50 + detectedNote.diff))
+  // Uses cents for perceptually linear positioning (±50 cents = quarter tone)
+  const maxCents = 50;
+  const gaugePercent = detectedNote && detectedNote.note !== '?'
+    ? Math.min(100, Math.max(0, 50 + (detectedNote.cents / maxCents) * 50))
     : 50;
 
-  const gaugeColor = detectedNote
-    ? Math.abs(detectedNote.diff) < 5 ? 'in-tune' : detectedNote.diff > 0 ? 'sharp' : 'flat'
+  const gaugeColor = detectedNote && detectedNote.note !== '?'
+    ? Math.abs(detectedNote.cents) < 5 ? 'in-tune' : detectedNote.cents > 0 ? 'sharp' : 'flat'
     : '';
 
   return (
