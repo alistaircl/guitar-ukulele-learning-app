@@ -621,16 +621,16 @@ function PracticeMode({ initialSongId, onDone }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <select
-            value={selectedSong?.title || ''}
+            value={selectedSong?.id || ''}
             onChange={e => {
-              const song = PRACTICE_SONGS.find(s => s.title === e.target.value);
+              const song = PRACTICE_SONGS.find(s => s.id === Number(e.target.value));
               setSelectedSong(song);
               resetSong();
             }}
             disabled={isPlaying}
             style={{ padding: '0.5rem', borderRadius: 8, border: 'none', background: 'var(--bg-tertiary)', color: 'var(--text-primary)', fontSize: '0.9rem' }}
           >
-            {PRACTICE_SONGS.map(s => <option key={s.id} value={s.title}>{s.title}</option>)}
+            {PRACTICE_SONGS.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
           </select>
           <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
             {selectedSong.bpm} BPM • {selectedSong.artist}
