@@ -628,6 +628,7 @@ function PracticeMode({ initialSongId, onDone }) {
               resetSong();
             }}
             disabled={isPlaying}
+            className="song-selector"
             style={{ padding: '0.5rem', borderRadius: 8, border: 'none', background: 'var(--bg-tertiary)', color: 'var(--text-primary)', fontSize: '0.9rem' }}
           >
             {PRACTICE_SONGS.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}

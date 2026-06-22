@@ -316,6 +316,14 @@ body {
 .song-difficulty.hard { color: var(--danger); }
 
 /* Practice Mode */
+.song-selector {
+  outline: none;
+}
+.song-selector:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 .practice-container { display: flex; flex-direction: column; gap: 1.5rem; }
 
 .practice-controls {
