@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ChordDiagram({ frets, fingers = [], size = 100, className }) {
+function ChordDiagram({ frets, fingers = [], size = 100, className, instrument = 'ukulele' }) {
   // Layout constants (proportional)
   const svgW = size;
   const svgH = size + 22; // extra 22px for open/muted markers
@@ -13,8 +13,15 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
   const strAreaX = marginX;
   const strAreaW = svgW - marginX * 2;
 
-  // String x positions (4 strings)
-  const strX = Array.from({ length: 4 }, (_, i) => strAreaX + (i / 3) * strAreaW);
+  // Support variable string counts (4 for ukulele, 6 for guitar)
+  const numStrings = frets.length;
+  
+  // String x positions (dynamically calculated based on number of strings)
+  const strX = Array.from({ length: numStrings }, (_, i) => 
+    numStrings === 1 
+      ? strAreaX + strAreaW / 2 
+      : strAreaX + (i / (numStrings - 1)) * strAreaW
+  );
 
   // Calculate dynamic start fret based on chord data
   // Find minimum positive fret (ignore -1 muted and 0 open strings)
@@ -150,7 +157,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
   const renderNut = () => {
     if (startFret > 1) return null;
     return (
-      <rect x={strX[0] - 2} y={fretTop - nutH} width={strX[3] - strX[0] + 4} height={nutH}
+      <rect x={strX[0] - 2} y={fretTop - nutH} width={strX[numStrings - 1] - strX[0] + 4} height={nutH}
         fill="#e8e8f0" rx={1} />
     );
   };

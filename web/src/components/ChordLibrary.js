@@ -1,22 +1,29 @@
 import React, { useState } from 'react';
 import ChordDetail from './ChordDetail';
 import ChordDiagram from './ChordDiagram';
-import { FaArrowLeft, FaSearch } from 'react-icons/fa';
-import { ALL_CHORDS, searchChords } from '../data/chords';
+import { FaArrowLeft, FaSearch, FaGuitar } from 'react-icons/fa';
+import { getAllChords, searchChordsByInstrument } from '../data/chords';
 
 function ChordLibrary() {
   const [selectedChord, setSelectedChord] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredChords, setFilteredChords] = useState(ALL_CHORDS);
+  const [instrument, setInstrument] = useState('ukulele');
+  const [filteredChords, setFilteredChords] = useState(getAllChords('ukulele'));
 
-  // Update filtered chords when search query changes
+  // Update filtered chords when search query or instrument changes
   React.useEffect(() => {
+    const chords = getAllChords(instrument);
     if (searchQuery.trim() === '') {
-      setFilteredChords(ALL_CHORDS);
+      setFilteredChords(chords);
     } else {
-      setFilteredChords(searchChords(searchQuery));
+      setFilteredChords(searchChordsByInstrument(searchQuery, instrument));
     }
-  }, [searchQuery]);
+  }, [searchQuery, instrument]);
+
+  const toggleInstrument = () => {
+    setInstrument(instrument === 'ukulele' ? 'guitar' : 'ukulele');
+    setSearchQuery('');
+  };
 
   return (
     <div className="section">
@@ -27,13 +34,36 @@ function ChordLibrary() {
         />
       ) : (
         <>
-          <h2 className="section-title">Chord Library</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 className="section-title" style={{ margin: 0 }}>Chord Library</h2>
+            <button
+              onClick={toggleInstrument}
+              className="control-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                background: 'var(--bg-panel)',
+                border: '2px solid var(--accent-primary)',
+                borderRadius: '8px',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: '600'
+              }}
+              aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} chords`}
+            >
+              {instrument === 'ukulele' ? <FaGuitar /> : <span style={{ fontSize: '1.2rem' }}>🎵</span>}
+              {instrument === 'ukulele' ? 'Guitar' : 'Ukulele'}
+            </button>
+          </div>
           
           {/* Search bar */}
           <div className="search-bar">
             <input
               type="text"
-              placeholder="Search chords (C, G, Am, F, etc.)..."
+              placeholder={`Search ${instrument} chords (C, G, Am, F, etc.)...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
