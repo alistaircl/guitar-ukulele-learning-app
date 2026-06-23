@@ -151,8 +151,10 @@ export function searchChords(query) {
   
   // Handle common aliases and normalize to shorthand
   // Important: Remove spaces before quality words to ensure "c minor" -> "cm" not "c m"
+  // Order matters: handle "major 7" before standalone "major" to preserve maj7 chords
   let normalizedQuery = lowerQuery
     .replace(/\s*chords\b/g, '')
+    .replace(/\s+major\s+7\b/g, 'maj7')  // "c major 7" -> "cmaj7"
     .replace(/\s+minor\b/g, 'm')      // "c minor" -> "cm"
     .replace(/\s+major\b/g, '')       // "c major" -> "c"
     .replace(/\s+(seventh|7th)\b/g, '7')  // "c seventh" -> "c7"
@@ -297,8 +299,10 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
   const lowerQuery = query.toLowerCase().trim();
   
   // Handle common aliases and normalize to shorthand
+  // Order matters: handle "major 7" before standalone "major" to preserve maj7 chords
   let normalizedQuery = lowerQuery
     .replace(/\s*chords\b/g, '')
+    .replace(/\s+major\s+7\b/g, 'maj7')  // "c major 7" -> "cmaj7"
     .replace(/\s+minor\b/g, 'm')
     .replace(/\s+major\b/g, '')
     .replace(/\s+(seventh|7th)\b/g, '7')
