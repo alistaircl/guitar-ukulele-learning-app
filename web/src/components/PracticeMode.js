@@ -340,6 +340,7 @@ function PracticeMode({ initialSongId, onDone }) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (countdownRef.current) clearTimeout(countdownRef.current);
+      if (rAFRef.current) cancelAnimationFrame(rAFRef.current);
       if (audioCtxRef.current) audioCtxRef.current.close();
     };
   }, []);
@@ -398,6 +399,10 @@ function PracticeMode({ initialSongId, onDone }) {
       clearTimeout(countdownRef.current);
       countdownRef.current = null;
     }
+    if (rAFRef.current) {
+      cancelAnimationFrame(rAFRef.current);
+      rAFRef.current = null;
+    }
     setCountdown(null);
   };
 
@@ -415,22 +420,33 @@ function PracticeMode({ initialSongId, onDone }) {
   const startAutoplay = () => {
     // Initialize audio context on user gesture (required by browsers)
     initAudioContext();
-    setCountdown(3);
-    let count = 3;
-    const countdownStep = () => {
-      if (count > 0) {
-        setCountdown(count);
-        count--;
-        countdownRef.current = setTimeout(countdownStep, 800);
-      } else {
+    
+    // Use rAF with performance.now() for precise, drift-free countdown timing
+    const startTime = performance.now();
+    const COUNTDOWN_DURATION = 2400; // 3 counts * 800ms each
+    const GO_DURATION = 600;
+    
+    const countdownFrame = () => {
+      const elapsed = performance.now() - startTime;
+      
+      if (elapsed < COUNTDOWN_DURATION) {
+        // Calculate which count to display based on elapsed time
+        const countIndex = Math.floor(elapsed / 800); // 0=3, 1=2, 2=1
+        const countValue = 3 - countIndex;
+        setCountdown(countValue);
+        rAFRef.current = requestAnimationFrame(countdownFrame);
+      } else if (elapsed < COUNTDOWN_DURATION + GO_DURATION) {
+        // Show "Go!"
         setCountdown('Go!');
-        countdownRef.current = setTimeout(() => {
-          setCountdown(null);
-          beginPlayback();
-        }, 600);
+        rAFRef.current = requestAnimationFrame(countdownFrame);
+      } else {
+        // Start playback
+        setCountdown(null);
+        beginPlayback();
       }
     };
-    countdownStep();
+    
+    rAFRef.current = requestAnimationFrame(countdownFrame);
   };
 
   // Pre-calculate cumulative durations for all lines (for rAF timing)
