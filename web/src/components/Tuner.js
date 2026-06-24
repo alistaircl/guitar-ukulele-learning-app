@@ -102,9 +102,23 @@ function Tuner() {
   };
 
   const stopTuner = () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-    if (audioCtxRef.current) audioCtxRef.current.close();
+    console.log('[Tuner] Stopping tuner - cleanup started');
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log('[Tuner] Stopped media track:', track.kind, track.label);
+      });
+      streamRef.current = null;
+    }
+    if (audioCtxRef.current) {
+      audioCtxRef.current.close();
+      console.log('[Tuner] Closed AudioContext');
+      audioCtxRef.current = null;
+    }
     setIsListening(false);
     setDetectedNote(null);
   };
@@ -225,7 +239,14 @@ function Tuner() {
     rafRef.current = requestAnimationFrame(detectPitch);
   };
 
-  useEffect(() => () => stopTuner(), []);
+  // Cleanup on component unmount - ensures microphone is stopped when leaving Tuner tab
+  useEffect(() => {
+    console.log('[Tuner] Component mounted, cleanup will run on unmount');
+    return () => {
+      console.log('[Tuner] Cleanup function called - unmounting component');
+      stopTuner();
+    };
+  }, []);
 
   // Gauge uses a centered marker that moves left (flat) or right (sharp)
   // 50% = center (in tune), <50% = flat (left), >50% = sharp (right)
