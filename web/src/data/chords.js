@@ -160,6 +160,15 @@ export function searchChords(query) {
     .replace(/\s+minor\b/g, 'm')      // "c minor" -> "cm"
     .replace(/\s+major\b/g, '')       // "c major" -> "c"
     .replace(/\s+(seventh|7th)\b/g, '7')  // "c seventh" -> "c7"
+    .replace(/\s+sus4\b/g, 'sus4')    // "c sus4" -> "csus4"
+    .replace(/\s+sus2\b/g, 'sus2')    // "c sus2" -> "csus2"
+    .replace(/\s+sus\b/g, 'sus')      // "c sus" -> "csus" (defaults to sus4 in most contexts)
+    .replace(/\s+add9\b/g, 'add9')    // "c add9" -> "cadd9"
+    .replace(/\s+add\b/g, 'add')      // "c add" -> "cadd"
+    .replace(/\s+dim7\b/g, 'dim7')    // "c dim7" -> "cdim7"
+    .replace(/\s+dim\b/g, 'dim')      // "c dim" -> "cdim"
+    .replace(/\s+aug\b/g, 'aug')      // "c aug" -> "caug"
+    .replace(/\s+\+\b/g, 'aug')       // "c +" -> "caug" (+ is alias for augmented)
     .trim();
   
   if (normalizedQuery === '') {
@@ -310,6 +319,15 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
     .replace(/\s+minor\b/g, 'm')
     .replace(/\s+major\b/g, '')
     .replace(/\s+(seventh|7th)\b/g, '7')
+    .replace(/\s+sus4\b/g, 'sus4')    // "c sus4" -> "csus4"
+    .replace(/\s+sus2\b/g, 'sus2')    // "c sus2" -> "csus2"
+    .replace(/\s+sus\b/g, 'sus')      // "c sus" -> "csus"
+    .replace(/\s+add9\b/g, 'add9')    // "c add9" -> "cadd9"
+    .replace(/\s+add\b/g, 'add')      // "c add" -> "cadd"
+    .replace(/\s+dim7\b/g, 'dim7')    // "c dim7" -> "cdim7"
+    .replace(/\s+dim\b/g, 'dim')      // "c dim" -> "cdim"
+    .replace(/\s+aug\b/g, 'aug')      // "c aug" -> "caug"
+    .replace(/\s+\+\b/g, 'aug')       // "c +" -> "caug" (+ is alias for augmented)
     .trim();
   
   if (normalizedQuery === '') {
