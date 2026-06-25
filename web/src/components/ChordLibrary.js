@@ -76,7 +76,7 @@ function ChordLibrary() {
               <ChordCard
                 key={chord.name}
                 chord={chord}
-                selected={false}
+                selected={selectedChord?.name === chord.name}
                 onClick={() => setSelectedChord(chord)}
               />
             ))}
