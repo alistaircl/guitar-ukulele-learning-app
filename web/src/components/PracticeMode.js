@@ -381,6 +381,8 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const playChord = useCallback((chord) => {
     if (!chord) return;
+    // Ensure AudioContext is initialized and resumed before playing
+    initAudioContext();
     const chordKey = Object.keys(CHORD_FREQ).find(k => k.toLowerCase() === chord.toLowerCase());
     const freqs = CHORD_FREQ[chordKey] || [440];
     freqs.forEach(freq => playNote(freq));
