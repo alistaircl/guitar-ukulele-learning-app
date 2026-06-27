@@ -127,16 +127,7 @@ function ChordCard({ chord, selected, onClick }) {
           : 'Open chords'}
       </div>
       {variationCount > 0 && (
-        <div className="variations-badge" style={{
-          marginTop: '0.5rem',
-          padding: '0.25rem 0.5rem',
-          background: 'rgba(102, 126, 234, 0.15)',
-          borderRadius: '4px',
-          fontSize: '0.75rem',
-          color: 'var(--accent-primary)',
-          fontWeight: '600',
-          textAlign: 'center'
-        }}>
+        <div className="variations-badge">
           {variationCount} variation{variationCount > 1 ? 's' : ''} available
         </div>
       )}
