@@ -147,6 +147,14 @@ body {
   flex-wrap: wrap;
 }
 
+.tuning-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
 .tuning-btn {
   padding: 0.6rem 1.2rem;
   background: var(--bg-tertiary);
