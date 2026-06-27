@@ -5,6 +5,13 @@ import SongDetail from './SongDetail';
 // Import the song data with lyrics from PracticeMode
 import { PRACTICE_SONGS } from './PracticeMode';
 
+// Map difficulty values to CSS class names
+const DIFFICULTY_CLASS_MAP = {
+  'Beginner': 'easy',
+  'Intermediate': 'medium',
+  'Hard': 'hard'
+};
+
 function SongLibrary({ onStartPractice }) {
   const [selectedSongId, setSelectedSongId] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'detail'
@@ -100,7 +107,7 @@ function SongLibrary({ onStartPractice }) {
                 <div className="song-title">{song.title}</div>
                 <div className="song-artist">{song.artist}</div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span className={`song-difficulty ${song.difficulty}`}>{song.difficulty}</span>
+                  <span className={`song-difficulty ${DIFFICULTY_CLASS_MAP[song.difficulty] || song.difficulty}`}>{song.difficulty}</span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                     Key: {song.key} • {song.bpm} BPM
                   </span>
