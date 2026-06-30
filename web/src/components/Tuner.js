@@ -56,7 +56,9 @@ function Tuner() {
     try {
       // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Browser does not support microphone access.');
+        const error = new Error('Browser does not support microphone access.');
+        error.name = 'NotSupportedError';
+        throw error;
       }
 
       // Explicitly check for available audio input devices
@@ -91,6 +93,8 @@ function Tuner() {
     } catch (err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setError('Microphone access denied. Please enable microphone permissions in your browser settings and refresh the page.');
+      } else if (err.name === 'NotSupportedError') {
+        setError('Browser does not support microphone access. Please try a modern browser with microphone support.');
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
         setError('No microphone found. Please connect a microphone and try again.');
       } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
