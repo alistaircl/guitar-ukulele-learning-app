@@ -591,7 +591,7 @@ function PracticeMode({ initialSongId, onDone }) {
     setStreak(s => Math.max(0, s - 1));
   };
 
-  const goToLine = (idx) => {
+  const goToLine = (idx, playChordOnNavigate = false) => {
     if (idx >= 0 && idx < selectedSong.lyrics.length) {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
@@ -601,18 +601,25 @@ function PracticeMode({ initialSongId, onDone }) {
       setCurrentIndex(idx);
       setFeedback(null);
       scrollToLine(idx);
+      // Play chord for the new line if requested (for consistent UX with autoplay)
+      if (playChordOnNavigate) {
+        const chord = selectedSong.lyrics[idx].chord;
+        if (chord) {
+          playChord(chord);
+        }
+      }
     }
   };
 
   const nextLine = () => {
     if (currentIndex < selectedSong.lyrics.length - 1) {
-      goToLine(currentIndex + 1);
+      goToLine(currentIndex + 1, true);
     }
   };
 
   const prevLine = () => {
     if (currentIndex > 0) {
-      goToLine(currentIndex - 1);
+      goToLine(currentIndex - 1, true);
     }
   };
 
@@ -776,11 +783,11 @@ function PracticeMode({ initialSongId, onDone }) {
                   tabIndex={isPlaying ? -1 : 0}
                   aria-label={`Line ${idx + 1}${line.chord ? `, chord: ${line.chord}` : ''}`}
                   aria-current={isCurrent ? 'step' : undefined}
-                  onClick={() => !isPlaying && goToLine(idx)}
+                  onClick={() => !isPlaying && goToLine(idx, true)}
                   onKeyDown={e => {
                     if (!isPlaying && (e.key === 'Enter' || e.key === ' ')) {
                       e.preventDefault();
-                      goToLine(idx);
+                      goToLine(idx, true);
                     }
                   }}
                   style={{
