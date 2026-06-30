@@ -208,18 +208,11 @@ export function searchChords(query) {
     );
   }
   
-  // Multiple terms: find chords matching ANY term, return unique results
-  const matchingChords = new Set();
-  for (const term of searchTerms) {
-    const matches = ALL_CHORDS.filter(chord => 
-      chord.name.toLowerCase().includes(term)
-    );
-    for (const chord of matches) {
-      matchingChords.add(chord);
-    }
-  }
-  
-  return Array.from(matchingChords);
+  // Multiple terms: find chords matching ALL terms (AND logic)
+  return ALL_CHORDS.filter(chord => {
+    const chordName = chord.name.toLowerCase();
+    return searchTerms.every(term => chordName.includes(term));
+  });
 }
 
 // Guitar chord database (standard tuning: E-A-D-G-B-E, 6 strings)
@@ -355,15 +348,9 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
     );
   }
   
-  const matchingChords = new Set();
-  for (const term of searchTerms) {
-    const matches = chords.filter(chord => 
-      chord.name.toLowerCase().includes(term)
-    );
-    for (const chord of matches) {
-      matchingChords.add(chord);
-    }
-  }
-  
-  return Array.from(matchingChords);
+  // Multiple terms: find chords matching ALL terms (AND logic)
+  return chords.filter(chord => {
+    const chordName = chord.name.toLowerCase();
+    return searchTerms.every(term => chordName.includes(term));
+  });
 }
