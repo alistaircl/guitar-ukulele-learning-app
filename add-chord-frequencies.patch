@@ -1,0 +1,18 @@
+This patch extends CHORD_FREQ to include all chords from the chord library.
+
+Frequency calculation approach for ukulele (GCEA tuning):
+- G string (4th): G4 = 392 Hz
+- C string (3rd): C4 = 261.63 Hz  
+- E string (2nd): E4 = 329.63 Hz
+- A string (1st): A4 = 440 Hz
+
+For each chord, I'll include the fundamental frequencies of the notes that make up the chord,
+typically 3-4 frequencies representing the harmonious tones.
+
+Looking at existing patterns:
+- C: [261.63, 329.63, 392.0] = C4, E4, G4 (C major triad)
+- D: [293.66, 369.99, 440.0] = D4, F#4, A4 (D major triad)
+- E: [329.63, 415.3, 493.88] = E4, G#4, B4 (E major triad)
+- Am: [440.0, 523.25, 659.26] = A4, C5, E5 (A minor triad)
+
+For missing chords, I'll calculate based on their note composition.
