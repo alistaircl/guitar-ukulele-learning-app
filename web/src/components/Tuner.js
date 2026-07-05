@@ -106,7 +106,6 @@ function Tuner() {
   };
 
   const stopTuner = () => {
-    console.log('[Tuner] Stopping tuner - cleanup started');
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -114,13 +113,11 @@ function Tuner() {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.stop();
-        console.log('[Tuner] Stopped media track:', track.kind, track.label);
       });
       streamRef.current = null;
     }
     if (audioCtxRef.current) {
       audioCtxRef.current.close();
-      console.log('[Tuner] Closed AudioContext');
       audioCtxRef.current = null;
     }
     setIsListening(false);
@@ -245,9 +242,7 @@ function Tuner() {
 
   // Cleanup on component unmount - ensures microphone is stopped when leaving Tuner tab
   useEffect(() => {
-    console.log('[Tuner] Component mounted, cleanup will run on unmount');
     return () => {
-      console.log('[Tuner] Cleanup function called - unmounting component');
       stopTuner();
     };
   }, []);
