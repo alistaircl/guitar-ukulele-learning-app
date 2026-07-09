@@ -41,7 +41,19 @@ function getNearestNote(freq) {
 }
 
 function Tuner() {
-  const [tuning, setTuning] = useState('G4 C4 E4 A4');
+  const [tuning, setTuning] = useState(() => {
+    // Load saved tuning from localStorage on mount
+    try {
+      const saved = localStorage.getItem('ukulele-tuner-tuning');
+      if (saved && TUNINGS[saved]) {
+        return saved;
+      }
+    } catch (e) {
+      // localStorage not available or disabled
+      console.warn('localStorage not available:', e);
+    }
+    return 'G4 C4 E4 A4'; // Default to Standard GCEA
+  });
   const [isListening, setIsListening] = useState(false);
   const [detectedNote, setDetectedNote] = useState(null);
   const [error, setError] = useState(null);
@@ -246,6 +258,15 @@ function Tuner() {
       stopTuner();
     };
   }, []);
+
+  // Save tuning preference to localStorage when it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('ukulele-tuner-tuning', tuning);
+    } catch (e) {
+      console.warn('Could not save tuning to localStorage:', e);
+    }
+  }, [tuning]);
 
   // Gauge uses a centered marker that moves left (flat) or right (sharp)
   // 50% = center (in tune), <50% = flat (left), >50% = sharp (right)

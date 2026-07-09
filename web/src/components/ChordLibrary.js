@@ -7,7 +7,19 @@ import { getAllChords, searchChordsByInstrument } from '../data/chords';
 function ChordLibrary() {
   const [selectedChord, setSelectedChord] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [instrument, setInstrument] = useState('ukulele');
+  const [instrument, setInstrument] = useState(() => {
+    // Load saved instrument from localStorage on mount
+    try {
+      const saved = localStorage.getItem('ukulele-chords-instrument');
+      if (saved === 'guitar' || saved === 'ukulele') {
+        return saved;
+      }
+    } catch (e) {
+      // localStorage not available or disabled
+      console.warn('localStorage not available:', e);
+    }
+    return 'ukulele'; // Default to ukulele
+  });
   const [filteredChords, setFilteredChords] = useState(getAllChords('ukulele'));
 
   // Update filtered chords when search query or instrument changes
@@ -19,6 +31,15 @@ function ChordLibrary() {
       setFilteredChords(searchChordsByInstrument(searchQuery, instrument));
     }
   }, [searchQuery, instrument]);
+
+  // Save instrument preference to localStorage when it changes
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('ukulele-chords-instrument', instrument);
+    } catch (e) {
+      console.warn('Could not save instrument to localStorage:', e);
+    }
+  }, [instrument]);
 
   const toggleInstrument = () => {
     setInstrument(instrument === 'ukulele' ? 'guitar' : 'ukulele');
