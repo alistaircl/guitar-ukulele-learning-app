@@ -33,26 +33,32 @@ function App() {
   return (
     <div className="app">
       <a href="#main-content" className="skip-link">Skip to main content</a>
-      <header className="app-header">
+      <header className="app-header" role="banner">
         <h1>🎸 Guitar & Ukulele Learning</h1>
       </header>
 
-      <main className="main-content" id="main-content">
+      <main className="main-content" id="main-content" role="main">
         {renderContent()}
       </main>
 
-      <nav className="bottom-nav">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            className={`nav-btn ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-            aria-current={activeTab === tab.id ? 'page' : undefined}
-          >
-            <span className="nav-icon" aria-hidden="true">{tab.icon}</span>
-            <span className="nav-label">{tab.label}</span>
-          </button>
-        ))}
+      <nav className="bottom-nav" role="navigation" aria-label="Main navigation">
+        <div role="tablist" aria-label="App sections">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              className={`nav-btn ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+              aria-current={activeTab === tab.id ? 'page' : undefined}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`panel-${tab.id}`}
+              id={`tab-${tab.id}`}
+            >
+              <span className="nav-icon" aria-hidden="true">{tab.icon}</span>
+              <span className="nav-label">{tab.label}</span>
+            </button>
+          ))}
+        </div>
       </nav>
     </div>
   );
