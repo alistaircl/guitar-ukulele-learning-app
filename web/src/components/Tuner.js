@@ -306,8 +306,8 @@ function Tuner() {
         </button>
       </div>
       {error && <div className="error-message">{error}</div>}
-      <div className={`tuner-status ${isListening ? 'listening' : 'stopped'}`}>
-        {isCalibrating ? '🎤 Calibrating...' : isListening ? '🎤 Listening...' : 'Press Start to begin'}
+      <div className={`tuner-status ${isListening ? 'listening' : 'stopped'}`} aria-live="polite">
+        {isCalibrating ? 'Calibrating...' : isListening ? 'Listening...' : 'Press Start to begin'}
       </div>
     </div>
   );

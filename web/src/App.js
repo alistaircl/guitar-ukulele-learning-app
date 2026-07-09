@@ -49,7 +49,7 @@ function App() {
             onClick={() => setActiveTab(tab.id)}
             aria-current={activeTab === tab.id ? 'page' : undefined}
           >
-            <span className="nav-icon">{tab.icon}</span>
+            <span className="nav-icon" aria-hidden="true">{tab.icon}</span>
             <span className="nav-label">{tab.label}</span>
           </button>
         ))}
