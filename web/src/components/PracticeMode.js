@@ -407,10 +407,10 @@ function PracticeMode({ initialSongId, onDone }) {
     osc.stop(audioCtxRef.current.currentTime + 0.4);
   }, []);
 
-  const playChord = useCallback((chord) => {
+  const playChord = useCallback(async (chord) => {
     if (!chord) return;
     // Ensure AudioContext is initialized and resumed before playing
-    initAudioContext();
+    await initAudioContext();
     const chordKey = Object.keys(CHORD_FREQ).find(k => k.toLowerCase() === chord.toLowerCase());
     const freqs = CHORD_FREQ[chordKey] || [440];
     freqs.forEach(freq => playNote(freq));
@@ -437,19 +437,28 @@ function PracticeMode({ initialSongId, onDone }) {
   };
 
   // Initialize and resume AudioContext on user gesture
-  const initAudioContext = () => {
+  // Async because resume() returns a Promise; must be awaited in strict
+  // autoplay-policy browsers (mobile Safari) where audio would otherwise fail
+  // silently. Errors are caught and logged rather than rejected unhandled.
+  const initAudioContext = async () => {
     if (!audioCtxRef.current) {
       audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
     }
     // Browsers start AudioContext in 'suspended' state - must resume on user gesture
     if (audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume();
+      try {
+        await audioCtxRef.current.resume();
+      } catch (err) {
+        console.error('Failed to resume AudioContext:', err);
+      }
     }
   };
 
-  const startAutoplay = () => {
+  const startAutoplay = async () => {
     // Initialize audio context on user gesture (required by browsers)
-    initAudioContext();
+    // Awaiting ensures the context is fully resumed before playback starts;
+    // the countdown gives ample time for resume() to complete.
+    await initAudioContext();
     
     // Use rAF with performance.now() for precise, drift-free countdown timing
     const startTime = performance.now();
