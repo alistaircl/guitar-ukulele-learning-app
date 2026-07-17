@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error) {
@@ -11,13 +11,12 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('ErrorBoundary caught:', error, errorInfo);
-    }
-    
-    // In production, you could log to an error reporting service here
-    // e.g., Sentry, LogRocket, etc.
+    // Always log caught errors so production issues are diagnosable.
+    // Errors must not be silently swallowed (see issue #152).
+    console.error('ErrorBoundary caught:', error, errorInfo);
+
+    // Store errorInfo in state for potential retry/reporting mechanisms.
+    this.setState({ errorInfo });
   }
 
   handleReload = () => {
@@ -64,6 +63,7 @@ class ErrorBoundary extends Component {
                 color: 'var(--text-primary, #333)'
               }}>
                 {this.state.error.toString()}
+                {this.state.errorInfo ? '\n\nComponent stack:\n' + this.state.errorInfo.componentStack : ''}
               </pre>
             </details>
           )}
