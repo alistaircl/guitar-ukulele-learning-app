@@ -4,23 +4,56 @@ import ChordDiagram from './ChordDiagram';
 import { FaArrowLeft, FaSearch, FaGuitar } from 'react-icons/fa';
 import { getAllChords, searchChordsByInstrument } from '../data/chords';
 
+// Safe storage helpers: try localStorage first, fall back to sessionStorage,
+// and gracefully handle environments where both are unavailable (e.g. private
+// browsing mode, disabled cookies/storage). Returns null and logs an
+// informative warning on failure so callers can degrade gracefully.
+const PREFERENCE_KEY = 'ukulele-chords-instrument';
+
+function safeStorageGet(key) {
+  for (const storeName of ['localStorage', 'sessionStorage']) {
+    try {
+      const store = window[storeName];
+      const value = store.getItem(key);
+      return value;
+    } catch (e) {
+      console.warn(`Could not read "${key}" from ${storeName}:`, e.message || e);
+    }
+  }
+  return null;
+}
+
+// Attempt to persist. Returns true on success, false if every available
+// store rejected the write (caller may surface a UI hint to the user).
+function safeStorageSet(key, value) {
+  for (const storeName of ['localStorage', 'sessionStorage']) {
+    try {
+      window[storeName].setItem(key, value);
+      return true;
+    } catch (e) {
+      console.warn(`Could not save "${key}" to ${storeName}:`, e.message || e);
+    }
+  }
+  return false;
+}
+
 function ChordLibrary() {
   const [selectedChord, setSelectedChord] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [instrument, setInstrument] = useState(() => {
-    // Load saved instrument from localStorage on mount
-    try {
-      const saved = localStorage.getItem('ukulele-chords-instrument');
-      if (saved === 'guitar' || saved === 'ukulele') {
-        return saved;
-      }
-    } catch (e) {
-      // localStorage not available or disabled
-      console.warn('localStorage not available:', e);
+    // Load saved instrument from available storage on mount.
+    // localStorage is preferred; sessionStorage is a fallback that at
+    // least keeps the preference alive for the duration of the session.
+    const saved = safeStorageGet(PREFERENCE_KEY);
+    if (saved === 'guitar' || saved === 'ukulele') {
+      return saved;
     }
     return 'ukulele'; // Default to ukulele
   });
   const [filteredChords, setFilteredChords] = useState(getAllChords('ukulele'));
+  // null = unknown (no write attempted yet), true = saved, false = both
+  // storage backends rejected the write — surface a UI hint in that case.
+  const [preferenceSaved, setPreferenceSaved] = useState(null);
 
   // Update filtered chords when search query or instrument changes
   React.useEffect(() => {
@@ -32,13 +65,13 @@ function ChordLibrary() {
     }
   }, [searchQuery, instrument]);
 
-  // Save instrument preference to localStorage when it changes
+  // Save instrument preference to available storage when it changes.
+  // localStorage is preferred; sessionStorage is a fallback. If both fail
+  // (e.g. private browsing with all storage blocked), record it so the UI
+  // can inform the user that their preference won't persist across refreshes.
   React.useEffect(() => {
-    try {
-      localStorage.setItem('ukulele-chords-instrument', instrument);
-    } catch (e) {
-      console.warn('Could not save instrument to localStorage:', e);
-    }
+    const saved = safeStorageSet(PREFERENCE_KEY, instrument);
+    setPreferenceSaved(saved);
   }, [instrument]);
 
   const toggleInstrument = () => {
@@ -57,27 +90,52 @@ function ChordLibrary() {
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h2 className="section-title" style={{ margin: 0 }}>Chord Library</h2>
-            <button
-              onClick={toggleInstrument}
-              className="control-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.5rem 1rem',
-                background: 'var(--bg-panel)',
-                border: '2px solid var(--accent-primary)',
-                borderRadius: '8px',
-                color: 'var(--text-primary)',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                fontWeight: '600'
-              }}
-              aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} chords`}
-            >
-              {instrument === 'ukulele' ? <FaGuitar /> : <span style={{ fontSize: '1.2rem' }}>🎵</span>}
-              {instrument === 'ukulele' ? 'Guitar' : 'Ukulele'}
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {preferenceSaved === false && (
+                <span
+                  role="status"
+                  aria-live="polite"
+                  title="Private browsing mode or disabled browser storage prevents saving your instrument preference. It will reset to ukulele on refresh."
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '1.25rem',
+                    height: '1.25rem',
+                    borderRadius: '50%',
+                    background: 'var(--warning)',
+                    color: '#fff',
+                    fontSize: '0.75rem',
+                    fontWeight: '700',
+                    cursor: 'help'
+                  }}
+                  aria-label="Warning: instrument preference cannot be saved in this browser session"
+                >
+                  !
+                </span>
+              )}
+              <button
+                onClick={toggleInstrument}
+                className="control-btn"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  background: 'var(--bg-panel)',
+                  border: `2px solid ${preferenceSaved === false ? 'var(--warning)' : 'var(--accent-primary)'}`,
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: '600'
+                }}
+                aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} chords${preferenceSaved === false ? '. Note: preference cannot be saved in this session.' : ''}`}
+              >
+                {instrument === 'ukulele' ? <FaGuitar /> : <span style={{ fontSize: '1.2rem' }}>🎵</span>}
+                {instrument === 'ukulele' ? 'Guitar' : 'Ukulele'}
+              </button>
+            </div>
           </div>
           
           {/* Search bar */}
