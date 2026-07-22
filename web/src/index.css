@@ -442,7 +442,24 @@ body {
 }
 
 .bottom-nav .nav-btn:hover { background: var(--bg-tertiary); }
-.bottom-nav .nav-btn:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+
+/* Focus indicators for bottom nav (WCAG 2.4.7 Focus Visible) — high-contrast dual ring */
+.bottom-nav .nav-btn:focus {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.45);
+}
+.bottom-nav .nav-btn:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.45);
+}
+/* When focused AND active, keep text accent but boost glow so focus stays distinct */
+.bottom-nav .nav-btn.active:focus,
+.bottom-nav .nav-btn.active:focus-visible {
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.6);
+  outline-color: #ffffff;
+}
 .bottom-nav .nav-btn.active { color: var(--accent-primary); }
 
 .nav-icon { font-size: 1.2rem; }
