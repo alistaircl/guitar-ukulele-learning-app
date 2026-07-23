@@ -341,7 +341,8 @@ function PracticeMode({ initialSongId, onDone }) {
   const [totalCorrect, setTotalCorrect] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const [beatPulse, setBeatPulse] = useState(false);
-  
+  const [audioReady, setAudioReady] = useState(true); // optimistic; flips to false when AudioContext can't reach 'running'
+
   const audioCtxRef = useRef(null);
   const timerRef = useRef(null);
   const countdownRef = useRef(null);
@@ -395,6 +396,13 @@ function PracticeMode({ initialSongId, onDone }) {
       // Fallback: create if somehow not initialized (shouldn't happen)
       audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
     }
+    // Guard: never schedule audio into a suspended context (issue #155).
+    // Notes scheduled into a suspended AudioContext produce no audio silently.
+    // Skip gracefully — the practice timer keeps running, audio just won't play.
+    if (audioCtxRef.current.state !== 'running') {
+      setAudioReady(false);
+      return;
+    }
     const osc = audioCtxRef.current.createOscillator();
     const gain = audioCtxRef.current.createGain();
     osc.connect(gain);
@@ -436,13 +444,21 @@ function PracticeMode({ initialSongId, onDone }) {
     setCountdown(null);
   };
 
-  // Initialize and resume AudioContext on user gesture
+  // Initialize and resume AudioContext on user gesture.
   // Async because resume() returns a Promise; must be awaited in strict
   // autoplay-policy browsers (mobile Safari) where audio would otherwise fail
-  // silently. Errors are caught and logged rather than rejected unhandled.
+  // silently. On any failure (resume rejection OR context still suspended),
+  // flip audioReady=false so the UI can surface a banner + Enable Audio button
+  // tied to a fresh user gesture (issue #155).
   const initAudioContext = async () => {
     if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      try {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (err) {
+        console.error('Failed to create AudioContext:', err);
+        setAudioReady(false);
+        return;
+      }
     }
     // Browsers start AudioContext in 'suspended' state - must resume on user gesture
     if (audioCtxRef.current.state === 'suspended') {
@@ -450,7 +466,17 @@ function PracticeMode({ initialSongId, onDone }) {
         await audioCtxRef.current.resume();
       } catch (err) {
         console.error('Failed to resume AudioContext:', err);
+        setAudioReady(false);
+        return;
       }
+    }
+    // Verify the context is actually running before declaring audio ready.
+    // resume() can resolve without flipping state to 'running' on some browsers.
+    if (audioCtxRef.current.state === 'running') {
+      setAudioReady(true);
+    } else {
+      console.warn('AudioContext not running after resume; state:', audioCtxRef.current.state);
+      setAudioReady(false);
     }
   };
 
@@ -727,6 +753,46 @@ function PracticeMode({ initialSongId, onDone }) {
           )}
         </div>
       </div>
+
+      {/* Audio unavailable banner (issue #155): surfaces a visible warning and
+          an Enable Audio button tied to a fresh user gesture when AudioContext
+          could not reach 'running' (mobile Safari strict autoplay policy). */}
+      {!audioReady && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            padding: '0.75rem 1rem',
+            marginBottom: '1rem',
+            background: 'rgba(239, 68, 68, 0.12)',
+            border: '1px solid rgba(239, 68, 68, 0.45)',
+            borderRadius: '8px',
+            color: 'var(--text-primary)',
+            fontSize: '0.9rem',
+          }}
+        >
+          <span>⚠ Audio unavailable — practice timer will continue but chords will be silent until audio is enabled.</span>
+          <button
+            type="button"
+            className="control-btn"
+            onClick={initAudioContext}
+            aria-label="Enable Audio"
+            style={{
+              background: 'var(--accent-primary)',
+              color: 'white',
+              fontSize: '0.9rem',
+              padding: '0.5rem 1rem',
+              flexShrink: 0,
+            }}
+          >
+            🔊 Enable Audio
+          </button>
+        </div>
+      )}
 
       {/* Countdown overlay */}
       {countdown !== null && (
