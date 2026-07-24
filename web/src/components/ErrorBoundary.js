@@ -23,6 +23,15 @@ class ErrorBoundary extends Component {
     window.location.reload();
   };
 
+  // Recovery option (#160): reset the boundary so children re-mount without
+  // forcing a full page reload. Useful when the error was transient (e.g. a
+  // flaky async render, a one-off data fetch). If the underlying fault
+  // persists, getDerivedStateFromError will re-flip hasError and the user is
+  // back on the fallback — no infinite loop.
+  handleTryAgain = () => {
+    this.setState({ hasError: false, error: null, errorInfo: null });
+  };
+
   render() {
     if (this.state.hasError) {
       return (
@@ -67,24 +76,59 @@ class ErrorBoundary extends Component {
               </pre>
             </details>
           )}
-          <button
-            onClick={this.handleReload}
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '1.5rem' }}>
+            <button
+              onClick={this.handleTryAgain}
+              aria-label="Try Again — re-render without reloading the page"
+              style={{
+                padding: '0.75rem 2rem',
+                fontSize: '1rem',
+                fontWeight: '600',
+                background: 'transparent',
+                color: 'var(--accent-primary, #667eea)',
+                border: '2px solid var(--accent-primary, #667eea)',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease, background 0.2s ease'
+              }}
+              onMouseEnter={(e) => { e.target.style.transform = 'scale(1.05)'; e.target.style.background = 'rgba(102, 126, 234, 0.1)'; }}
+              onMouseLeave={(e) => { e.target.style.transform = 'scale(1)'; e.target.style.background = 'transparent'; }}
+            >
+              Try Again
+            </button>
+            <button
+              onClick={this.handleReload}
+              aria-label="Reload Page"
+              style={{
+                padding: '0.75rem 2rem',
+                fontSize: '1rem',
+                fontWeight: '600',
+                background: 'var(--accent-primary, #667eea)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'transform 0.2s ease'
+              }}
+              onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+            >
+              Reload Page
+            </button>
+          </div>
+          <a
+            href="https://github.com/alistaircl/guitar-ukulele-learning-app/issues/new?labels=bug&template=bug_report.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Report this issue on GitHub (opens in a new tab)"
             style={{
-              padding: '0.75rem 2rem',
-              fontSize: '1rem',
-              fontWeight: '600',
-              background: 'var(--accent-primary, #667eea)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'transform 0.2s ease'
+              fontSize: '0.9rem',
+              color: 'var(--accent-secondary, #764ba2)',
+              textDecoration: 'underline'
             }}
-            onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
           >
-            Reload Page
-          </button>
+            Report this issue ↗
+          </a>
         </div>
       );
     }
