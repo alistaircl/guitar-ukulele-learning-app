@@ -1,5 +1,31 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
+// Issue #161: Persist practice progress (streak, totalCorrect) per song in
+// localStorage so progress survives component unmount/remount (tab switches).
+// Follows the existing localStorage pattern from ChordLibrary.js and Tuner.js.
+const PRACTICE_PROGRESS_KEY = 'practice-progress';
+
+const loadProgress = (songId) => {
+  try {
+    const data = localStorage.getItem(`${PRACTICE_PROGRESS_KEY}-${songId}`);
+    if (data) return JSON.parse(data);
+  } catch (e) {
+    // localStorage not available — silently degrade
+  }
+  return null;
+};
+
+const saveProgress = (songId, streak, totalCorrect) => {
+  try {
+    localStorage.setItem(
+      `${PRACTICE_PROGRESS_KEY}-${songId}`,
+      JSON.stringify({ streak, totalCorrect })
+    );
+  } catch (e) {
+    // localStorage not available or full — silently degrade
+  }
+};
+
 const CHORD_FREQ = {
   // Major chords
   'C': [261.63, 329.63, 392.0],
@@ -337,8 +363,16 @@ function PracticeMode({ initialSongId, onDone }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [countdown, setCountdown] = useState(null);
-  const [streak, setStreak] = useState(0);
-  const [totalCorrect, setTotalCorrect] = useState(0);
+  const [streak, setStreak] = useState(() => {
+    const sid = initialSongId || PRACTICE_SONGS[0].id;
+    const p = loadProgress(sid);
+    return p ? p.streak : 0;
+  });
+  const [totalCorrect, setTotalCorrect] = useState(() => {
+    const sid = initialSongId || PRACTICE_SONGS[0].id;
+    const p = loadProgress(sid);
+    return p ? p.totalCorrect : 0;
+  });
   const [feedback, setFeedback] = useState(null);
   const [beatPulse, setBeatPulse] = useState(false);
   const [audioReady, setAudioReady] = useState(true); // optimistic; flips to false when AudioContext can't reach 'running'
@@ -373,6 +407,12 @@ function PracticeMode({ initialSongId, onDone }) {
       if (audioCtxRef.current) audioCtxRef.current.close();
     };
   }, []);
+
+  // Persist practice progress to localStorage whenever it changes (issue #161).
+  // Fires on mount too, but saves back the same values that were loaded — harmless.
+  useEffect(() => {
+    saveProgress(selectedSong.id, streak, totalCorrect);
+  }, [streak, totalCorrect, selectedSong.id]);
 
   const resetSong = () => {
     setIsPlaying(false);
@@ -654,6 +694,17 @@ function PracticeMode({ initialSongId, onDone }) {
     setStreak(s => Math.max(0, s - 1));
   };
 
+  const resetProgress = () => {
+    try {
+      localStorage.removeItem(`practice-progress-${selectedSong.id}`);
+    } catch (e) {
+      // localStorage not available
+    }
+    setStreak(0);
+    setTotalCorrect(0);
+    setFeedback({ type: 'info', message: '🔄 Progress reset for this song' });
+  };
+
   const goToLine = (idx, playChordOnNavigate = false) => {
     if (idx >= 0 && idx < selectedSong.lyrics.length) {
       if (timerRef.current) {
@@ -714,6 +765,10 @@ function PracticeMode({ initialSongId, onDone }) {
               const song = PRACTICE_SONGS.find(s => s.id === Number(e.target.value));
               setSelectedSong(song);
               resetSong();
+              // Load saved progress for the new song (issue #161)
+              const p = loadProgress(song.id);
+              setStreak(p ? p.streak : 0);
+              setTotalCorrect(p ? p.totalCorrect : 0);
             }}
             disabled={isPlaying}
             className="song-selector"
@@ -995,6 +1050,25 @@ function PracticeMode({ initialSongId, onDone }) {
         <span>🔥 {streak}</span>
         <span>{currentIndex + 1} / {selectedSong.lyrics.length}</span>
         <span>✓ {totalCorrect}</span>
+        <button
+          onClick={resetProgress}
+          aria-label="Reset practice progress for this song"
+          title="Reset progress"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-secondary)',
+            fontSize: '0.75rem',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            padding: '0.25rem 0.5rem',
+            opacity: 0.6,
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+        >
+          Reset
+        </button>
       </div>
 
       {/* Action buttons */}
