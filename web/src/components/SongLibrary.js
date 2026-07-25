@@ -42,7 +42,6 @@ function SongLibrary({ onStartPractice }) {
   };
 
   const handleBackToGrid = () => {
-    setSelectedSongId(null);
     setViewMode('grid');
   };
 
