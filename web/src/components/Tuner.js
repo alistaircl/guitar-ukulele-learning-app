@@ -85,12 +85,28 @@ function Tuner() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      
-      // Ensure the AudioContext is active. Some browsers start it in 'suspended' state.
+
+      // Ensure the AudioContext is active. Some browsers start it in 'suspended' state
+      // and reject resume() under mobile Safari's strict autoplay policy. Wrap in its
+      // own try/catch so a resume failure surfaces a clear, actionable message instead
+      // of falling through to the generic catch block (issue #166).
       if (audioCtx.state === 'suspended') {
-        await audioCtx.resume();
+        try {
+          await audioCtx.resume();
+        } catch (resumeErr) {
+          console.error('Failed to resume AudioContext for tuner:', resumeErr);
+          // Clean up partial resources before surfacing the failure
+          stream.getTracks().forEach(t => t.stop());
+          throw new Error('Audio could not be initialized. Tap Start again to retry.');
+        }
       }
-      
+      // Guard: refuse to start pitch detection on a suspended context, since the
+      // analyser would never produce meaningful data and the user hears nothing.
+      if (audioCtx.state !== 'running') {
+        stream.getTracks().forEach(t => t.stop());
+        throw new Error('Audio context could not be activated. Tap Start again to retry.');
+      }
+
       audioCtxRef.current = audioCtx;
       const analyser = audioCtx.createAnalyser();
       analyser.fftSize = 4096;
@@ -136,14 +152,36 @@ function Tuner() {
     setDetectedNote(null);
   };
 
-  const playReferenceTone = (freq) => {
+  const playReferenceTone = async (freq) => {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // New AudioContexts start in 'suspended' state on most browsers and MUST be
+    // resumed on a user gesture (or the click that triggered this call) before any
+    // scheduled audio will be audible. Without this, mobile Safari silently fails
+    // to play the reference tone (issue #166).
+    if (audioCtx.state === 'suspended') {
+      try {
+        await audioCtx.resume();
+      } catch (resumeErr) {
+        console.error('Failed to resume AudioContext for reference tone:', resumeErr);
+        audioCtx.close();
+        return;
+      }
+    }
+    // Guard: never schedule an oscillator into a suspended context — it will
+    // silently produce no audio (issue #166).
+    if (audioCtx.state !== 'running') {
+      console.warn('AudioContext not running; skipping reference tone. state:', audioCtx.state);
+      audioCtx.close();
+      return;
+    }
+
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
 
     oscillator.type = 'sine';
     oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    
+
     gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
     gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
@@ -153,7 +191,7 @@ function Tuner() {
 
     oscillator.start();
     oscillator.stop(audioCtx.currentTime + 1);
-    
+
     // Close the AudioContext after the tone finishes to prevent memory leaks
     setTimeout(() => audioCtx.close(), 1100);
   };
