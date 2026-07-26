@@ -43,14 +43,9 @@ function getNearestNote(freq) {
 function Tuner() {
   const [tuning, setTuning] = useState(() => {
     // Load saved tuning from localStorage on mount
-    try {
-      const saved = localStorage.getItem('ukulele-tuner-tuning');
-      if (saved && TUNINGS[saved]) {
-        return saved;
-      }
-    } catch (e) {
-      // localStorage not available or disabled
-      console.warn('localStorage not available:', e);
+    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('ukulele-tuner-tuning') : null;
+    if (saved && TUNINGS[saved]) {
+      return saved;
     }
     return 'G4 C4 E4 A4'; // Default to Standard GCEA
   });

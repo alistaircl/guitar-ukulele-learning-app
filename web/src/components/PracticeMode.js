@@ -6,16 +6,18 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 const PRACTICE_PROGRESS_KEY = 'practice-progress';
 
 const loadProgress = (songId) => {
+  if (typeof localStorage === 'undefined') return null;
   try {
     const data = localStorage.getItem(`${PRACTICE_PROGRESS_KEY}-${songId}`);
     if (data) return JSON.parse(data);
   } catch (e) {
-    // localStorage not available — silently degrade
+    // localStorage not available or parse error — silently degrade
   }
   return null;
 };
 
 const saveProgress = (songId, streak, totalCorrect) => {
+  if (typeof localStorage === 'undefined') return;
   try {
     localStorage.setItem(
       `${PRACTICE_PROGRESS_KEY}-${songId}`,
