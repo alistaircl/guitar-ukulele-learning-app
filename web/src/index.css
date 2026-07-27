@@ -425,6 +425,15 @@ body {
   z-index: 100;
 }
 
+/* Inner flex row holds the nav buttons (was an unstyled role="tablist" div) */
+.bottom-nav .nav-list {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 800px;
+}
+
 .bottom-nav .nav-btn {
   flex: 1;
   max-width: 200px;
@@ -443,19 +452,14 @@ body {
 
 .bottom-nav .nav-btn:hover { background: var(--bg-tertiary); }
 
-/* Focus indicators for bottom nav (WCAG 2.4.7 Focus Visible) — high-contrast dual ring */
-.bottom-nav .nav-btn:focus {
-  outline: 2px solid var(--text-primary);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.45);
-}
+/* Focus indicators for bottom nav (WCAG 2.4.7 Focus Visible) — high-contrast dual ring.
+   Only :focus-visible is used so keyboard users get the ring while mouse clicks do not. */
 .bottom-nav .nav-btn:focus-visible {
   outline: 2px solid var(--text-primary);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.45);
 }
 /* When focused AND active, keep text accent but boost glow so focus stays distinct */
-.bottom-nav .nav-btn.active:focus,
 .bottom-nav .nav-btn.active:focus-visible {
   box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.6);
   outline-color: #ffffff;

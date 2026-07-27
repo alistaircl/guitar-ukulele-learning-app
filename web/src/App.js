@@ -42,16 +42,13 @@ function App() {
       </main>
 
       <nav className="bottom-nav" role="navigation" aria-label="Main navigation">
-        <div role="tablist" aria-label="App sections">
+        <div className="nav-list">
           {TABS.map(tab => (
             <button
               key={tab.id}
               className={`nav-btn ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
               aria-current={activeTab === tab.id ? 'page' : undefined}
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              aria-controls={`panel-${tab.id}`}
               id={`tab-${tab.id}`}
             >
               <span className="nav-icon" aria-hidden="true">{tab.icon}</span>
