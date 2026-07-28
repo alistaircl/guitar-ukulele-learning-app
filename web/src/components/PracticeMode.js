@@ -697,14 +697,31 @@ function PracticeMode({ initialSongId, onDone }) {
   };
 
   const resetProgress = () => {
-    try {
-      localStorage.removeItem(`practice-progress-${selectedSong.id}`);
-    } catch (e) {
-      // localStorage not available
+    let storageReset = true;
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem(`practice-progress-${selectedSong.id}`);
+      } catch (e) {
+        // localStorage not available, disabled, or threw (e.g. private
+        // browsing, security exception). Don't silently swallow — surface it
+        // so the user knows their persisted streak may re-appear on reload.
+        // See issue #171: previous empty catch(e){} hid this from users.
+        console.warn(`Failed to clear practice progress for "${selectedSong.id}" from localStorage:`, e?.message || e);
+        storageReset = false;
+      }
     }
+    // Always reset the in-memory session counters so the current view behaves
+    // correctly during this session.
     setStreak(0);
     setTotalCorrect(0);
-    setFeedback({ type: 'info', message: '🔄 Progress reset for this song' });
+    setFeedback(
+      storageReset
+        ? { type: 'info', message: '🔄 Progress reset for this song' }
+        : {
+            type: 'incorrect',
+            message: '⚠️ Reset this session, but could not clear saved progress (storage unavailable). It may return on reload.',
+          }
+    );
   };
 
   const goToLine = (idx, playChordOnNavigate = false) => {
