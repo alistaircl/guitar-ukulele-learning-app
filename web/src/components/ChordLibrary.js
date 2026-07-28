@@ -203,7 +203,7 @@ function ChordCard({ chord, selected, onClick }) {
       <div className="chord-fingers">
         {fingerCount > 0
           ? `${fingerCount} finger${fingerCount > 1 ? 's' : ''}`
-          : 'Open chords'}
+          : 'Open chord'}
       </div>
       {variationCount > 0 && (
         <div className="variations-badge">
