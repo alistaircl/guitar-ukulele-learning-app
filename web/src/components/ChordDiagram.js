@@ -172,13 +172,13 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     </>
   );
 
-  // Render 4 horizontal fret lines
+  // Render 4 horizontal fret lines (span full string width)
   const renderFrets = () => (
     <>
       {[0, 1, 2, 3, 4].map(i => (
         <line key={`fret-${i}`}
           x1={strX[0]} y1={fretTop + i * fretH}
-          x2={strX[3]} y2={fretTop + i * fretH}
+          x2={strX[numStrings - 1]} y2={fretTop + i * fretH}
           stroke="#9090a0" strokeWidth={i === 0 ? 0 : 1} />
       ))}
     </>
@@ -211,7 +211,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
   // Show "X" marker for starting fret > 1
   const renderStartFretMarker = () => {
     if (startFret <= 1) return null;
-    const midX = (strX[0] + strX[3]) / 2;
+    const midX = (strX[0] + strX[numStrings - 1]) / 2;
     return (
       <text x={midX} y={fretTop - 6} textAnchor="middle"
         fill="#9090a0" fontSize="10" fontFamily="sans-serif">
