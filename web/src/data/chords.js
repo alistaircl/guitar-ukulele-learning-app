@@ -261,6 +261,16 @@ export const GUITAR_CHORDS = [
   ] },
   { name: 'Fm', frets: [1, 3, 3, 1, 1, 1], fingers: [1, 3, 4, 1, 1, 1], variations: [] },
   { name: 'Gm', frets: [3, 5, 5, 3, 3, 3], fingers: [1, 3, 4, 1, 1, 1], variations: [] },
+  // Sharp minor chords — required by practice songs (Stand By Me uses F#m,
+  // I'm Yours uses G#m). These are E-shape barre chords (root on low E string)
+  // and parallel the entries already present in the ukulele ALL_CHORDS list.
+  // Verified against standard chord references (chordbank.com).
+  { name: 'F#m', frets: [2, 4, 4, 2, 2, 2], fingers: [1, 3, 4, 1, 1, 1], variations: [
+    { frets: [2, 4, 4, 2, 2, 2], fingers: [1, 3, 4, 1, 1, 1], label: 'F#m (standard barre)' }
+  ] },
+  { name: 'G#m', frets: [4, 6, 6, 4, 4, 4], fingers: [1, 3, 4, 1, 1, 1], variations: [
+    { frets: [4, 6, 6, 4, 4, 4], fingers: [1, 3, 4, 1, 1, 1], label: 'G#m (standard barre)' }
+  ] },
   
   // 7th chords
   { name: 'A7', frets: [-1, 0, 2, 0, 2, 0], fingers: [0, 0, 2, 0, 3, 0], variations: [] },
