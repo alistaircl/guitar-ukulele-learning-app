@@ -285,6 +285,12 @@ export const GUITAR_CHORDS = [
   { name: 'Cmaj7', frets: [-1, 3, 2, 0, 0, 0], fingers: [0, 3, 2, 0, 0, 0], variations: [] },
   { name: 'Dmaj7', frets: [-1, -1, 0, 2, 2, 2], fingers: [0, 0, 0, 1, 2, 3], variations: [] },
   { name: 'Emaj7', frets: [0, 2, 1, 1, 0, 0], fingers: [0, 3, 1, 2, 0, 0], variations: [] },
+  // Fmaj7: open-position shape (mute low strings, index on B at 1st fret,
+  // middle on G at 2nd fret, open high E). Barre variation at 1st fret
+  // parallels the full barre F shape (root on low E string).
+  { name: 'Fmaj7', frets: [-1, -1, -1, 2, 1, 0], fingers: [0, 0, 0, 2, 1, 0], variations: [
+    { frets: [1, 3, 2, 1, 1, 1], fingers: [1, 3, 2, 1, 1, 1], label: 'Fmaj7 (barre)' }
+  ] },
   { name: 'Gmaj7', frets: [3, 2, 0, 0, 0, 2], fingers: [3, 2, 0, 0, 0, 4], variations: [] },
   
   // Suspended chords
