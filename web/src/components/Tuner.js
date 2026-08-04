@@ -164,9 +164,18 @@ function Tuner() {
       }
     }
     // Guard: never schedule an oscillator into a suspended context — it will
-    // silently produce no audio (issue #166).
+    // silently produce no audio (issue #166). Browsers' autoplay policy starts
+    // AudioContext in 'suspended' state and only allows resume() inside a user
+    // gesture; even within one, some browsers resolve resume() without flipping
+    // state to 'running'. This is an expected browser security limitation, not
+    // an app bug — the user just needs to interact with the page first.
     if (audioCtx.state !== 'running') {
-      console.warn('AudioContext not running; skipping reference tone. state:', audioCtx.state);
+      console.warn(
+        'AudioContext is ' + audioCtx.state + ' (not "running"); skipping reference tone. ' +
+        'Cause: browser autoplay policy requires a user gesture (tap/click) to start ' +
+        'audio; some browsers resume() without flipping state to "running". ' +
+        'This is expected browser behavior — interact with the page first, then retry.'
+      );
       audioCtx.close();
       return;
     }

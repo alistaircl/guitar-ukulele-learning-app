@@ -441,7 +441,15 @@ function PracticeMode({ initialSongId, onDone }) {
     // Guard: never schedule audio into a suspended context (issue #155).
     // Notes scheduled into a suspended AudioContext produce no audio silently.
     // Skip gracefully — the practice timer keeps running, audio just won't play.
+    // Log the cause (see issue #185) so it's clear this is a browser autoplay
+    // limitation, not an app bug: a user gesture is required to start audio.
     if (audioCtxRef.current.state !== 'running') {
+      console.warn(
+        'Skipping chord playback: AudioContext state is ' + audioCtxRef.current.state +
+        ' (expected "running"). Cause: browser autoplay policy requires a user gesture to ' +
+        'start audio; tap "Enable Audio" or interact with the page. This is expected browser ' +
+        'behavior — the practice timer continues, only the chord sound is skipped.'
+      );
       setAudioReady(false);
       return;
     }
@@ -517,7 +525,13 @@ function PracticeMode({ initialSongId, onDone }) {
     if (audioCtxRef.current.state === 'running') {
       setAudioReady(true);
     } else {
-      console.warn('AudioContext not running after resume; state:', audioCtxRef.current.state);
+      console.warn(
+        'AudioContext state is ' + audioCtxRef.current.state + ' after resume() (expected "running"). ' +
+        'Cause: browser autoplay policy requires a user gesture to start audio, and some browsers ' +
+        'resolve resume() without flipping state to "running". This is an expected browser security ' +
+        'limitation, not an app bug — the user must interact with the page (tap "Enable Audio") to ' +
+        'start audio.'
+      );
       setAudioReady(false);
     }
   };
