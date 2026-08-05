@@ -52,7 +52,17 @@ class ErrorBoundary extends Component {
           <p style={{ marginBottom: '1.5rem', color: 'var(--text-secondary, #666)', maxWidth: '500px' }}>
             We encountered an unexpected error. Please try refreshing the page.
           </p>
-          {this.state.error && process.env.NODE_ENV === 'development' && (
+          {/* Issue #184: Surface error details in production too (not just dev).
+              The previous code gated this block behind
+              `process.env.NODE_ENV === 'development'`, so the GitHub Pages
+              production build dead-code-eliminated it entirely and users got no
+              error text to share in a bug report. Now it renders whenever we
+              have an error, collapsed by default (<details>) so it's not a wall
+              of text, but available for users to copy into a bug report. We
+              intentionally show only the error message and component stack
+              (both client-side, no sensitive data) so users can give us useful
+              reports without us leaking anything. */}
+          {this.state.error && (
             <details style={{
               marginBottom: '1.5rem',
               padding: '1rem',
@@ -63,10 +73,10 @@ class ErrorBoundary extends Component {
               overflow: 'auto'
             }}>
               <summary style={{ cursor: 'pointer', fontWeight: '600', marginBottom: '0.5rem' }}>
-                Error Details (Development)
+                Error details (for bug reports)
               </summary>
-              <pre style={{ 
-                fontSize: '0.85rem', 
+              <pre style={{
+                fontSize: '0.85rem',
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
                 color: 'var(--text-primary, #333)'
