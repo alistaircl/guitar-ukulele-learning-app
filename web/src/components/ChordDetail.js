@@ -1,9 +1,24 @@
 import React from 'react';
 import ChordDiagram from './ChordDiagram';
 
+// Compare two arrays by value.
+function arraysEqual(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  if (a.length !== b.length) return false;
+  return a.every((v, i) => v === b[i]);
+}
+
 function ChordDetail({ chord, showPrimaryLabel = false }) {
   const variations = chord.variations || [];
-  const allVariations = variations.map((v, index) => ({
+  // Filter out variations that are identical to the primary shape on BOTH frets
+  // and fingers — those render the exact same diagram twice (issue #190).
+  // Variations that share frets but use different fingers (e.g. "C (pinky)",
+  // same shape played with finger 4 instead of 3) are preserved because the
+  // finger dots differ and the alternative fingering is genuinely useful.
+  const distinctVariations = variations.filter(
+    (v) => !(arraysEqual(v.frets, chord.frets) && arraysEqual(v.fingers, chord.fingers))
+  );
+  const allVariations = distinctVariations.map((v, index) => ({
     ...v,
     label: showPrimaryLabel && index === 0 ? 'Primary' : v.label,
   }));
@@ -42,7 +57,7 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
           </div>
         ))}
       </div>
-      {!showPrimaryLabel && variations.length === 0 && (
+      {!showPrimaryLabel && distinctVariations.length === 0 && (
         <p className="no-variations">No alternative variations for this chord</p>
       )}
     </div>

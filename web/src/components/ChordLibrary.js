@@ -187,7 +187,16 @@ function ChordPage({ chord, onGoBack }) {
 
 function ChordCard({ chord, selected, onClick }) {
   const fingerCount = chord.frets.filter(f => f > 0).length;
-  const variationCount = chord.variations ? chord.variations.length : 0;
+  // Count only variations that are distinct from the primary shape (same dedupe
+  // logic as ChordDetail, issue #190 — a variation whose frets AND fingers
+  // equal the primary is a duplicate and should not be advertised as available).
+  const distinctVariations = (chord.variations || []).filter(
+    (v) => !(v.frets.length === chord.frets.length &&
+             v.frets.every((f, i) => f === chord.frets[i]) &&
+             (v.fingers || []).length === chord.fingers.length &&
+             (v.fingers || []).every((f, i) => f === chord.fingers[i]))
+  );
+  const variationCount = distinctVariations.length;
   return (
     <div
       className={`chord-card ${selected ? 'selected' : ''}`}
