@@ -432,10 +432,13 @@ body {
   gap: 0.5rem;
   width: 100%;
   max-width: 800px;
+  min-width: 0;          /* let the row shrink below the sum of children min-content */
+  overflow: hidden;
 }
 
 .bottom-nav .nav-btn {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;            /* allow shrinking below content size (flex default min-width:auto would block this) */
   max-width: 200px;
   display: flex;
   flex-direction: column;
@@ -448,6 +451,7 @@ body {
   color: var(--text-secondary);
   cursor: pointer;
   transition: var(--transition);
+  overflow: hidden;
 }
 
 .bottom-nav .nav-btn:hover { background: var(--bg-tertiary); }
@@ -467,7 +471,13 @@ body {
 .bottom-nav .nav-btn.active { color: var(--accent-primary); }
 
 .nav-icon { font-size: 1.2rem; }
-.nav-label { font-size: 0.7rem; }
+.nav-label {
+  font-size: 0.7rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* Loading State */
 .loading {
