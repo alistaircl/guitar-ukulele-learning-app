@@ -1,20 +1,63 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { FaGuitar } from 'react-icons/fa';
 
 const TUNINGS = {
   // Ukulele tunings
-  'G4 C4 E4 A4': { name: 'Standard (GCEA)', notes: ['G4', 'C4', 'E4', 'A4'], freq: [392, 261.63, 329.63, 440] },
-  'G3 C4 E4 A4': { name: 'Low G (GCEA)', notes: ['G3', 'C4', 'E4', 'A4'], freq: [196.0, 261.63, 329.63, 440] },
-  'D4 G4 B4 E5': { name: 'Baritone (DGBE)', notes: ['D4', 'G4', 'B4', 'E5'], freq: [293.66, 392, 493.88, 659.25] },
+  'G4 C4 E4 A4': { name: 'Standard (GCEA)', instrument: 'ukulele', notes: ['G4', 'C4', 'E4', 'A4'], freq: [392, 261.63, 329.63, 440] },
+  'G3 C4 E4 A4': { name: 'Low G (GCEA)', instrument: 'ukulele', notes: ['G3', 'C4', 'E4', 'A4'], freq: [196.0, 261.63, 329.63, 440] },
+  'D4 G4 B4 E5': { name: 'Baritone (DGBE)', instrument: 'ukulele', notes: ['D4', 'G4', 'B4', 'E5'], freq: [293.66, 392, 493.88, 659.25] },
   // Guitar tunings
-  'E2 A2 D3 G3 B3 E4': { name: 'Standard (EADGBE)', notes: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [82.41, 110.0, 146.83, 196.0, 246.94, 329.63] },
-  'D2 A2 D3 G3 B3 E4': { name: 'Drop D (DADGBE)', notes: ['D2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [73.42, 110.0, 146.83, 196.0, 246.94, 329.63] },
-  'D2 A2 D3 G3 A3 D4': { name: 'DADGAD', notes: ['D2', 'A2', 'D3', 'G3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 196.0, 220.0, 293.66] },
-  'D2 G2 D3 G3 B3 D4': { name: 'Open G (DGDGBD)', notes: ['D2', 'G2', 'D3', 'G3', 'B3', 'D4'], freq: [73.42, 98.0, 146.83, 196.0, 246.94, 293.66] },
-  'D2 A2 D3 F#3 A3 D4': { name: 'Open D (DADF#AD)', notes: ['D2', 'A2', 'D3', 'F#3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 185.0, 220.0, 293.66] },
-  'D#2 G#2 D#3 G#3 A#3 D#4': { name: 'Half-step down (Eb Ab Db Gb Bb Eb)', notes: ['D#2', 'G#2', 'D#3', 'G#3', 'A#3', 'D#4'], freq: [77.78, 103.83, 155.56, 207.65, 233.08, 311.13] },
+  'E2 A2 D3 G3 B3 E4': { name: 'Standard (EADGBE)', instrument: 'guitar', notes: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [82.41, 110.0, 146.83, 196.0, 246.94, 329.63] },
+  'D2 A2 D3 G3 B3 E4': { name: 'Drop D (DADGBE)', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [73.42, 110.0, 146.83, 196.0, 246.94, 329.63] },
+  'D2 A2 D3 G3 A3 D4': { name: 'DADGAD', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'G3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 196.0, 220.0, 293.66] },
+  'D2 G2 D3 G3 B3 D4': { name: 'Open G (DGDGBD)', instrument: 'guitar', notes: ['D2', 'G2', 'D3', 'G3', 'B3', 'D4'], freq: [73.42, 98.0, 146.83, 196.0, 246.94, 293.66] },
+  'D2 A2 D3 F#3 A3 D4': { name: 'Open D (DADF#AD)', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'F#3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 185.0, 220.0, 293.66] },
+  'D#2 G#2 D#3 G#3 A#3 D#4': { name: 'Half-step down (Eb Ab Db Gb Bb Eb)', instrument: 'guitar', notes: ['D#2', 'G#2', 'D#3', 'G#3', 'A#3', 'D#4'], freq: [77.78, 103.83, 155.56, 207.65, 233.08, 311.13] },
 };
 
+// Map instrument -> ordered list of tuning keys, so the selector can render
+// only the tunings for the active instrument (issue #187).
+const TUNINGS_BY_INSTRUMENT = Object.keys(TUNINGS).reduce((acc, key) => {
+  const inst = TUNINGS[key].instrument;
+  if (!acc[inst]) acc[inst] = [];
+  acc[inst].push(key);
+  return acc;
+}, {});
+
+const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-tuner-instrument';
+// Per-instrument tuning preference keys
+const tuningStorageKey = (instrument) => `${instrument}-tuner-tuning`;
+
+// Safe storage helpers (mirrors ChordLibrary): try localStorage, then
+// sessionStorage, and gracefully handle environments where storage is blocked.
+function safeStorageGet(key) {
+  for (const storeName of ['localStorage', 'sessionStorage']) {
+    try {
+      const store = window[storeName];
+      return store.getItem(key);
+    } catch (e) {
+      console.warn(`Could not read "${key}" from ${storeName}:`, e.message || e);
+    }
+  }
+  return null;
+}
+function safeStorageSet(key, value) {
+  for (const storeName of ['localStorage', 'sessionStorage']) {
+    try {
+      window[storeName].setItem(key, value);
+      return true;
+    } catch (e) {
+      console.warn(`Could not save "${key}" to ${storeName}:`, e.message || e);
+    }
+  }
+  return false;
+}
+
 const NOTE_FREQ_MAP = {
+  // Lower octaves needed for guitar tunings (low E2 = 82.41 Hz, A2 = 110 Hz).
+  // Without these, getNearestNote() would silently misidentify low guitar
+  // strings by matching them to the nearest higher note (issue #187).
+  'C2': 65.41, 'C#2': 69.30, 'D2': 73.42, 'D#2': 77.78, 'E2': 82.41, 'F2': 87.31, 'F#2': 92.50, 'G2': 98.0, 'G#2': 103.83, 'A2': 110.0, 'A#2': 116.54, 'B2': 123.47,
   'C3': 130.81, 'C#3': 138.59, 'D3': 146.83, 'D#3': 155.56, 'E3': 164.81, 'F3': 174.61, 'F#3': 185.0, 'G3': 196.0, 'G#3': 207.65, 'A3': 220.0, 'A#3': 233.08, 'B3': 246.94,
   'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.0, 'G#4': 415.3, 'A4': 440.0, 'A#4': 466.16, 'B4': 493.88,
   'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.26, 'F5': 698.46, 'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.0, 'A#5': 932.33, 'B5': 987.77,
@@ -41,13 +84,36 @@ function getNearestNote(freq) {
 }
 
 function Tuner() {
-  const [tuning, setTuning] = useState(() => {
-    // Load saved tuning from localStorage on mount
-    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('ukulele-tuner-tuning') : null;
-    if (saved && TUNINGS[saved]) {
+  // Active instrument — persisted across sessions via the safe storage helpers.
+  // Defaults to ukulele to stay backwards-compatible with existing users.
+  const [instrument, setInstrument] = useState(() => {
+    const saved = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
+    if (saved === 'guitar' || saved === 'ukulele') {
       return saved;
     }
-    return 'G4 C4 E4 A4'; // Default to Standard GCEA
+    // Backwards compatibility: migrate the old single localStorage key so users
+    // who previously selected a guitar tuning under `ukulele-tuner-tuning` keep
+    // their choice when we split the keys by instrument.
+    const oldSaved = safeStorageGet('ukulele-tuner-tuning');
+    if (oldSaved && TUNINGS[oldSaved] && TUNINGS[oldSaved].instrument === 'guitar') {
+      return 'guitar';
+    }
+    return 'ukulele';
+  });
+  const [tuning, setTuning] = useState(() => {
+    const inst = (() => {
+      const saved = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
+      if (saved === 'guitar' || saved === 'ukulele') return saved;
+      const oldSaved = safeStorageGet('ukulele-tuner-tuning');
+      if (oldSaved && TUNINGS[oldSaved] && TUNINGS[oldSaved].instrument === 'guitar') return 'guitar';
+      return 'ukulele';
+    })();
+    const saved = safeStorageGet(tuningStorageKey(inst)) || safeStorageGet('ukulele-tuner-tuning');
+    if (saved && TUNINGS[saved] && TUNINGS[saved].instrument === inst) {
+      return saved;
+    }
+    // Default to the first tuning of the active instrument
+    return TUNINGS_BY_INSTRUMENT[inst][0];
   });
   const [isListening, setIsListening] = useState(false);
   const [detectedNote, setDetectedNote] = useState(null);
@@ -301,14 +367,27 @@ function Tuner() {
     };
   }, []);
 
-  // Save tuning preference to localStorage when it changes
+  // Save tuning preference to available storage when it changes (per instrument)
   useEffect(() => {
     try {
-      localStorage.setItem('ukulele-tuner-tuning', tuning);
+      safeStorageSet(tuningStorageKey(instrument), tuning);
     } catch (e) {
-      console.warn('Could not save tuning to localStorage:', e);
+      console.warn('Could not save tuning to storage:', e);
     }
-  }, [tuning]);
+  }, [tuning, instrument]);
+
+  // Persist the active instrument so it survives refresh / revisit
+  useEffect(() => {
+    safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
+  }, [instrument]);
+
+  // Switch instrument, and reset to that instrument's first tuning so the
+  // selector never shows a tuning that doesn't belong to the active instrument.
+  const toggleInstrument = () => {
+    const next = instrument === 'ukulele' ? 'guitar' : 'ukulele';
+    setInstrument(next);
+    setTuning(TUNINGS_BY_INSTRUMENT[next][0]);
+  };
 
   // Gauge uses a centered marker that moves left (flat) or right (sharp)
   // 50% = center (in tune), <50% = flat (left), >50% = sharp (right)
@@ -324,7 +403,30 @@ function Tuner() {
 
   return (
     <div className="section tuner-container">
-      <h2 className="section-title">Tuner</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h2 className="section-title" style={{ margin: 0 }}>Tuner</h2>
+        <button
+          onClick={toggleInstrument}
+          className="control-btn"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.5rem 1rem',
+            background: 'var(--bg-panel)',
+            border: '2px solid var(--accent-primary)',
+            borderRadius: '8px',
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            fontWeight: '600'
+          }}
+          aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} tuner`}
+        >
+          {instrument === 'ukulele' ? <FaGuitar aria-hidden="true" /> : <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span>}
+          {instrument === 'ukulele' ? 'Guitar' : 'Ukulele'}
+        </button>
+      </div>
       <div className="tuner-display">
         <div className="note-display">{detectedNote ? detectedNote.note : '—'}</div>
         <div className="frequency-display">{detectedNote ? `${detectedNote.freq.toFixed(1)} Hz` : '— Hz'}</div>
@@ -346,7 +448,7 @@ function Tuner() {
         </div>
       )}
       <div className="tuning-selector">
-        {Object.keys(TUNINGS).map(key => (
+        {TUNINGS_BY_INSTRUMENT[instrument].map(key => (
           <div key={key} className="tuning-option">
             <button className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)} aria-pressed={tuning === key}>
               {TUNINGS[key].name}
