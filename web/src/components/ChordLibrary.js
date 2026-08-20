@@ -205,7 +205,7 @@ function ChordCard({ chord, selected, onClick }) {
       aria-pressed={selected}
       aria-label={`${chord.name} chord diagram showing ${chord.frets.filter(f => f > 0).length} finger positions${variationCount > 0 ? `, ${variationCount} variation${variationCount > 1 ? 's' : ''} available` : ''}`}
       tabIndex={0}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
     >
       <div className="chord-name">{chord.name}</div>
       <ChordDiagram frets={chord.frets} fingers={chord.fingers} size={100} className="chord-diagram" />
