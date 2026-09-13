@@ -34,7 +34,7 @@ function App() {
     <div className="app">
       <a href="#main-content" className="skip-link">Skip to main content</a>
       <header className="app-header" role="banner">
-        <h1>🎸 Guitar & Ukulele Learning</h1>
+        <h1>Guitar & Ukulele Learning</h1>
       </header>
 
       <main className="main-content" id="main-content" role="main">
