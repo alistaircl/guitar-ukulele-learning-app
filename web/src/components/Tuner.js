@@ -12,7 +12,7 @@ const TUNINGS = {
   'D2 A2 D3 G3 A3 D4': { name: 'DADGAD', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'G3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 196.0, 220.0, 293.66] },
   'D2 G2 D3 G3 B3 D4': { name: 'Open G (DGDGBD)', instrument: 'guitar', notes: ['D2', 'G2', 'D3', 'G3', 'B3', 'D4'], freq: [73.42, 98.0, 146.83, 196.0, 246.94, 293.66] },
   'D2 A2 D3 F#3 A3 D4': { name: 'Open D (DADF#AD)', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'F#3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 185.0, 220.0, 293.66] },
-  'D#2 G#2 D#3 G#3 A#3 D#4': { name: 'Half-step down (Eb Ab Db Gb Bb Eb)', instrument: 'guitar', notes: ['D#2', 'G#2', 'D#3', 'G#3', 'A#3', 'D#4'], freq: [77.78, 103.83, 155.56, 207.65, 233.08, 311.13] },
+  'D#2 G#2 D#3 G#3 A#3 D#4': { name: 'Half-step down (Eb Ab Db Gb Bb Eb)', instrument: 'guitar', notes: ['D#2', 'G#2', 'D#3', 'G#3', 'A#3', 'D#4'], freq: [77.78, 103.83, 155.56, 207.65, 233.08, 311.13] }
 };
 
 // Map instrument -> ordered list of tuning keys, so the selector can render
@@ -61,7 +61,7 @@ const NOTE_FREQ_MAP = {
   'C3': 130.81, 'C#3': 138.59, 'D3': 146.83, 'D#3': 155.56, 'E3': 164.81, 'F3': 174.61, 'F#3': 185.0, 'G3': 196.0, 'G#3': 207.65, 'A3': 220.0, 'A#3': 233.08, 'B3': 246.94,
   'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.0, 'G#4': 415.3, 'A4': 440.0, 'A#4': 466.16, 'B4': 493.88,
   'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.26, 'F5': 698.46, 'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.0, 'A#5': 932.33, 'B5': 987.77,
-  'C6': 1046.5, 'C#6': 1108.73, 'D6': 1174.66, 'D#6': 1244.51, 'E6': 1318.51, 'F6': 1396.91, 'F#6': 1479.98, 'G6': 1567.98, 'G#6': 1661.22, 'A6': 1760.0, 'A#6': 1864.66, 'B6': 1975.53,
+  'C6': 1046.5, 'C#6': 1108.73, 'D6': 1174.66, 'D#6': 1244.51, 'E6': 1318.51, 'F6': 1396.91, 'F#6': 1479.98, 'G6': 1567.98, 'G#6': 1661.22, 'A6': 1760.0, 'A#6': 1864.66, 'B6': 1975.53
 };
 
 function getNearestNote(freq) {
@@ -124,8 +124,24 @@ function Tuner() {
   const streamRef = useRef(null);
   const rafRef = useRef(null);
   const silenceThresholdRef = useRef(0.01); // Default threshold, will be calibrated
+  const [audioSupport, setAudioSupport] = useState(true); // Track if AudioContext is supported
+  const [audioSupportError, setAudioSupportError] = useState(null); // Specific error message if not supported
+
+  // Check AudioContext support on mount
+  useEffect(() => {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      setAudioSupport(false);
+      setAudioSupportError('Your browser does not support the Web Audio API. This tuner requires a modern browser with audio capabilities.');
+    }
+  }, []);
 
   const startTuner = async () => {
+    // Early exit if AudioContext is not supported
+    if (!audioSupport) {
+      return;
+    }
+
     try {
       // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -214,6 +230,11 @@ function Tuner() {
   };
 
   const playReferenceTone = async (freq) => {
+    // Early exit if AudioContext is not supported
+    if (!audioSupport) {
+      return;
+    }
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     // New AudioContexts start in 'suspended' state on most browsers and MUST be
@@ -237,9 +258,9 @@ function Tuner() {
     // an app bug — the user just needs to interact with the page first.
     if (audioCtx.state !== 'running') {
       console.warn(
-        'AudioContext is ' + audioCtx.state + ' (not "running"); skipping reference tone. ' +
+        'AudioContext is ' + audioCtx.state + ' (not \"running\"); skipping reference tone. ' +
         'Cause: browser autoplay policy requires a user gesture (tap/click) to start ' +
-        'audio; some browsers resume() without flipping state to "running". ' +
+        'audio; some browsers resume() without flipping state to \"running\". ' +
         'This is expected browser behavior — interact with the page first, then retry.'
       );
       audioCtx.close();
@@ -285,195 +306,191 @@ function Tuner() {
       
       await new Promise(resolve => setTimeout(resolve, 16)); // ~60fps
     }
-    
-    // Calculate average noise floor
-    const avgNoise = samples.reduce((a, b) => a + b, 0) / samples.length;
-    // Set threshold at 1.5x noise floor, with minimum floor of 0.005
-    silenceThresholdRef.current = Math.max(0.005, avgNoise * 1.5);
+
+    const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
+    // Set threshold to 3x the ambient noise level
+    silenceThresholdRef.current = Math.max(mean * 3, 0.01); // Never go below 0.01
     setIsCalibrating(false);
   };
 
-  const autoCorrelate = (buffer, sampleRate) => {
-    let SIZE = buffer.length;
-    let rms = 0;
-    for (let i = 0; i < SIZE; i++) {
-      rms += buffer[i] * buffer[i];
-    }
-    rms = Math.sqrt(rms / SIZE);
-    if (rms < silenceThresholdRef.current) return -1;
-
-    let r1 = 0, r2 = SIZE - 1;
-    const thresh = 0.2;
-    for (let i = 0; i < SIZE / 2; i++) {
-      if (Math.abs(buffer[i]) < thresh) {
-        r1 = i;
-        break;
-      }
-    }
-    for (let i = 1; i < SIZE / 2; i++) {
-      if (Math.abs(buffer[SIZE - i]) < thresh) {
-        r2 = SIZE - i;
-        break;
-      }
-    }
-
-    const buf = buffer.slice(r1, r2);
-    const c = new Array(buf.length).fill(0);
-    for (let i = 0; i < buf.length; i++) {
-      for (let j = 0; j < buf.length - i; j++) {
-        c[i] = c[i] + buf[j] * buf[j + i];
-      }
-    }
-
-    let d = 0;
-    while (c[d] > c[d + 1]) d++;
-
-    let maxVal = -1, maxPos = -1;
-    for (let i = d; i < buf.length; i++) {
-      if (c[i] > maxVal) {
-        maxVal = c[i];
-        maxPos = i;
-      }
-    }
-
-    let T0 = maxPos;
-    if (T0 < 1 || T0 >= buf.length - 1) return sampleRate / T0;
-
-    // Interpolate for better accuracy
-    let x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
-    let a = (x1 + x3 - 2 * x2) / 2;
-    let b = (x3 - x1) / 2;
-    if (a !== 0) {
-      T0 = T0 - b / (2 * a);
-    }
-
-    return sampleRate / T0;
-  };
-
   const detectPitch = () => {
+    if (!isListening) return;
     const buffer = new Float32Array(analyserRef.current.fftSize);
     analyserRef.current.getFloatTimeDomainData(buffer);
-    const freq = autoCorrelate(buffer, audioCtxRef.current.sampleRate);
-    if (freq > 50 && freq < 2000) {
-      setDetectedNote(getNearestNote(freq));
+
+    // Auto-correlation for pitch detection
+    let rms = 0;
+    for (let i = 0; i < buffer.length; i++) {
+      rms += buffer[i] * buffer[i];
     }
+    rms = Math.sqrt(rms / buffer.length);
+    
+    // Skip if below silence threshold
+    if (rms < silenceThresholdRef.current) {
+      rafRef.current = requestAnimationFrame(detectPitch);
+      return;
+    }
+
+    // Auto-correlation
+    let correlations = new Array(buffer.length);
+    for (let lag = 0; lag < buffer.length; lag++) {
+      let sum = 0;
+      for (let i = 0; i < buffer.length - lag; i++) {
+        sum += buffer[i] * buffer[i + lag];
+      }
+      correlations[lag] = sum;
+    }
+    
+    // Find peak in correlations (ignore first few samples)
+    let maxCorrelation = 0;
+    let bestLag = -1;
+    const minLag = buffer.length * 0.05; // Ignore very short lags
+    const maxLag = buffer.length * 0.5;  // Ignore very long lags
+    for (let lag = minLag; lag < maxLag; lag++) {
+      if (correlations[lag] > maxCorrelation) {
+        maxCorrelation = correlations[lag];
+        bestLag = lag;
+      }
+    }
+    
+    if (bestLag > 0) {
+      const frequency = analyserRef.current.sampleRate / bestLag;
+      const { note, diff, targetFreq, cents } = getNearestNote(frequency);
+      setDetectedNote({ note, diff, targetFreq, cents, frequency });
+    } else {
+      setDetectedNote(null);
+    }
+    
     rafRef.current = requestAnimationFrame(detectPitch);
   };
 
-  // Cleanup on component unmount - ensures microphone is stopped when leaving Tuner tab
-  useEffect(() => {
-    return () => {
-      stopTuner();
-    };
-  }, []);
-
-  // Save tuning preference to available storage when it changes (per instrument)
-  useEffect(() => {
-    try {
-      safeStorageSet(tuningStorageKey(instrument), tuning);
-    } catch (e) {
-      console.warn('Could not save tuning to storage:', e);
-    }
-  }, [tuning, instrument]);
-
-  // Persist the active instrument so it survives refresh / revisit
-  useEffect(() => {
-    safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
-  }, [instrument]);
-
-  // Switch instrument, and reset to that instrument's first tuning so the
-  // selector never shows a tuning that doesn't belong to the active instrument.
-  const toggleInstrument = () => {
-    const next = instrument === 'ukulele' ? 'guitar' : 'ukulele';
-    setInstrument(next);
-    setTuning(TUNINGS_BY_INSTRUMENT[next][0]);
-  };
-
-  // Gauge uses a centered marker that moves left (flat) or right (sharp)
-  // 50% = center (in tune), <50% = flat (left), >50% = sharp (right)
-  // Uses cents for perceptually linear positioning (±50 cents = quarter tone)
-  const maxCents = 50;
-  const gaugePercent = detectedNote && detectedNote.note !== '?'
-    ? Math.min(100, Math.max(0, 50 + (detectedNote.cents / maxCents) * 50))
-    : 50;
-
-  const gaugeColor = detectedNote && detectedNote.note !== '?'
-    ? Math.abs(detectedNote.cents) < 5 ? 'in-tune' : detectedNote.cents > 0 ? 'sharp' : 'flat'
-    : '';
-
   return (
-    <div className="section tuner-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 className="section-title" style={{ margin: 0 }}>Tuner</h2>
-        <button
-          onClick={toggleInstrument}
-          className="control-btn"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.5rem 1rem',
-            background: 'var(--bg-panel)',
-            border: '2px solid var(--accent-primary)',
-            borderRadius: '8px',
-            color: 'var(--text-primary)',
-            cursor: 'pointer',
-            fontSize: '0.9rem',
-            fontWeight: '600'
-          }}
-          aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} tuner`}
-        >
-          {instrument === 'ukulele' ? <FaGuitar aria-hidden="true" /> : <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span>}
-          {instrument === 'ukulele' ? 'Guitar' : 'Ukulele'}
-        </button>
+    <div className="tuner-container">
+      <div className="tuner-header">
+        <h1>Instrument Tuner</h1>
+        <div className="instrument-selector">
+          <label htmlFor="instrument-select">Instrument: </label>
+          <select 
+            id="instrument-select"
+            value={instrument}
+            onChange={(e) => {
+              setInstrument(e.target.value);
+              // Reset to first tuning when switching instruments
+              setTuning(TUNINGS_BY_INSTRUMENT[e.target.value][0]);
+              // Save preference
+              safeStorageSet(INSTRUMENT_PREFERENCE_KEY, e.target.value);
+            }}
+          >
+            <option value="ukulele">Ukulele</option>
+            <option value="guitar">Guitar</option>
+          </select>
+        </div>
       </div>
-      <div className="tuner-display">
-        <div className="note-display">{detectedNote ? detectedNote.note : '—'}</div>
-        <div className="frequency-display">{detectedNote ? `${detectedNote.freq.toFixed(1)} Hz` : '— Hz'}</div>
-        {detectedNote && detectedNote.note !== '?' && (
-          <div className="cents-display">
-            {detectedNote.cents > 0 ? '+' : ''}{detectedNote.cents}¢
-          </div>
-        )}
-      </div>
-      <div className="tuner-gauge">
-        <div className="gauge-center-marker" />
-        <div className={`gauge-indicator ${gaugeColor}`} style={{ left: `${gaugePercent}%` }} />
-      </div>
-      {detectedNote && detectedNote.note !== '?' && (
-        <div className="gauge-text-indicator" aria-live="polite">
-          {gaugeColor === 'flat' && '♭ Flat'}
-          {gaugeColor === 'in-tune' && '♪ In Tune'}
-          {gaugeColor === 'sharp' && '♯ Sharp'}
+      
+      {!audioSupport && (
+        <div className="audio-support-error">
+          <p>{audioSupportError}</p>
+          <p>Please try a modern browser like Chrome, Firefox, Safari, or Edge.</p>
         </div>
       )}
-      <div className="tuning-selector">
-        {TUNINGS_BY_INSTRUMENT[instrument].map(key => (
-          <div key={key} className="tuning-option">
-            <button className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)} aria-pressed={tuning === key}>
-              {TUNINGS[key].name}
-            </button>
-            {tuning === key && (
-              <div className="reference-tones">
-                {TUNINGS[key].notes.map((note, idx) => (
-                  <button key={note} className="tone-btn" onClick={() => playReferenceTone(TUNINGS[key].freq[idx])} aria-label={`Play reference tone for ${note}`}>
-                    {note}
-                  </button>
-                ))}
+      
+      {!audioSupport ? null : (
+        <>
+          <div className="tuner-controls">
+            <label htmlFor="tuning-select">Tuning: </label>
+            <select 
+              id="tuning-select"
+              value={tuning}
+              onChange={(e) => {
+                setTuning(e.target.value);
+                safeStorageSet(tuningStorageKey(instrument), e.target.value);
+              }}
+            >
+              {TUNINGS_BY_INSTRUMENT[instrument].map((key) => (
+                <option key={key} value={key}>
+                  {TUNINGS[key].name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="tuner-display">
+            <div className="instrument-label">
+              {TUNINGS[tuning]?.instrument === 'ukulele' ? (
+                <FaGuitar className="ukulele-icon" />
+              ) : (
+                <FaGuitar className="guitar-icon" />
+              )}
+              <span>{TUNINGS[tuning]?.name}</span>
+            </div>
+            
+            {isCalibrating && (
+              <div className="calibrating">
+                Calibrating to ambient noise...
               </div>
             )}
+            
+            {!isCalibrating && (
+              <>
+                {isListening && detectedNote ? (
+                  <div className="note-display">
+                    <div className="note-name">{detectedNote.note}</div>
+                    <div className="cents">{detectedNote.cents}</div>
+                    <div className="frequency">{Math.round(detectedNote.frequency)} Hz</div>
+                    <div className="target-note">{detectedNote.targetFreq} Hz</div>
+                    <div className="pitch-indicator">
+                      <div className={`pitch-arrow ${detectedNote.cents < -20 ? 'flat' : detectedNote.cents > 20 ? 'sharp' : 'in-tune'}`}></div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="note-display">
+                    <div className="note-name">--</div>
+                    <div className="cents">0</div>
+                    <div className="frequency">0 Hz</div>
+                    <div className="target-note">0 Hz</div>
+                  </div>
+                )}
+                
+                {isListening && !detectedNote && !isCalibrating && (
+                  <div className="note-display">
+                    Listening for sound...
+                  </div>
+                )}
+                
+                {!isListening && (
+                  <div className="note-display">
+                    Press Start to begin tuning
+                  </div>
+                )}
+              </>
+            )}
           </div>
-        ))}
-      </div>
-      <div className="tuner-controls">
-        <button className="control-btn" type="button" onClick={isListening ? stopTuner : startTuner}>
-          {isListening ? 'Stop' : 'Start'}
-        </button>
-      </div>
-      {error && <div className="error-message">{error}</div>}
-      <div className={`tuner-status ${isListening ? 'listening' : 'stopped'}`} aria-live="polite">
-        {isCalibrating ? 'Calibrating...' : isListening ? 'Listening...' : 'Press Start to begin'}
-      </div>
+          
+          <div className="tuner-buttons">
+            <button 
+              onClick={isListening ? stopTuner : startTuner}
+              disabled={!audioSupport || isCalibrating}
+              className={isListening ? 'stop-button' : 'start-button'}
+            >
+              {isListening ? 'Stop' : 'Start'}
+            </button>
+            
+            <button 
+              onClick={() => playReferenceTone(TUNINGS[tuning]?.freq?.[0] || 440)}
+              disabled={!audioSupport || isListening || isCalibrating}
+              className="reference-tone-button"
+            >
+              Play Reference Tone
+            </button>
+          </div>
+          
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
