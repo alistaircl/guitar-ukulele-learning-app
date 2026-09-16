@@ -222,6 +222,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
 
   return (
     <svg
+      className={className}
       width={svgW + marginX * 2}
       height={svgH}
       viewBox={`0 0 ${svgW + marginX * 2} ${svgH}`}
