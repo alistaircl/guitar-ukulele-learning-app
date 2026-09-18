@@ -18,10 +18,11 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
   const distinctVariations = variations.filter(
     (v) => !(arraysEqual(v.frets, chord.frets) && arraysEqual(v.fingers, chord.fingers))
   );
-  const allVariations = distinctVariations.map((v, index) => ({
-    ...v,
-    label: showPrimaryLabel && index === 0 ? 'Primary' : v.label,
-  }));
+  // The primary voicing is always rendered separately above (lines "Always
+  // display the primary chord first"), so the variation list must NOT rename
+  // its first entry to 'Primary'. Doing so duplicated the 'Primary' label and
+  // erased the first variation's real name and description (issue #212).
+  const allVariations = distinctVariations;
   
   return (
     <div className="chord-detail">
