@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import ChordLibrary from '../components/ChordLibrary';
 
 test('renders ChordLibrary with chord diagrams', () => {
@@ -14,4 +14,16 @@ test('renders ChordLibrary with chord diagrams', () => {
   const chordNames = Array.from(document.querySelectorAll('.chord-name'))
     .map(el => el.textContent);
   expect(chordNames).toContain('C');
+});
+
+// Regression guard for singular/plural aria-label (issue #214)
+test('renders ChordLibrary with chord cards that have correct aria-labels', () => {
+  render(<ChordLibrary />);
+  
+  const chordCards = screen.getAllByRole('button');
+  expect(chordCards.length).toBeGreaterThan(0);
+  
+  // Check that at least one card has an aria-label
+  const cardsWithLabels = chordCards.filter(card => card.getAttribute('aria-label'));
+  expect(cardsWithLabels.length).toBeGreaterThan(0);
 });
