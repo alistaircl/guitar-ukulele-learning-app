@@ -505,7 +505,12 @@ function PracticeMode({ initialSongId, onDone }) {
       try {
         audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
       } catch (err) {
-        console.error('Failed to create AudioContext:', err);
+        console.warn(
+          'Failed to create AudioContext: ' + (err && err.message ? err.message : err) + '. ' +
+          'Cause: the Web Audio API may be unsupported or blocked in this browser. ' +
+          'The practice timer will continue, but chord sounds are unavailable. This is ' +
+          'an expected fallback in restricted environments, not an app bug (issue #207).'
+        );
         setAudioReady(false);
         return;
       }
@@ -515,7 +520,12 @@ function PracticeMode({ initialSongId, onDone }) {
       try {
         await audioCtxRef.current.resume();
       } catch (err) {
-        console.error('Failed to resume AudioContext:', err);
+        console.warn(
+          'Failed to resume AudioContext: ' + (err && err.message ? err.message : err) + '. ' +
+          'Cause: browser autoplay policy requires a user gesture (tap/click) to start audio; ' +
+          'resume() is rejected outside a user gesture. This is an expected browser security ' +
+          'limitation, not an app bug — engage with the page (tap "Enable Audio") to start audio (issue #206).'
+        );
         setAudioReady(false);
         return;
       }
