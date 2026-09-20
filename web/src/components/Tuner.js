@@ -126,6 +126,13 @@ function Tuner() {
   const silenceThresholdRef = useRef(0.01); // Default threshold, will be calibrated
 
   const startTuner = async () => {
+    // Check if AudioContext is supported
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      setError('Your browser does not support the Web Audio API. This tuner requires a modern browser with audio capabilities.');
+      return;
+    }
+
     try {
       // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -214,6 +221,12 @@ function Tuner() {
   };
 
   const playReferenceTone = async (freq) => {
+    // Check if AudioContext is supported
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      return;
+    }
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     // New AudioContexts start in 'suspended' state on most browsers and MUST be
