@@ -436,8 +436,8 @@ function Tuner() {
           }}
           aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} tuner`}
         >
-          {instrument === 'ukulele' ? <FaGuitar aria-hidden="true" /> : <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span>}
-          {instrument === 'ukulele' ? 'Guitar' : 'Ukulele'}
+          {instrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span> : <FaGuitar aria-hidden="true" />}
+                     {instrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
         </button>
       </div>
       <div className="tuner-display">
