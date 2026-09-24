@@ -6,7 +6,7 @@ import PracticeMode from './components/PracticeMode';
 
 const TABS = [
   { id: 'tuner', label: 'Tuner', icon: '🎵' },
-  { id: 'chords', label: 'Chords', icon: '🎸' },
+  { id: 'chords', label: 'Chord Library', icon: '🎸' },
   { id: 'songs', label: 'Songs', icon: '🎤' },
   { id: 'practice', label: 'Practice', icon: '🎯' },
 ];
