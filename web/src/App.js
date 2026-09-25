@@ -8,7 +8,7 @@ const TABS = [
   { id: 'tuner', label: 'Tuner', icon: '🎵' },
   { id: 'chords', label: 'Chords', icon: '🎸' },
   { id: 'songs', label: 'Songs', icon: '🎤' },
-  { id: 'practice', label: 'Practice', icon: '🎯' },
+  { id: 'practice', label: 'Practice Mode', icon: '🎯' },
 ];
 
 function App() {
