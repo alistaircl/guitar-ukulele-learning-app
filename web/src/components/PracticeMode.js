@@ -792,6 +792,7 @@ function PracticeMode({ initialSongId, onDone }) {
 
   return (
     <div className="section">
+      <h2 className="section-title">Practice Mode</h2>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <select
