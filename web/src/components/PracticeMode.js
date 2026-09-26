@@ -177,21 +177,13 @@ lyrics: [
       { text: 'When the night has come', chord: 'A', beats: 4 },
       { text: 'And the land is dark', chord: 'F#m', beats: 4 },
       { text: 'And the moon is the only light we\'ll see', chord: 'D', beats: 4 },
-      { text: 'No I won\'t be afraid', chord: 'E', beats: 4 },
-      { text: 'Oh please stand by me', chord: 'A', beats: 4 },
-      { text: 'Oh please stand by me', chord: 'F#m', beats: 4 },
-      { text: 'When the night has come', chord: 'D', beats: 4 },
-      { text: 'And the land is dark', chord: 'E', beats: 4 },
-      { text: 'And the moon is the only light we\'ll see', chord: 'A', beats: 4 },
-      { text: 'No I won\'t be afraid', chord: 'F#m', beats: 4 },
-      { text: 'Oh please stand by me', chord: 'D', beats: 4 },
-      { text: 'Oh please stand by me', chord: 'E', beats: 4 },
-      { text: 'When stormy weather raging', chord: 'A', beats: 4 },
-      { text: 'Around my door', chord: 'F#m', beats: 4 },
-      { text: 'I won\'t be afraid', chord: 'D', beats: 4 },
-      { text: 'Just as long as you stand by me', chord: 'E', beats: 4 },
-      { text: 'Oh please stand by me', chord: 'A', beats: 4 },
-      { text: 'Oh please stand by me', chord: 'F#m', beats: 4 },
+      { text: 'No, I won\'t be afraid', chord: 'E', beats: 4 },
+      { text: 'Oh, I won\'t be afraid', chord: 'A', beats: 4 },
+      { text: 'Just as long as you stand, stand by me', chord: 'F#m', beats: 4 },
+      { text: 'So darlin\', darlin\', stand by me', chord: 'D', beats: 4 },
+      { text: 'Oh, stand by me', chord: 'E', beats: 4 },
+      { text: 'Oh, stand', chord: 'A', beats: 4 },
+      { text: 'Stand by me, stand by me', chord: 'F#m', beats: 4 },
     ]
   },
   { id: 6, title: 'Riptide',
@@ -800,6 +792,7 @@ function PracticeMode({ initialSongId, onDone }) {
 
   return (
     <div className="section">
+      <h2 className="section-title">Practice Mode</h2>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <select
