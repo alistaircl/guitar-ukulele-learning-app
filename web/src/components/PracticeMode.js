@@ -173,10 +173,11 @@ lyrics: [
     key: 'A',
     bpm: 120,
     chords: ['A', 'F#m', 'D', 'E'],
-    lyrics: [      { text: 'When the night has come', chord: 'A', beats: 4 },
+    lyrics: [
+      { text: 'When the night has come', chord: 'A', beats: 4 },
       { text: 'And the land is dark', chord: 'F#m', beats: 4 },
       { text: 'And the moon is the only light we\'ll see', chord: 'D', beats: 4 },
-      { text: 'No I won\'t be afraid', chord: 'E', beats: 4 },
+      { text: 'No, I won\'t be afraid', chord: 'E', beats: 4 },
       { text: 'Oh please stand by me', chord: 'A', beats: 4 },
       { text: 'Oh please stand by me', chord: 'F#m', beats: 4 },
       { text: 'When stormy weather raging', chord: 'A', beats: 4 },
@@ -185,7 +186,7 @@ lyrics: [
       { text: 'Just as long as you stand by me', chord: 'E', beats: 4 },
       { text: 'Oh please stand by me', chord: 'A', beats: 4 },
       { text: 'Oh please stand by me', chord: 'F#m', beats: 4 },
-]
+    ]
   },
   { id: 6, title: 'Riptide',
     artist: 'Vance Joy',
@@ -793,6 +794,7 @@ function PracticeMode({ initialSongId, onDone }) {
 
   return (
     <div className="section">
+      <h2 className="section-title">Practice Mode</h2>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <select
