@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ChordDiagram({ frets, fingers = [], size = 100, className, instrument = 'ukulele' }) {
+function ChordDiagram({ frets, fingers = [], size = 100, className, instrument = 'ukulele', ariaLabel }) {
   // Layout constants (proportional)
   const svgW = size;
   const svgH = size + 22; // extra 22px for open/muted markers
@@ -13,8 +13,18 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
   const strAreaX = marginX;
   const strAreaW = svgW - marginX * 2;
 
-  // Support variable string counts (4 for ukulele, 6 for guitar)
+  // Support variable string counts (4 for ukulele, 6 for guitar).
+  // The count is derived from the chord data, which is authoritative; the
+  // `instrument` prop records which instrument the diagram depicts (used for
+  // the accessible name) but never overrides the string count.
   const numStrings = frets.length;
+  const isGuitar = instrument === 'guitar';
+  const instrumentLabel = isGuitar ? 'Guitar' : 'Ukulele';
+  // Guitar's lowest two strings (index 0 = low E2, index 1 = A2) are wound and
+  // noticeably thicker than the rest; on the ukulele only the first two strings
+  // read as "thick". Deriving the wound-string count from the instrument keeps
+  // the bass-string line weights correct on both instruments (issue #234).
+  const woundStrings = isGuitar ? 3 : 2;
   
   // String x positions (dynamically calculated based on number of strings)
   const strX = Array.from({ length: numStrings }, (_, i) => 
@@ -168,20 +178,42 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     );
   };
 
+  // Draw an accessible-name layer describing the actual fingering.
+  // Because the <svg> carries role="img" and a single aria-label, the only way
+  // to convey each string's mute / open / fretted state to assistive tech is to
+  // encode it in that label. Without this every diagram announced the same
+  // generic text and the per-chord aria-label passed by SongDetail was dropped
+  // (issue #238).
+  const STRING_NAMES = isGuitar
+    ? ['low E', 'A', 'D', 'G', 'B', 'high E']
+    : ['G', 'C', 'E', 'A'];
+  const describeFingering = () => {
+    const parts = frets.map((fret, i) => {
+      const stringName = STRING_NAMES[i] || `string ${i + 1}`;
+      // Convert -1 (muted) to the string index so contract tests can assert the
+      // exact ordering, and so the value matches how the shape is classified.
+      if (fret === -1) return `${stringName}=x`;
+      if (fret === 0) return `${stringName}=0`;
+      return `${stringName}=${fret}`;
+    });
+    return parts.join(', ');
+  };
+  const diagramLabel = `${instrumentLabel} chord diagram, ${numStrings} strings: ${describeFingering()}`;
+
   // Render the 4 vertical string lines
   const renderStrings = () => (
     <>
       {strX.map((x, i) => (
         <line key={`str-${i}`} x1={x} y1={fretTop} x2={x} y2={svgH}
-          stroke="#9090a0" strokeWidth={i < 2 ? 1.5 : 1} />
+          stroke="#9090a0" strokeWidth={i < woundStrings ? 1.5 : 1} />
       ))}
     </>
   );
 
-  // Render 4 horizontal fret lines (span full string width)
+  // Render exactly `numFrets` horizontal fret lines (span full string width)
   const renderFrets = () => (
     <>
-      {[0, 1, 2, 3, 4].map(i => (
+      {Array.from({ length: numFrets + 1 }, (_, i) => (
         <line key={`fret-${i}`}
           x1={strX[0]} y1={fretTop + i * fretH}
           x2={strX[numStrings - 1]} y2={fretTop + i * fretH}
@@ -234,7 +266,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
       viewBox={`0 0 ${svgW + marginX * 2} ${svgH}`}
       style={{ display: 'block' }}
       role="img"
-      aria-label="Chord diagram showing finger positions"
+      aria-label={ariaLabel || diagramLabel}
     >
       {renderTopMarkers()}
       {renderStartFretMarker()}
