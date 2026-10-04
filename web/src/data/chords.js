@@ -65,8 +65,8 @@ export const ALL_CHORDS = [
   { name: 'A7', frets: [0, 1, 0, 0], fingers: [0, 1, 0, 0], variations: [
     { frets: [0, 1, 0, 0], fingers: [0, 1, 0, 0], label: 'A7 (standard)' }
   ] },
-  { name: 'B7', frets: [2, 3, 2, 2], fingers: [1, 2, 1, 1], variations: [
-    { frets: [2, 3, 2, 2], fingers: [1, 2, 1, 1], label: 'B7 (standard)' }
+  { name: 'B7', frets: [2, 3, 2, 2], fingers: [1, 2, 3, 3], variations: [
+    { frets: [2, 3, 2, 2], fingers: [1, 2, 3, 3], label: 'B7 (standard)' }
   ] },
   { name: 'C7', frets: [0, 0, 0, 1], fingers: [0, 0, 0, 3], variations: [
     { frets: [0, 0, 0, 1], fingers: [0, 0, 0, 3], label: 'C7 (standard)' }
@@ -358,19 +358,29 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
   }
   
   if (normalizedQuery === 'm') {
-    return chords.filter(chord => {
-      const name = chord.name.toLowerCase();
-      return /^[a-g][#b]?m(7|$)/.test(name);
-    });
-  }
-  
-  const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
-  
-  if (searchTerms.length === 1) {
-    return chords.filter(chord => 
-      chord.name.toLowerCase().includes(searchTerms[0])
-    );
-  }
+      return chords.filter(chord => {
+        const name = chord.name.toLowerCase();
+        return /^[a-g][#b]?m(7|$)/.test(name);
+      });
+    }
+
+    const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
+
+    if (searchTerms.length === 1) {
+      const term = searchTerms[0];
+      // If the term looks like a minor chord (e.g., "cm", "dm", "em", "gm", "am", "bm", "c#m", etc.)
+      // use precise matching to avoid matching "maj7" chords (e.g., "cm" should not match "cmaj7")
+      if (/^[a-g][#b]?m$/.test(term)) {
+        return chords.filter(chord => {
+          const name = chord.name.toLowerCase();
+          // Match minor chords but exclude major 7th chords
+          return /^[a-g][#b]?m(7|$)/.test(name) && !name.includes('maj');
+        });
+      }
+      return chords.filter(chord => 
+        chord.name.toLowerCase().includes(term)
+      );
+    }
   
   // Multiple terms: find chords matching ALL terms (AND logic)
   return chords.filter(chord => {
