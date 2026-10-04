@@ -56,69 +56,35 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     return minFret > 1 ? minFret : 1;
   })();
 
-  // Detect barre chords (same finger used on 2+ adjacent strings)
+  // Detect barre chords (same finger used on 2+ strings at the same fret)
   const detectBarres = () => {
     const barres = [];
-    const fingerGroups = {};
+    const fingerFretGroups = {};
     
-    // Group strings by finger number (ignore 0 and negative)
+    // Group strings by finger number AND fret (ignore 0 and negative frets/fingers)
     frets.forEach((fret, stringIdx) => {
       const finger = fingers[stringIdx] || 0;
       if (finger > 0 && fret > 0) {
-        if (!fingerGroups[finger]) {
-          fingerGroups[finger] = [];
+        const key = `${finger}-${fret}`;
+        if (!fingerFretGroups[key]) {
+          fingerFretGroups[key] = [];
         }
-        fingerGroups[finger].push({ stringIdx, fret });
+        fingerFretGroups[key].push(stringIdx);
       }
     });
     
-    // Find consecutive strings with same finger
-    Object.keys(fingerGroups).forEach(finger => {
-      const strings = fingerGroups[finger].sort((a, b) => a.stringIdx - b.stringIdx);
-      let currentBarre = [];
-      
-      strings.forEach((stringObj, idx) => {
-        if (currentBarre.length === 0) {
-          currentBarre.push(stringObj);
-        } else {
-          const last = currentBarre[currentBarre.length - 1];
-          // Check if consecutive string and same fret
-          if (stringObj.stringIdx === last.stringIdx + 1 && stringObj.fret === last.fret) {
-            currentBarre.push(stringObj);
-          } else {
-            // End of current barre, check if it's valid (2+ strings)
-            if (currentBarre.length >= 2) {
-              barres.push({
-                finger: parseInt(finger),
-                fret: currentBarre[0].fret,
-                startString: currentBarre[0].stringIdx,
-                endString: currentBarre[currentBarre.length - 1].stringIdx
-              });
-            }
-            currentBarre = [stringObj];
-          }
-        }
-        
-        // Add barre if we're at the last string and have a valid barre that wasn't already added
-        // A barre is already added if the else block fired on this iteration
-        if (idx === strings.length - 1 && currentBarre.length >= 2) {
-          // Check if this exact barre already exists (prevent duplicates)
-          const exists = barres.some(b => 
-            b.finger === parseInt(finger) && 
-            b.fret === currentBarre[0].fret && 
-            b.startString === currentBarre[0].stringIdx &&
-            b.endString === currentBarre[currentBarre.length - 1].stringIdx
-          );
-          if (!exists) {
-            barres.push({
-              finger: parseInt(finger),
-              fret: currentBarre[0].fret,
-              startString: currentBarre[0].stringIdx,
-              endString: currentBarre[currentBarre.length - 1].stringIdx
-            });
-          }
-        }
-      });
+    // For each finger+fret group with 2+ strings, draw a barre from lowest to highest string
+    Object.keys(fingerFretGroups).forEach(key => {
+      const stringIndices = fingerFretGroups[key].sort((a, b) => a - b);
+      if (stringIndices.length >= 2) {
+        const [fingerStr, fretStr] = key.split('-');
+        barres.push({
+          finger: parseInt(fingerStr),
+          fret: parseInt(fretStr),
+          startString: stringIndices[0],
+          endString: stringIndices[stringIndices.length - 1]
+        });
+      }
     });
     
     return barres;
