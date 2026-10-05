@@ -8,7 +8,7 @@ import { getAllChords, searchChordsByInstrument } from '../data/chords';
 // and gracefully handle environments where both are unavailable (e.g. private
 // browsing mode, disabled cookies/storage). Returns null and logs an
 // informative warning on failure so callers can degrade gracefully.
-const PREFERENCE_KEY = 'ukulele-chords-instrument';
+const SHARED_INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
 
 function safeStorageGet(key) {
   for (const storeName of ['localStorage', 'sessionStorage']) {
@@ -44,7 +44,7 @@ function ChordLibrary() {
     // Load saved instrument from available storage on mount.
     // localStorage is preferred; sessionStorage is a fallback that at
     // least keeps the preference alive for the duration of the session.
-    const saved = safeStorageGet(PREFERENCE_KEY);
+    const saved = safeStorageGet(SHARED_INSTRUMENT_PREFERENCE_KEY);
     if (saved === 'guitar' || saved === 'ukulele') {
       return saved;
     }
@@ -70,7 +70,7 @@ function ChordLibrary() {
   // (e.g. private browsing with all storage blocked), record it so the UI
   // can inform the user that their preference won't persist across refreshes.
   React.useEffect(() => {
-    const saved = safeStorageSet(PREFERENCE_KEY, instrument);
+    const saved = safeStorageSet(SHARED_INSTRUMENT_PREFERENCE_KEY, instrument);
     setPreferenceSaved(saved);
   }, [instrument]);
 
