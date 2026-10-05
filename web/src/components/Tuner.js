@@ -8,7 +8,7 @@ const TUNINGS = {
   'D4 G4 B4 E5': { name: 'Baritone (DGBE)', instrument: 'ukulele', notes: ['D4', 'G4', 'B4', 'E5'], freq: [293.66, 392, 493.88, 659.25] },
   // Guitar tunings
   'E2 A2 D3 G3 B3 E4': { name: 'Standard (EADGBE)', instrument: 'guitar', notes: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [82.41, 110.0, 146.83, 196.0, 246.94, 329.63] },
-  'D2 A2 D3 G3 B3 E4': { name: 'Drop D (DADGBE)', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [73.42, 110.0, 146.83, 196.0, 246.94, 329.63] },
+  'D2 A2 D3 G3 B3 E4': { name: 'Drop D (DADGBE)', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [73.42, 110.0, 146.83, 196.0, 220.0, 293.66] },
   'D2 A2 D3 G3 A3 D4': { name: 'DADGAD', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'G3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 196.0, 220.0, 293.66] },
   'D2 G2 D3 G3 B3 D4': { name: 'Open G (DGDGBD)', instrument: 'guitar', notes: ['D2', 'G2', 'D3', 'G3', 'B3', 'D4'], freq: [73.42, 98.0, 146.83, 196.0, 246.94, 293.66] },
   'D2 A2 D3 F#3 A3 D4': { name: 'Open D (DADF#AD)', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'F#3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 185.0, 220.0, 293.66] },
@@ -24,8 +24,9 @@ const TUNINGS_BY_INSTRUMENT = Object.keys(TUNINGS).reduce((acc, key) => {
   return acc;
 }, {});
 
-const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-tuner-instrument';
-// Per-instrument tuning preference keys
+// Shared instrument preference key used by both Tuner and ChordLibrary
+const SHARED_INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
+// Per-instrument tuning preference keys (Tuner only)
 const tuningStorageKey = (instrument) => `${instrument}-tuner-tuning`;
 
 // Safe storage helpers (mirrors ChordLibrary): try localStorage, then
@@ -87,7 +88,7 @@ function Tuner() {
   // Active instrument — persisted across sessions via the safe storage helpers.
   // Defaults to ukulele to stay backwards-compatible with existing users.
   const [instrument, setInstrument] = useState(() => {
-    const saved = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
+    const saved = safeStorageGet(SHARED_INSTRUMENT_PREFERENCE_KEY);
     if (saved === 'guitar' || saved === 'ukulele') {
       return saved;
     }
@@ -102,7 +103,7 @@ function Tuner() {
   });
   const [tuning, setTuning] = useState(() => {
     const inst = (() => {
-      const saved = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
+      const saved = safeStorageGet(SHARED_INSTRUMENT_PREFERENCE_KEY);
       if (saved === 'guitar' || saved === 'ukulele') return saved;
       const oldSaved = safeStorageGet('ukulele-tuner-tuning');
       if (oldSaved && TUNINGS[oldSaved] && TUNINGS[oldSaved].instrument === 'guitar') return 'guitar';
@@ -391,7 +392,7 @@ function Tuner() {
 
   // Persist the active instrument so it survives refresh / revisit
   useEffect(() => {
-    safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
+    safeStorageSet(SHARED_INSTRUMENT_PREFERENCE_KEY, instrument);
   }, [instrument]);
 
   // Switch instrument, and reset to that instrument's first tuning so the
