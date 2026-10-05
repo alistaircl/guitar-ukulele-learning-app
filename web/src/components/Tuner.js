@@ -24,7 +24,7 @@ const TUNINGS_BY_INSTRUMENT = Object.keys(TUNINGS).reduce((acc, key) => {
   return acc;
 }, {});
 
-const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-tuner-instrument';
+const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
 // Per-instrument tuning preference keys
 const tuningStorageKey = (instrument) => `${instrument}-tuner-tuning`;
 
@@ -100,6 +100,7 @@ function Tuner() {
     }
     return 'ukulele';
   });
+  const [instrumentSaved, setInstrumentSaved] = useState(null);
   const [tuning, setTuning] = useState(() => {
     const inst = (() => {
       const saved = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
@@ -391,7 +392,8 @@ function Tuner() {
 
   // Persist the active instrument so it survives refresh / revisit
   useEffect(() => {
-    safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
+    const saved = safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
+    setInstrumentSaved(saved);
   }, [instrument]);
 
   // Switch instrument, and reset to that instrument's first tuning so the
@@ -418,27 +420,52 @@ function Tuner() {
     <div className="section tuner-container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 className="section-title" style={{ margin: 0 }}>Tuner</h2>
-        <button
-          onClick={toggleInstrument}
-          className="control-btn"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.5rem 1rem',
-            background: 'var(--bg-panel)',
-            border: '2px solid var(--accent-primary)',
-            borderRadius: '8px',
-            color: 'var(--text-primary)',
-            cursor: 'pointer',
-            fontSize: '0.9rem',
-            fontWeight: '600'
-          }}
-          aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} tuner`}
-        >
-          {instrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span> : <FaGuitar aria-hidden="true" />}
-                     {instrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {instrumentSaved === false && (
+            <span
+              role="status"
+              aria-live="polite"
+              title="Private browsing mode or disabled browser storage prevents saving your instrument preference. It will reset to ukulele on refresh."
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '1.25rem',
+                height: '1.25rem',
+                borderRadius: '50%',
+                background: 'var(--warning)',
+                color: '#fff',
+                fontSize: '0.75rem',
+                fontWeight: '700',
+                cursor: 'help'
+              }}
+              aria-label="Warning: instrument preference cannot be saved in this browser session"
+            >
+              !
+            </span>
+          )}
+          <button
+            onClick={toggleInstrument}
+            className="control-btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.5rem 1rem',
+              background: 'var(--bg-panel)',
+              border: `2px solid ${instrumentSaved === false ? 'var(--warning)' : 'var(--accent-primary)'}`,
+              borderRadius: '8px',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              fontWeight: '600'
+            }}
+            aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} tuner${instrumentSaved === false ? '. Note: preference cannot be saved in this session.' : ''}`}
+          >
+            {instrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span> : <FaGuitar aria-hidden="true" />}
+                       {instrument === 'ukulele' ? 'Guitar' : 'Ukulele'}
+          </button>
+        </div>
       </div>
       <div className="tuner-display">
         <div className="note-display">{detectedNote ? detectedNote.note : '—'}</div>

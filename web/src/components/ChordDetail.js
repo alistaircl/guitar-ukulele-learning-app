@@ -8,7 +8,7 @@ function arraysEqual(a, b) {
   return a.every((v, i) => v === b[i]);
 }
 
-function ChordDetail({ chord, showPrimaryLabel = false }) {
+function ChordDetail({ chord, showPrimaryLabel = false, instrument = 'ukulele' }) {
   const variations = chord.variations || [];
   // Filter out variations that are identical to the primary shape on BOTH frets
   // and fingers — those render the exact same diagram twice (issue #190).
@@ -35,6 +35,8 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
             fingers={chord.fingers}
             size={120}
             className="chord-detail-diagram"
+            instrument={instrument}
+            ariaLabel={`${chord.name} chord diagram`}
           />
           <div className="variation-info">
             <p className="variation-label">{showPrimaryLabel ? 'Primary' : 'Standard'}</p>
@@ -50,6 +52,8 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
               fingers={v.fingers}
               size={120}
               className="chord-detail-diagram"
+              instrument={instrument}
+              ariaLabel={`${chord.name} chord diagram (${v.label})`}
             />
             <div className="variation-info">
               <p className="variation-label">{v.label}</p>
