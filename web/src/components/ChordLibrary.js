@@ -8,7 +8,7 @@ import { getAllChords, searchChordsByInstrument } from '../data/chords';
 // and gracefully handle environments where both are unavailable (e.g. private
 // browsing mode, disabled cookies/storage). Returns null and logs an
 // informative warning on failure so callers can degrade gracefully.
-const PREFERENCE_KEY = 'ukulele-chords-instrument';
+const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
 
 function safeStorageGet(key) {
   for (const storeName of ['localStorage', 'sessionStorage']) {
@@ -44,7 +44,7 @@ function ChordLibrary() {
     // Load saved instrument from available storage on mount.
     // localStorage is preferred; sessionStorage is a fallback that at
     // least keeps the preference alive for the duration of the session.
-    const saved = safeStorageGet(PREFERENCE_KEY);
+    const saved = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
     if (saved === 'guitar' || saved === 'ukulele') {
       return saved;
     }
@@ -70,7 +70,7 @@ function ChordLibrary() {
   // (e.g. private browsing with all storage blocked), record it so the UI
   // can inform the user that their preference won't persist across refreshes.
   React.useEffect(() => {
-    const saved = safeStorageSet(PREFERENCE_KEY, instrument);
+    const saved = safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
     setPreferenceSaved(saved);
   }, [instrument]);
 
@@ -85,6 +85,7 @@ function ChordLibrary() {
         <ChordPage 
           chord={selectedChord}
           onGoBack={() => setSelectedChord(null)}
+          instrument={instrument}
         />
       ) : (
         <>
@@ -157,6 +158,7 @@ function ChordLibrary() {
                 chord={chord}
                 selected={selectedChord?.name === chord.name}
                 onClick={() => setSelectedChord(chord)}
+                instrument={instrument}
               />
             ))}
             {filteredChords.length === 0 && searchQuery.trim() !== '' && (
@@ -171,7 +173,7 @@ function ChordLibrary() {
   );
 }
 
-function ChordPage({ chord, onGoBack }) {
+function ChordPage({ chord, onGoBack, instrument }) {
   return (
     <div className="chord-page">
       <div className="chord-page-header">
@@ -180,12 +182,12 @@ function ChordPage({ chord, onGoBack }) {
         </button>
         <h1>{chord.name}</h1>
       </div>
-      <ChordDetail chord={chord} showPrimaryLabel={true} />
+      <ChordDetail chord={chord} showPrimaryLabel={true} instrument={instrument} />
     </div>
   );
 }
 
-function ChordCard({ chord, selected, onClick }) {
+function ChordCard({ chord, selected, onClick, instrument }) {
   const fingerCount = chord.frets.filter(f => f > 0).length;
   // Count only variations that are distinct from the primary shape (same dedupe
   // logic as ChordDetail, issue #190 — a variation whose frets AND fingers
@@ -208,7 +210,7 @@ function ChordCard({ chord, selected, onClick }) {
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
     >
       <div className="chord-name">{chord.name}</div>
-      <ChordDiagram frets={chord.frets} fingers={chord.fingers} size={100} className="chord-diagram" />
+      <ChordDiagram frets={chord.frets} fingers={chord.fingers} size={100} className="chord-diagram" instrument={instrument} />
       <div className="chord-fingers">
         {fingerCount > 0
           ? `${fingerCount} finger${fingerCount > 1 ? 's' : ''}`
