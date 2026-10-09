@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ChordDiagram({ frets, fingers = [], size = 100, className, instrument = 'ukulele' }) {
+function ChordDiagram({ frets, fingers = [], size = 100, className }) {
   // Layout constants (proportional)
   const svgW = size;
   const svgH = size + 22; // extra 22px for open/muted markers
