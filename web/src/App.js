@@ -30,6 +30,13 @@ function App() {
     }
   };
 
+  // Clear practiceSongId when navigating away from the Practice tab
+  React.useEffect(() => {
+    if (activeTab !== 'practice') {
+      setPracticeSongId(null);
+    }
+  }, [activeTab]);
+
   return (
     <div className="app">
       <a href="#main-content" className="skip-link">Skip to main content</a>

@@ -714,32 +714,40 @@ function PracticeMode({ initialSongId, onDone }) {
   };
 
   const resetProgress = () => {
-    let storageReset = true;
-    if (typeof localStorage !== 'undefined') {
-      try {
-        localStorage.removeItem(`practice-progress-${selectedSong.id}`);
-      } catch (e) {
-        // localStorage not available, disabled, or threw (e.g. private
-        // browsing, security exception). Don't silently swallow — surface it
-        // so the user knows their persisted streak may re-appear on reload.
-        // See issue #171: previous empty catch(e){} hid this from users.
-        console.warn(`Failed to clear practice progress for "${selectedSong.id}" from localStorage:`, e?.message || e);
-        storageReset = false;
-      }
-    }
-    // Always reset the in-memory session counters so the current view behaves
-    // correctly during this session.
-    setStreak(0);
-    setTotalCorrect(0);
-    setFeedback(
-      storageReset
-        ? { type: 'info', message: '🔄 Progress reset for this song' }
-        : {
-            type: 'incorrect',
-            message: '⚠️ Reset this session, but could not clear saved progress (storage unavailable). It may return on reload.',
+      let storageReset = true;
+      if (typeof localStorage !== 'undefined') {
+        try {
+          // Clear ALL practice progress keys, not just the current song
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(`practice-progress-`)) {
+              keysToRemove.push(key);
+            }
           }
-    );
-  };
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+        } catch (e) {
+          // localStorage not available, disabled, or threw (e.g. private
+          // browsing, security exception). Don't silently swallow — surface it
+          // so the user knows their persisted streak may re-appear on reload.
+          // See issue #171: previous empty catch(e){} hid this from users.
+          console.warn(`Failed to clear practice progress from localStorage:`, e?.message || e);
+          storageReset = false;
+        }
+      }
+      // Always reset the in-memory session counters so the current view behaves
+      // correctly during this session.
+      setStreak(0);
+      setTotalCorrect(0);
+      setFeedback(
+        storageReset
+            ? { type: 'info', message: '🔄 Progress reset for all songs' }
+            : {
+                type: 'incorrect',
+                message: '⚠️ Reset this session, but could not clear saved progress (storage unavailable). It may return on reload.',
+              }
+      );
+    };
 
   const goToLine = (idx, playChordOnNavigate = false) => {
     if (idx >= 0 && idx < selectedSong.lyrics.length) {
