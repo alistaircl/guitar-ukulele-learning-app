@@ -696,7 +696,13 @@ function PracticeMode({ initialSongId, onDone }) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
+    if (rAFRef.current) {
+      cancelAnimationFrame(rAFRef.current);
+      rAFRef.current = null;
+    }
+    playbackStartTimeRef.current = null;
     setIsPlaying(false);
+    setIsPaused(false);
   };
 
   const markCorrect = () => {
@@ -714,32 +720,56 @@ function PracticeMode({ initialSongId, onDone }) {
   };
 
   const resetProgress = () => {
-    let storageReset = true;
-    if (typeof localStorage !== 'undefined') {
-      try {
-        localStorage.removeItem(`practice-progress-${selectedSong.id}`);
-      } catch (e) {
-        // localStorage not available, disabled, or threw (e.g. private
-        // browsing, security exception). Don't silently swallow — surface it
-        // so the user knows their persisted streak may re-appear on reload.
-        // See issue #171: previous empty catch(e){} hid this from users.
-        console.warn(`Failed to clear practice progress for "${selectedSong.id}" from localStorage:`, e?.message || e);
-        storageReset = false;
+      let storageReset = true;
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.removeItem(`practice-progress-${selectedSong.id}`);
+        } catch (e) {
+          console.warn(`Failed to clear practice progress for "${selectedSong.id}" from localStorage:`, e?.message || e);
+          storageReset = false;
+        }
       }
-    }
-    // Always reset the in-memory session counters so the current view behaves
-    // correctly during this session.
-    setStreak(0);
-    setTotalCorrect(0);
-    setFeedback(
-      storageReset
-        ? { type: 'info', message: '🔄 Progress reset for this song' }
-        : {
-            type: 'incorrect',
-            message: '⚠️ Reset this session, but could not clear saved progress (storage unavailable). It may return on reload.',
+      setStreak(0);
+      setTotalCorrect(0);
+      setFeedback(
+        storageReset
+            ? { type: 'info', message: '🔄 Progress reset for this song' }
+            : {
+                type: 'incorrect',
+                message: '⚠️ Reset this session, but could not clear saved progress (storage unavailable). It may return on reload.',
+              }
+      );
+    };
+
+    // Reset progress for ALL songs in localStorage
+    const resetAllProgress = () => {
+      let storageReset = true;
+      if (typeof localStorage !== 'undefined') {
+        try {
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('practice-progress-')) {
+              keysToRemove.push(key);
+            }
           }
-    );
-  };
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+        } catch (e) {
+          console.warn('Failed to clear all practice progress from localStorage:', e?.message || e);
+          storageReset = false;
+        }
+      }
+      setStreak(0);
+      setTotalCorrect(0);
+      setFeedback(
+        storageReset
+            ? { type: 'info', message: '🔄 All songs progress reset' }
+            : {
+                type: 'incorrect',
+                message: '⚠️ Reset this session, but could not clear saved progress (storage unavailable). It may return on reload.',
+              }
+      );
+    };
 
   const goToLine = (idx, playChordOnNavigate = false) => {
     if (idx >= 0 && idx < selectedSong.lyrics.length) {
@@ -1086,25 +1116,46 @@ function PracticeMode({ initialSongId, onDone }) {
         <span>🔥 {streak}</span>
         <span>{currentIndex + 1} / {selectedSong.lyrics.length}</span>
         <span>✓ {totalCorrect}</span>
-        <button
-          onClick={resetProgress}
-          aria-label="Reset practice progress for this song"
-          title="Reset progress"
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-secondary)',
-            fontSize: '0.75rem',
-            cursor: 'pointer',
-            textDecoration: 'underline',
-            padding: '0.25rem 0.5rem',
-            opacity: 0.6,
-          }}
-          onMouseEnter={(e) => e.target.style.opacity = '1'}
-          onMouseLeave={(e) => e.target.style.opacity = '0.6'}
-        >
-          Reset
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button
+            onClick={resetProgress}
+            aria-label="Reset practice progress for this song"
+            title="Reset progress for this song"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: '0.25rem 0.5rem',
+              opacity: 0.6,
+            }}
+            onMouseEnter={(e) => e.target.style.opacity = '1'}
+            onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+          >
+            Reset This Song
+          </button>
+          <button
+            onClick={resetAllProgress}
+            aria-label="Reset practice progress for all songs"
+            title="Reset progress for all songs"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: '0.25rem 0.5rem',
+              opacity: 0.6,
+            }}
+            onMouseEnter={(e) => e.target.style.opacity = '1'}
+            onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+          >
+            Reset All
+          </button>
+        </div>
       </div>
 
       {/* Action buttons */}
