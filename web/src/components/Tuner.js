@@ -24,7 +24,7 @@ const TUNINGS_BY_INSTRUMENT = Object.keys(TUNINGS).reduce((acc, key) => {
   return acc;
 }, {});
 
-const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-tuner-instrument';
+const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
 // Per-instrument tuning preference keys
 const tuningStorageKey = (instrument) => `${instrument}-tuner-tuning`;
 

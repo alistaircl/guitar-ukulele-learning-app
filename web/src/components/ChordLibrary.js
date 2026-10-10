@@ -8,7 +8,8 @@ import { getAllChords, searchChordsByInstrument } from '../data/chords';
 // and gracefully handle environments where both are unavailable (e.g. private
 // browsing mode, disabled cookies/storage). Returns null and logs an
 // informative warning on failure so callers can degrade gracefully.
-const PREFERENCE_KEY = 'ukulele-chords-instrument';
+// SHARED KEY: used by both Tuner and ChordLibrary to sync instrument preference
+const PREFERENCE_KEY = 'guitar-ukulele-instrument';
 
 function safeStorageGet(key) {
   for (const storeName of ['localStorage', 'sessionStorage']) {
