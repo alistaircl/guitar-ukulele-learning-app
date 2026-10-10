@@ -62,15 +62,15 @@ export const ALL_CHORDS = [
   ] },
 
   // 7th chords
-  { name: 'A7', frets: [0, 1, 0, 0], fingers: [0, 1, 0, 0], variations: [
-    { frets: [0, 1, 0, 0], fingers: [0, 1, 0, 0], label: 'A7 (standard)' }
-  ] },
-  { name: 'B7', frets: [2, 3, 2, 2], fingers: [1, 2, 1, 1], variations: [
-    { frets: [2, 3, 2, 2], fingers: [1, 2, 1, 1], label: 'B7 (standard)' }
-  ] },
-  { name: 'C7', frets: [0, 0, 0, 1], fingers: [0, 0, 0, 3], variations: [
-    { frets: [0, 0, 0, 1], fingers: [0, 0, 0, 3], label: 'C7 (standard)' }
-  ] },
+    { name: 'A7', frets: [0, 1, 0, 0], fingers: [0, 1, 0, 0], variations: [
+      { frets: [0, 1, 0, 0], fingers: [0, 1, 0, 0], label: 'A7 (standard)' }
+    ] },
+    { name: 'B7', frets: [2, 3, 2, 2], fingers: [1, 2, 3, 3], variations: [
+      { frets: [2, 3, 2, 2], fingers: [1, 2, 3, 3], label: 'B7 (standard)' }
+    ] },
+    { name: 'C7', frets: [0, 0, 0, 1], fingers: [0, 0, 0, 1], variations: [
+      { frets: [0, 0, 0, 1], fingers: [0, 0, 0, 1], label: 'C7 (standard)' }
+    ] },
   { name: 'D7', frets: [2, 2, 2, 3], fingers: [1, 2, 3, 4], variations: [
     { frets: [2, 2, 2, 3], fingers: [1, 2, 3, 4], label: 'D7 (standard)' }
   ] },
