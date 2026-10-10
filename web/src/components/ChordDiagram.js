@@ -28,18 +28,21 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
   const startFret = (() => {
     const positiveFrets = frets.filter(f => f > 0);
     if (positiveFrets.length === 0) return 1;
-    // A chord with any open string (fret 0) is played at the nut. Shifting the
-    // base fret off the nut would produce a misleading 'Nfr' label alongside
-    // the open-string markers (issue #213), so open-position voicings always
-    // start at the nut. Only barre/movable shapes with all strings fretted or
-    // muted may shift their base fret.
-    if (frets.some(f => f === 0)) return 1;
+    
+    // If the chord has open strings (fret 0), it's played at the nut.
+    // Muted strings (-1) don't count as open strings - they're just not played.
+    // So we only force start at nut if there are actual open strings (0).
+    const hasOpenStrings = frets.some(f => f === 0);
+    if (hasOpenStrings) return 1;
+    
     const minFret = Math.min(...positiveFrets);
     const maxFret = Math.max(...positiveFrets);
     // If fret range spans more than 4 frets, shift window to start from min
     if (maxFret - minFret >= 4) {
       return minFret;
     }
+    // For barre/movable chords (no open strings), start at the minimum fret
+    // unless it's fret 1 (which is the nut position)
     return minFret > 1 ? minFret : 1;
   })();
 

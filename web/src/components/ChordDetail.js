@@ -24,6 +24,39 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
   // erased the first variation's real name and description (issue #212).
   const allVariations = distinctVariations;
   
+  // Determine description for the primary chord based on its shape
+  // Check if it's a barre chord (same finger on 2+ adjacent strings at same fret)
+  const getPrimaryDescription = (frets, fingers) => {
+    if (!fingers || fingers.length === 0) return 'Standard open position voicing';
+    
+    // Group strings by finger number (ignore 0 and negative)
+    const fingerGroups = {};
+    frets.forEach((fret, stringIdx) => {
+      const finger = fingers[stringIdx] || 0;
+      if (finger > 0 && fret > 0) {
+        if (!fingerGroups[finger]) {
+          fingerGroups[finger] = [];
+        }
+        fingerGroups[finger].push({ stringIdx, fret });
+      }
+    });
+    
+    // Check if any finger spans 2+ adjacent strings at the same fret (barre)
+    for (const finger of Object.keys(fingerGroups)) {
+      const strings = fingerGroups[finger].sort((a, b) => a.stringIdx - b.stringIdx);
+      for (let i = 0; i < strings.length - 1; i++) {
+        if (strings[i].stringIdx + 1 === strings[i + 1].stringIdx && 
+            strings[i].fret === strings[i + 1].fret) {
+          return 'Barre chord shape — great for moving up the neck';
+        }
+      }
+    }
+    
+    return 'Standard open position voicing';
+  };
+  
+  const primaryDescription = getPrimaryDescription(chord.frets, chord.fingers);
+
   return (
     <div className="chord-detail">
       {!showPrimaryLabel && <h2>{chord.name}</h2>}
@@ -38,7 +71,7 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
           />
           <div className="variation-info">
             <p className="variation-label">{showPrimaryLabel ? 'Primary' : 'Standard'}</p>
-            <p className="variation-desc">Standard open position voicing</p>
+            <p className="variation-desc">{primaryDescription}</p>
           </div>
         </div>
         

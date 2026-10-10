@@ -389,6 +389,10 @@ function PracticeMode({ initialSongId, onDone }) {
       if (found) {
         setSelectedSong(found);
         resetSong();
+        // Load saved progress for the new song (fixes issue #263)
+        const p = loadProgress(found.id);
+        setStreak(p ? p.streak : 0);
+        setTotalCorrect(p ? p.totalCorrect : 0);
       }
     }
   }, [initialSongId]);
