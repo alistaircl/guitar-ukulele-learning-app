@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ChordDiagram({ frets, fingers = [], size = 100, className, instrument = 'ukulele' }) {
+function ChordDiagram({ frets, fingers = [], size = 100, className, ariaLabel }) {
   // Layout constants (proportional)
   const svgW = size;
   const svgH = size + 22; // extra 22px for open/muted markers
@@ -15,6 +15,18 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
 
   // Support variable string counts (4 for ukulele, 6 for guitar)
   const numStrings = frets.length;
+
+  // Generate default aria-label from chord data if not provided
+  const defaultAriaLabel = ariaLabel || (() => {
+    const frettedStrings = frets.map((f, i) => ({ fret: f, finger: fingers[i] || 0, stringIdx: i }))
+      .filter(s => s.fret > 0);
+    if (frettedStrings.length === 0) return 'Chord diagram showing finger positions';
+    const stringNames = numStrings === 4 ? ['G', 'C', 'E', 'A'] : ['E', 'A', 'D', 'G', 'B', 'e'];
+    const descriptions = frettedStrings.map(s => 
+      `finger ${s.finger} on fret ${s.fret} of ${stringNames[s.stringIdx]} string`
+    ).join(', ');
+    return `Chord diagram: ${descriptions}`;
+  })();
   
   // String x positions (dynamically calculated based on number of strings)
   const strX = Array.from({ length: numStrings }, (_, i) => 
@@ -234,7 +246,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
       viewBox={`0 0 ${svgW + marginX * 2} ${svgH}`}
       style={{ display: 'block' }}
       role="img"
-      aria-label="Chord diagram showing finger positions"
+      aria-label={defaultAriaLabel}
     >
       {renderTopMarkers()}
       {renderStartFretMarker()}

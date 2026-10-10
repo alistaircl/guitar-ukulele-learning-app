@@ -65,8 +65,8 @@ export const ALL_CHORDS = [
   { name: 'A7', frets: [0, 1, 0, 0], fingers: [0, 1, 0, 0], variations: [
     { frets: [0, 1, 0, 0], fingers: [0, 1, 0, 0], label: 'A7 (standard)' }
   ] },
-  { name: 'B7', frets: [2, 3, 2, 2], fingers: [1, 2, 1, 1], variations: [
-    { frets: [2, 3, 2, 2], fingers: [1, 2, 1, 1], label: 'B7 (standard)' }
+  { name: 'B7', frets: [2, 3, 2, 2], fingers: [1, 2, 3, 3], variations: [
+    { frets: [2, 3, 2, 2], fingers: [1, 2, 3, 3], label: 'B7 (standard)' }
   ] },
   { name: 'C7', frets: [0, 0, 0, 1], fingers: [0, 0, 0, 3], variations: [
     { frets: [0, 0, 0, 1], fingers: [0, 0, 0, 3], label: 'C7 (standard)' }
@@ -199,14 +199,26 @@ export function searchChords(query) {
   }
   
   // Handle multiple search terms (e.g., "C minor G major" → ["cm", "g"])
-  const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
-  
-  if (searchTerms.length === 1) {
-    // Single term: direct includes match
-    return ALL_CHORDS.filter(chord => 
-      chord.name.toLowerCase().includes(searchTerms[0])
-    );
-  }
+    const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
+
+    // Check if the original query contained "minor" to use precise matching
+    const wasMinorQuery = lowerQuery.includes('minor');
+
+    if (searchTerms.length === 1) {
+      const term = searchTerms[0];
+      // If the query was explicitly a minor chord search (e.g., "c minor" -> "cm"),
+      // use precise matching to avoid matching major-7th chords (e.g., "cmaj7" contains "cm")
+      if (wasMinorQuery && /^[a-g][#b]?m$/.test(term)) {
+        return ALL_CHORDS.filter(chord => {
+          const name = chord.name.toLowerCase();
+          return /^[a-g][#b]?m(7|$)/.test(name) && name.startsWith(term);
+        });
+      }
+      // Single term: direct includes match
+      return ALL_CHORDS.filter(chord =>
+        chord.name.toLowerCase().includes(term)
+      );
+    }
   
   // Multiple terms: find chords matching ALL terms (AND logic)
   return ALL_CHORDS.filter(chord => {
@@ -218,6 +230,9 @@ export function searchChords(query) {
 // Guitar chord database (standard tuning: E-A-D-G-B-E, 6 strings)
 // Fret arrays are ordered: [E2, A2, D3, G3, B3, E4] (low to high)
 // -1 means muted/not played, 0 means open string
+// Fingering rules (validated in tests):
+// - fingers[i] === 0 whenever frets[i] <= 0 (open or muted strings)
+// - No finger number spans non-contiguous strings unless all spanned strings share the same fret (valid barre)
 export const GUITAR_CHORDS = [
   // Major chords
   { name: 'C', frets: [-1, 3, 2, 0, 1, 0], fingers: [0, 3, 2, 0, 1, 0], variations: [
@@ -232,12 +247,13 @@ export const GUITAR_CHORDS = [
   ] },
   { name: 'F', frets: [1, 3, 3, 2, 1, 1], fingers: [1, 3, 4, 2, 1, 1], variations: [
     { frets: [-1, -1, 3, 2, 1, 1], fingers: [0, 0, 3, 2, 1, 1], label: 'F (easy)' },
-    { frets: [1, 3, 3, 2, 1, 1], fingers: [1, 3, 4, 2, 1, 1], label: 'F (full barre)'}
+    { frets: [1, 1, 1, 1, 1, 1], fingers: [1, 1, 1, 1, 1, 1], label: 'F (full barre)'}
   ] },
   { name: 'F#', frets: [2, 4, 4, 3, 2, 2], fingers: [1, 3, 4, 2, 1, 1], variations: [
-    { frets: [-1, -1, 4, 3, 2, 2], fingers: [0, 0, 4, 3, 2, 2], label: 'F# (easy)' }
+    { frets: [-1, -1, 4, 3, 2, 2], fingers: [0, 0, 4, 3, 2, 2], label: 'F# (easy)' },
+    { frets: [2, 2, 2, 2, 2, 2], fingers: [1, 1, 1, 1, 1, 1], label: 'F# (full barre)' }
   ] },
-  { name: 'G', frets: [3, 2, 0, 0, 0, 3], fingers: [3, 2, 0, 0, 0, 4], variations: [
+  { name: 'G', frets: [3, 2, 0, 0, 0, 3], fingers: [3, 2, 0, 0, 0, 3], variations: [
     { frets: [3, 5, 5, 4, 3, 3], fingers: [1, 3, 4, 2, 1, 1], label: 'G (barre)' }
   ] },
   { name: 'A', frets: [-1, 0, 2, 2, 2, 0], fingers: [0, 0, 1, 2, 3, 0], variations: [
@@ -251,34 +267,46 @@ export const GUITAR_CHORDS = [
   { name: 'Am', frets: [-1, 0, 2, 2, 1, 0], fingers: [0, 0, 2, 3, 1, 0], variations: [
     { frets: [5, 7, 7, 5, 5, 5], fingers: [1, 3, 4, 1, 1, 1], label: 'Am (barre)' }
   ] },
-  { name: 'Bm', frets: [-1, 2, 4, 4, 3, 2], fingers: [0, 1, 3, 4, 2, 1], variations: [] },
-  { name: 'Cm', frets: [-1, 3, 5, 5, 4, 3], fingers: [0, 1, 3, 4, 2, 1], variations: [] },
+  { name: 'Bm', frets: [-1, 2, 4, 4, 3, 2], fingers: [0, 1, 3, 4, 2, 1], variations: [
+    { frets: [2, 2, 2, 2, 2, 2], fingers: [1, 1, 1, 1, 1, 1], label: 'Bm (full barre)' }
+  ] },
+  { name: 'Cm', frets: [-1, 3, 5, 5, 4, 3], fingers: [0, 1, 3, 4, 2, 1], variations: [
+    { frets: [3, 3, 3, 3, 3, 3], fingers: [1, 1, 1, 1, 1, 1], label: 'Cm (full barre)' }
+  ] },
   { name: 'Dm', frets: [-1, -1, 0, 2, 3, 1], fingers: [0, 0, 0, 2, 3, 1], variations: [
     { frets: [5, 5, 7, 7, 6, 5], fingers: [1, 1, 3, 4, 2, 1], label: 'Dm (barre)' }
   ] },
   { name: 'Em', frets: [0, 2, 2, 0, 0, 0], fingers: [0, 2, 3, 0, 0, 0], variations: [
     { frets: [-1, 7, 9, 9, 8, 7], fingers: [0, 1, 3, 4, 2, 1], label: 'Em (barre)' }
   ] },
-  { name: 'Fm', frets: [1, 3, 3, 1, 1, 1], fingers: [1, 3, 4, 1, 1, 1], variations: [] },
-  { name: 'Gm', frets: [3, 5, 5, 3, 3, 3], fingers: [1, 3, 4, 1, 1, 1], variations: [] },
+  { name: 'Fm', frets: [1, 3, 3, 1, 1, 1], fingers: [1, 3, 4, 1, 1, 1], variations: [
+    { frets: [1, 1, 1, 1, 1, 1], fingers: [1, 1, 1, 1, 1, 1], label: 'Fm (full barre)' }
+  ] },
+  { name: 'Gm', frets: [3, 5, 5, 3, 3, 3], fingers: [1, 3, 4, 1, 1, 1], variations: [
+    { frets: [3, 3, 3, 3, 3, 3], fingers: [1, 1, 1, 1, 1, 1], label: 'Gm (full barre)' }
+  ] },
   // Sharp minor chords — required by practice songs (Stand By Me uses F#m,
   // I'm Yours uses G#m). These are E-shape barre chords (root on low E string)
   // and parallel the entries already present in the ukulele ALL_CHORDS list.
   // Verified against standard chord references (chordbank.com).
   { name: 'F#m', frets: [2, 4, 4, 2, 2, 2], fingers: [1, 3, 4, 1, 1, 1], variations: [
-    { frets: [2, 4, 4, 2, 2, 2], fingers: [1, 3, 4, 1, 1, 1], label: 'F#m (standard barre)' }
+    { frets: [2, 4, 4, 2, 2, 2], fingers: [1, 3, 4, 1, 1, 1], label: 'F#m (standard barre)' },
+    { frets: [2, 2, 2, 2, 2, 2], fingers: [1, 1, 1, 1, 1, 1], label: 'F#m (full barre)' }
   ] },
   { name: 'G#m', frets: [4, 6, 6, 4, 4, 4], fingers: [1, 3, 4, 1, 1, 1], variations: [
-    { frets: [4, 6, 6, 4, 4, 4], fingers: [1, 3, 4, 1, 1, 1], label: 'G#m (standard barre)' }
+    { frets: [4, 6, 6, 4, 4, 4], fingers: [1, 3, 4, 1, 1, 1], label: 'G#m (standard barre)' },
+    { frets: [4, 4, 4, 4, 4, 4], fingers: [1, 1, 1, 1, 1, 1], label: 'G#m (full barre)' }
   ] },
   
   // 7th chords
   { name: 'A7', frets: [-1, 0, 2, 0, 2, 0], fingers: [0, 0, 2, 0, 3, 0], variations: [] },
-  { name: 'B7', frets: [-1, 2, 1, 2, 0, 2], fingers: [0, 2, 1, 2, 0, 3], variations: [] },
+  { name: 'B7', frets: [-1, 2, 1, 2, 0, 2], fingers: [0, 2, 1, 3, 0, 4], variations: [] },
   { name: 'C7', frets: [-1, 3, 2, 3, 1, 0], fingers: [0, 3, 2, 4, 1, 0], variations: [] },
   { name: 'D7', frets: [-1, -1, 0, 2, 1, 2], fingers: [0, 0, 0, 2, 1, 3], variations: [] },
   { name: 'E7', frets: [0, 2, 0, 1, 0, 0], fingers: [0, 2, 0, 1, 0, 0], variations: [] },
-  { name: 'F7', frets: [1, 3, 1, 2, 1, 1], fingers: [1, 3, 1, 2, 1, 1], variations: [] },
+  { name: 'F7', frets: [1, 3, 1, 2, 1, 1], fingers: [1, 3, 1, 2, 1, 1], variations: [
+    { frets: [1, 1, 1, 1, 1, 1], fingers: [1, 1, 1, 1, 1, 1], label: 'F7 (full barre)' }
+  ] },
   { name: 'G7', frets: [3, 2, 0, 0, 0, 1], fingers: [3, 2, 0, 0, 0, 1], variations: [] },
   
   // Major 7th chords
@@ -302,8 +330,12 @@ export const GUITAR_CHORDS = [
   { name: 'Dsus4', frets: [-1, -1, 0, 2, 3, 3], fingers: [0, 0, 0, 1, 2, 2], variations: [] },
   { name: 'Esus2', frets: [0, 2, 4, 4, 0, 0], fingers: [0, 1, 3, 4, 0, 0], variations: [] },
   { name: 'Esus4', frets: [0, 0, 2, 2, 0, 0], fingers: [0, 0, 1, 2, 0, 0], variations: [] },
-  { name: 'Fsus2', frets: [1, 3, 3, 0, 1, 1], fingers: [1, 3, 4, 0, 1, 1], variations: [] },
-  { name: 'Fsus4', frets: [1, 1, 3, 3, 1, 1], fingers: [1, 1, 2, 3, 1, 1], variations: [] },
+  { name: 'Fsus2', frets: [1, 3, 3, 0, 1, 1], fingers: [1, 3, 4, 0, 1, 1], variations: [
+    { frets: [1, 1, 1, 1, 1, 1], fingers: [1, 1, 1, 1, 1, 1], label: 'Fsus2 (full barre)' }
+  ] },
+  { name: 'Fsus4', frets: [1, 1, 3, 3, 1, 1], fingers: [1, 1, 2, 3, 1, 1], variations: [
+    { frets: [1, 1, 1, 1, 1, 1], fingers: [1, 1, 1, 1, 1, 1], label: 'Fsus4 (full barre)' }
+  ] },
   { name: 'Gsus2', frets: [3, 5, 5, 5, 3, 3], fingers: [1, 3, 4, 4, 1, 1], variations: [
     { frets: [3, 5, 0, 0, 3, 3], fingers: [1, 2, 0, 0, 3, 3], label: 'Gsus2 (partial)' }
   ] },
@@ -365,12 +397,25 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
   }
   
   const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
-  
-  if (searchTerms.length === 1) {
-    return chords.filter(chord => 
-      chord.name.toLowerCase().includes(searchTerms[0])
-    );
-  }
+
+    // Check if the original query contained "minor" to use precise matching
+    const wasMinorQuery = lowerQuery.includes('minor');
+
+    if (searchTerms.length === 1) {
+      const term = searchTerms[0];
+      // If the query was explicitly a minor chord search (e.g., "c minor" -> "cm"),
+      // use precise matching to avoid matching major-7th chords (e.g., "cmaj7" contains "cm")
+      if (wasMinorQuery && /^[a-g][#b]?m$/.test(term)) {
+        return chords.filter(chord => {
+          const name = chord.name.toLowerCase();
+          return /^[a-g][#b]?m(7|$)/.test(name) && name.startsWith(term);
+        });
+      }
+      // Single term: direct includes match
+      return chords.filter(chord =>
+        chord.name.toLowerCase().includes(term)
+      );
+    }
   
   // Multiple terms: find chords matching ALL terms (AND logic)
   return chords.filter(chord => {

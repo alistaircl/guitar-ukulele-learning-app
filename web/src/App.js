@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Tuner from './components/Tuner';
 import ChordLibrary from './components/ChordLibrary';
 import SongLibrary from './components/SongLibrary';
@@ -6,7 +6,7 @@ import PracticeMode from './components/PracticeMode';
 
 const TABS = [
   { id: 'tuner', label: 'Tuner', icon: '🎵' },
-    { id: 'chords', label: 'Chord Library', icon: '🎸' },
+  { id: 'chords', label: 'Chord Library', icon: '🎸' },
   { id: 'songs', label: 'Songs', icon: '🎤' },
   { id: 'practice', label: 'Practice', icon: '🎯' },
 ];
@@ -14,6 +14,13 @@ const TABS = [
 function App() {
   const [activeTab, setActiveTab] = useState('tuner');
   const [practiceSongId, setPracticeSongId] = useState(null);
+
+  // Clear practiceSongId when navigating away from Practice tab
+  useEffect(() => {
+    if (activeTab !== 'practice') {
+      setPracticeSongId(null);
+    }
+  }, [activeTab]);
 
   const handleStartPractice = (song) => {
     setPracticeSongId(song.id);
