@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ChordDiagram({ frets, fingers = [], size = 100, className }) {
+function ChordDiagram({ frets, fingers = [], size = 100, className, ariaLabel }) {
   // Layout constants (proportional)
   const svgW = size;
   const svgH = size + 22; // extra 22px for open/muted markers
@@ -17,11 +17,48 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
   const numStrings = frets.length;
   
   // String x positions (dynamically calculated based on number of strings)
-  const strX = Array.from({ length: numStrings }, (_, i) => 
-    numStrings === 1 
-      ? strAreaX + strAreaW / 2 
-      : strAreaX + (i / (numStrings - 1)) * strAreaW
-  );
+    const strX = Array.from({ length: numStrings }, (_, i) =>
+      numStrings === 1
+        ? strAreaX + strAreaW / 2
+        : strAreaX + (i / (numStrings - 1)) * strAreaW
+    );
+
+    // String names for ukulele (GCEA) and guitar (EADGBE)
+    const stringNames = numStrings === 4 
+      ? ['G', 'C', 'E', 'A']  // ukulele: high to low
+      : ['E', 'A', 'D', 'G', 'B', 'E']; // guitar: low to high
+
+    // Generate descriptive aria-label for accessibility
+    // If ariaLabel is provided, use it; otherwise generate from frets/fingers
+    const getAriaLabel = () => {
+      if (ariaLabel) return ariaLabel;
+    
+      // Build description of finger positions
+      const parts = [];
+      frets.forEach((fret, stringIdx) => {
+        if (fret > 0) {
+          const finger = fingers[stringIdx] || 0;
+          const stringName = stringNames[stringIdx] || `string ${stringIdx + 1}`;
+          if (finger > 0) {
+            parts.push(`finger ${finger} on fret ${fret} of ${stringName} string`);
+          } else {
+            parts.push(`fret ${fret} of ${stringName} string`);
+          }
+        } else if (fret === 0) {
+          const stringName = stringNames[stringIdx] || `string ${stringIdx + 1}`;
+          parts.push(`open ${stringName} string`);
+        } else {
+          const stringName = stringNames[stringIdx] || `string ${stringIdx + 1}`;
+          parts.push(`${stringName} string muted`);
+        }
+      });
+    
+      if (parts.length === 0) {
+        return "Chord diagram showing finger positions";
+      }
+    
+      return `Chord diagram: ${parts.join(', ')}`;
+    };
 
   // Calculate dynamic start fret based on chord data
   // Find minimum positive fret (ignore -1 muted and 0 open strings)
@@ -237,7 +274,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className }) {
       viewBox={`0 0 ${svgW + marginX * 2} ${svgH}`}
       style={{ display: 'block' }}
       role="img"
-      aria-label="Chord diagram showing finger positions"
+      aria-label={getAriaLabel()}
     >
       {renderTopMarkers()}
       {renderStartFretMarker()}

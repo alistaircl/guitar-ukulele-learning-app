@@ -68,6 +68,7 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
             fingers={chord.fingers}
             size={120}
             className="chord-detail-diagram"
+            ariaLabel={`${chord.name} chord diagram: ${primaryDescription}`}
           />
           <div className="variation-info">
             <p className="variation-label">{showPrimaryLabel ? 'Primary' : 'Standard'}</p>
@@ -83,6 +84,7 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
               fingers={v.fingers}
               size={120}
               className="chord-detail-diagram"
+              ariaLabel={`${chord.name} ${v.label} chord diagram`}
             />
             <div className="variation-info">
               <p className="variation-label">{v.label}</p>
