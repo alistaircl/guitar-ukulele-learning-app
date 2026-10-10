@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ChordDiagram({ frets, fingers = [], size = 100, className, instrument = 'ukulele' }) {
+function ChordDiagram({ frets, fingers = [], size = 100, className }) {
   // Layout constants (proportional)
   const svgW = size;
   const svgH = size + 22; // extra 22px for open/muted markers
@@ -171,7 +171,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     );
   };
 
-  // Render the 4 vertical string lines
+  // Render the vertical string lines (dynamic count based on frets.length)
   const renderStrings = () => (
     <>
       {strX.map((x, i) => (
@@ -181,7 +181,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     </>
   );
 
-  // Render 4 horizontal fret lines (span full string width)
+  // Render 5 horizontal fret lines (nut + 4 frets, span full string width)
   const renderFrets = () => (
     <>
       {[0, 1, 2, 3, 4].map(i => (
