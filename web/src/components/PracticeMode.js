@@ -696,11 +696,20 @@ function PracticeMode({ initialSongId, onDone }) {
     };
   
   const stopAutoplay = () => {
+    // Cancel the rAF playback loop
+    if (rAFRef.current) {
+      cancelAnimationFrame(rAFRef.current);
+      rAFRef.current = null;
+    }
+    // Clear any pending countdown timeout
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
+    // Reset playback state
+    playbackStartTimeRef.current = null;
     setIsPlaying(false);
+    setIsPaused(false);
   };
 
   const markCorrect = () => {
@@ -721,13 +730,21 @@ function PracticeMode({ initialSongId, onDone }) {
     let storageReset = true;
     if (typeof localStorage !== 'undefined') {
       try {
-        localStorage.removeItem(`practice-progress-${selectedSong.id}`);
+        // Clear all practice-progress-* keys (not just the current song)
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('practice-progress-')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
       } catch (e) {
         // localStorage not available, disabled, or threw (e.g. private
         // browsing, security exception). Don't silently swallow — surface it
         // so the user knows their persisted streak may re-appear on reload.
         // See issue #171: previous empty catch(e){} hid this from users.
-        console.warn(`Failed to clear practice progress for "${selectedSong.id}" from localStorage:`, e?.message || e);
+        console.warn(`Failed to clear practice progress from localStorage:`, e?.message || e);
         storageReset = false;
       }
     }
@@ -737,12 +754,17 @@ function PracticeMode({ initialSongId, onDone }) {
     setTotalCorrect(0);
     setFeedback(
       storageReset
-        ? { type: 'info', message: '🔄 Progress reset for this song' }
+        ? { type: 'info', message: '🔄 Progress reset for all songs' }
         : {
             type: 'incorrect',
             message: '⚠️ Reset this session, but could not clear saved progress (storage unavailable). It may return on reload.',
           }
     );
+  };
+
+  // Reset progress for ALL songs in localStorage (alias for resetProgress)
+  const resetAllProgress = () => {
+    resetProgress();
   };
 
   const goToLine = (idx, playChordOnNavigate = false) => {
@@ -848,7 +870,7 @@ function PracticeMode({ initialSongId, onDone }) {
           )}
         </div>
       </div>
-
+      
       {/* Audio unavailable banner (issue #155): surfaces a visible warning and
           an Enable Audio button tied to a fresh user gesture when AudioContext
           could not reach 'running' (mobile Safari strict autoplay policy). */}
@@ -1108,6 +1130,26 @@ function PracticeMode({ initialSongId, onDone }) {
           onMouseLeave={(e) => e.target.style.opacity = '0.6'}
         >
           Reset
+        </button>
+        <button
+          onClick={resetAllProgress}
+          aria-label="Reset practice progress for all songs"
+          title="Reset progress for all songs"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-secondary)',
+            fontSize: '0.75rem',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            padding: '0.25rem 0.5rem',
+            opacity: 0.6,
+            marginLeft: '0.5rem',
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+        >
+          Reset All
         </button>
       </div>
 

@@ -88,7 +88,7 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
             />
             <div className="variation-info">
               <p className="variation-label">{v.label}</p>
-              {v.label !== 'Primary' && getVariationDescription(v.label) && <p className="variation-desc">{getVariationDescription(v.label)}</p>}
+              {getVariationDescription(v.label) && <p className="variation-desc">{getVariationDescription(v.label)}</p>}
             </div>
           </div>
         ))}
