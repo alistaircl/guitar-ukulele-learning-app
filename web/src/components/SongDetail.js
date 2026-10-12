@@ -1,12 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 // Import the song data with lyrics from PracticeMode
 import { PRACTICE_SONGS } from './PracticeMode';
 // Import chord diagram + lookup so the song detail view can render
 // fretboard diagrams for each chord used in the song (fixes #183).
 import ChordDiagram from './ChordDiagram';
-import { getChordByName } from '../data/chords';
+import { getChordByInstrument } from '../data/chords';
+
+// Shared instrument preference key (synced with Tuner and ChordLibrary)
+const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
 
 function SongDetail({ songId, onBack, onStartPractice }) {
+  // Read the shared instrument preference
+  const [instrument, setInstrument] = useState(() => {
+    if (typeof localStorage !== 'undefined') {
+      try {
+        return localStorage.getItem(INSTRUMENT_PREFERENCE_KEY) || 'ukulele';
+      } catch (e) {
+        // Ignore storage errors
+      }
+    }
+    return 'ukulele';
+  });
+
+  // Keep in sync with other tabs (listen for storage events)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === INSTRUMENT_PREFERENCE_KEY && e.newValue) {
+        setInstrument(e.newValue);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // Find the song by ID
   const song = PRACTICE_SONGS.find(s => s.id === songId);
 
@@ -16,11 +42,11 @@ function SongDetail({ songId, onBack, onStartPractice }) {
 
   // Resolve each chord name used in the song to its frets/fingers data.
   // Songs store chord names (e.g. 'Am', 'F#'); the chord library's
-  // getChordByName() looks up the matching shape. If a chord isn't in the
-  // database we still show its name so users at least see what's required.
+  // getChordByInstrument() looks up the matching shape for the active instrument.
+  // If a chord isn't in the database we still show its name so users at least see what's required.
   const resolvedChords = (song.chords || []).map(name => ({
     name,
-    chord: getChordByName(name),
+    chord: getChordByInstrument(name, instrument),
   }));
 
   return (
