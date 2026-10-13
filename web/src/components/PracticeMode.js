@@ -52,10 +52,10 @@ const CHORD_FREQ = {
   // 7th chords
   'A7': [440.0, 554.37, 659.26, 783.99],
   'B7': [493.88, 622.25, 739.99, 880.0],
-  'C7': [261.63, 329.63, 392.0, 523.25],
-  'D7': [293.66, 369.99, 440.0, 587.33],
+  'C7': [261.63, 329.63, 392.0, 466.16],
+  'D7': [293.66, 369.99, 440.0, 523.25],
   'E7': [329.63, 415.3, 493.88, 587.33],
-  'F7': [349.23, 440.0, 523.25, 659.26],
+  'F7': [349.23, 440.0, 523.25, 622.25],
   'G7': [392.0, 493.88, 587.33, 698.46],
   // Major 7th chords
   'Cmaj7': [261.63, 329.63, 392.0, 493.88],
@@ -381,6 +381,8 @@ function PracticeMode({ initialSongId, onDone }) {
   const playbackStartTimeRef = useRef(null);
   const cumulativeDurationsRef = useRef([]); // Cache of cumulative line durations
   const pausedElapsedRef = useRef(null); // Track elapsed time during pause (replaces window._pausedPlaybackElapsed)
+  const currentIndexRef = useRef(0); // Track current index without stale closure in rAF loop
+  const isPausedRef = useRef(false); // Track pause state without stale closure in rAF loop
 
   // If initialSongId changes (user picks a new song from SongLibrary), switch to it
   useEffect(() => {
@@ -389,6 +391,10 @@ function PracticeMode({ initialSongId, onDone }) {
       if (found) {
         setSelectedSong(found);
         resetSong();
+        // Load saved progress for the new song (fixes issue #263)
+        const p = loadProgress(found.id);
+        setStreak(p ? p.streak : 0);
+        setTotalCorrect(p ? p.totalCorrect : 0);
       }
     }
   }, [initialSongId]);
@@ -586,14 +592,14 @@ function PracticeMode({ initialSongId, onDone }) {
       }
       return durations;
     }, [selectedSong]);
-  
+
     // rAF-based playback loop - self-correcting timing
     const playbackLoop = useCallback(() => {
-      if (!playbackStartTimeRef.current || isPaused) return;
-    
+      if (!playbackStartTimeRef.current || isPausedRef.current) return;
+
       const elapsed = Date.now() - playbackStartTimeRef.current;
       const cumulative = cumulativeDurationsRef.current;
-    
+
       // Find which line we should be on based on elapsed time
       let targetIndex = 0;
       for (let i = 0; i < cumulative.length; i++) {
@@ -603,7 +609,7 @@ function PracticeMode({ initialSongId, onDone }) {
           break;
         }
       }
-    
+
       // If we've reached the end
       if (targetIndex >= selectedSong.lyrics.length) {
         if (rAFRef.current) {
@@ -613,50 +619,53 @@ function PracticeMode({ initialSongId, onDone }) {
         playbackStartTimeRef.current = null;
         setIsPlaying(false);
         setIsPaused(false);
+        isPausedRef.current = false;
         setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
         if (onDone) onDone();
         return;
       }
-    
-      // If we've advanced to a new line
-      if (targetIndex !== currentIndex) {
+
+      // If we've advanced to a new line - compare with ref to avoid stale closure
+      if (targetIndex !== currentIndexRef.current) {
+        currentIndexRef.current = targetIndex;
         setCurrentIndex(targetIndex);
         setBeatPulse(true);
         setTimeout(() => setBeatPulse(false), 150);
         setFeedback(null);
         scrollToLine(targetIndex);
-      
+
         // Play chord on beat
         const chord = selectedSong.lyrics[targetIndex].chord;
         if (chord) {
           playChord(chord);
         }
       }
-    
+
       // Continue the loop
       rAFRef.current = requestAnimationFrame(playbackLoop);
-    }, [currentIndex, isPaused, selectedSong, onDone, scrollToLine, playChord]);
+    }, [selectedSong, onDone, scrollToLine, playChord]);
 
     const beginPlayback = () => {
       setIsPlaying(true);
       setIsPaused(false);
       setCurrentIndex(0);
+      currentIndexRef.current = 0;
       playbackStartTimeRef.current = Date.now();
       cumulativeDurationsRef.current = calculateCumulativeDurations();
-    
+
       // Pulse animation on the beat
       setBeatPulse(true);
       setTimeout(() => setBeatPulse(false), 150);
-    
-      // Play first chord immediately
+
+      // Play chord immediately
       if (selectedSong.lyrics[0].chord) {
         playChord(selectedSong.lyrics[0].chord);
       }
-    
+
       // Start rAF loop
       rAFRef.current = requestAnimationFrame(playbackLoop);
     };
-  
+
     const pauseAutoplay = () => {
       if (rAFRef.current) {
         cancelAnimationFrame(rAFRef.current);
@@ -671,33 +680,45 @@ function PracticeMode({ initialSongId, onDone }) {
         pausedElapsedRef.current = elapsed;
       }
       setIsPaused(true);
+      isPausedRef.current = true;
     };
-  
+
     const resumeAutoplay = () => {
-      if (!isPaused) return;
-    
+      if (!isPausedRef.current) return;
+
+      isPausedRef.current = false;
       setIsPaused(false);
       // Start from where we left off, accounting for elapsed time
       const elapsedWhilePaused = pausedElapsedRef.current || 0;
       pausedElapsedRef.current = null;
       playbackStartTimeRef.current = Date.now() - elapsedWhilePaused;
       cumulativeDurationsRef.current = calculateCumulativeDurations();
-    
+
       // Pulse animation on resume
       setBeatPulse(true);
       setTimeout(() => setBeatPulse(false), 150);
-    
+
       // Resume rAF loop
       rAFRef.current = requestAnimationFrame(playbackLoop);
     };
-  
-  const stopAutoplay = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    setIsPlaying(false);
-  };
+
+    const stopAutoplay = () => {
+      // Cancel the rAF playback loop
+      if (rAFRef.current) {
+        cancelAnimationFrame(rAFRef.current);
+        rAFRef.current = null;
+      }
+      // Clear any pending countdown timeout
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      // Reset playback state
+      playbackStartTimeRef.current = null;
+      setIsPlaying(false);
+      setIsPaused(false);
+      isPausedRef.current = false;
+    };
 
   const markCorrect = () => {
     setFeedback({ type: 'correct', message: '✓ Nice!' });
@@ -717,13 +738,21 @@ function PracticeMode({ initialSongId, onDone }) {
     let storageReset = true;
     if (typeof localStorage !== 'undefined') {
       try {
-        localStorage.removeItem(`practice-progress-${selectedSong.id}`);
+        // Clear all practice-progress-* keys (not just the current song)
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('practice-progress-')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
       } catch (e) {
         // localStorage not available, disabled, or threw (e.g. private
         // browsing, security exception). Don't silently swallow — surface it
         // so the user knows their persisted streak may re-appear on reload.
         // See issue #171: previous empty catch(e){} hid this from users.
-        console.warn(`Failed to clear practice progress for "${selectedSong.id}" from localStorage:`, e?.message || e);
+        console.warn(`Failed to clear practice progress from localStorage:`, e?.message || e);
         storageReset = false;
       }
     }
@@ -733,7 +762,7 @@ function PracticeMode({ initialSongId, onDone }) {
     setTotalCorrect(0);
     setFeedback(
       storageReset
-        ? { type: 'info', message: '🔄 Progress reset for this song' }
+        ? { type: 'info', message: '🔄 Progress reset for all songs' }
         : {
             type: 'incorrect',
             message: '⚠️ Reset this session, but could not clear saved progress (storage unavailable). It may return on reload.',
@@ -741,13 +770,30 @@ function PracticeMode({ initialSongId, onDone }) {
     );
   };
 
+  // Reset progress for ALL songs in localStorage (alias for resetProgress)
+  const resetAllProgress = () => {
+    resetProgress();
+  };
+
   const goToLine = (idx, playChordOnNavigate = false) => {
     if (idx >= 0 && idx < selectedSong.lyrics.length) {
+      // Cancel any active rAF playback loop (issue #275)
+      if (rAFRef.current) {
+        cancelAnimationFrame(rAFRef.current);
+        rAFRef.current = null;
+      }
+      // Clear any pending countdown timeout
       if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
+      // Reset playback state
+      playbackStartTimeRef.current = null;
+      isPausedRef.current = false;
+      currentIndexRef.current = idx;
+      
       setIsPlaying(false);
+      setIsPaused(false);
       setCurrentIndex(idx);
       setFeedback(null);
       scrollToLine(idx);
@@ -844,7 +890,7 @@ function PracticeMode({ initialSongId, onDone }) {
           )}
         </div>
       </div>
-
+      
       {/* Audio unavailable banner (issue #155): surfaces a visible warning and
           an Enable Audio button tied to a fresh user gesture when AudioContext
           could not reach 'running' (mobile Safari strict autoplay policy). */}
@@ -1104,6 +1150,26 @@ function PracticeMode({ initialSongId, onDone }) {
           onMouseLeave={(e) => e.target.style.opacity = '0.6'}
         >
           Reset
+        </button>
+        <button
+          onClick={resetAllProgress}
+          aria-label="Reset practice progress for all songs"
+          title="Reset progress for all songs"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-secondary)',
+            fontSize: '0.75rem',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            padding: '0.25rem 0.5rem',
+            opacity: 0.6,
+            marginLeft: '0.5rem',
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+        >
+          Reset All
         </button>
       </div>
 
