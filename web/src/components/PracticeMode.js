@@ -777,11 +777,23 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const goToLine = (idx, playChordOnNavigate = false) => {
     if (idx >= 0 && idx < selectedSong.lyrics.length) {
+      // Cancel any active rAF playback loop (issue #275)
+      if (rAFRef.current) {
+        cancelAnimationFrame(rAFRef.current);
+        rAFRef.current = null;
+      }
+      // Clear any pending countdown timeout
       if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
+      // Reset playback state
+      playbackStartTimeRef.current = null;
+      isPausedRef.current = false;
+      currentIndexRef.current = idx;
+      
       setIsPlaying(false);
+      setIsPaused(false);
       setCurrentIndex(idx);
       setFeedback(null);
       scrollToLine(idx);
