@@ -20,6 +20,14 @@ function App() {
     setActiveTab('practice');
   };
 
+  // Clear practiceSongId when navigating away from Practice tab
+  const handleTabChange = (tabId) => {
+    if (activeTab === 'practice' && tabId !== 'practice') {
+      setPracticeSongId(null);
+    }
+    setActiveTab(tabId);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'tuner': return <Tuner />;
@@ -47,7 +55,7 @@ function App() {
             <button
               key={tab.id}
               className={`nav-btn ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               aria-current={activeTab === tab.id ? 'page' : undefined}
               id={`tab-${tab.id}`}
             >
