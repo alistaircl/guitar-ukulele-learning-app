@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ChordDiagram({ frets, fingers = [], size = 100, className, instrument = 'ukulele' }) {
+function ChordDiagram({ frets, fingers = [], size = 100, className, ariaLabel }) {
   // Layout constants (proportional)
   const svgW = size;
   const svgH = size + 22; // extra 22px for open/muted markers
@@ -17,95 +17,101 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
   const numStrings = frets.length;
   
   // String x positions (dynamically calculated based on number of strings)
-  const strX = Array.from({ length: numStrings }, (_, i) => 
-    numStrings === 1 
-      ? strAreaX + strAreaW / 2 
-      : strAreaX + (i / (numStrings - 1)) * strAreaW
-  );
+    const strX = Array.from({ length: numStrings }, (_, i) =>
+      numStrings === 1
+        ? strAreaX + strAreaW / 2
+        : strAreaX + (i / (numStrings - 1)) * strAreaW
+    );
+
+    // String names for ukulele (GCEA) and guitar (EADGBE)
+    const stringNames = numStrings === 4 
+      ? ['G', 'C', 'E', 'A']  // ukulele: high to low
+      : ['E', 'A', 'D', 'G', 'B', 'E']; // guitar: low to high
+
+    // Generate descriptive aria-label for accessibility
+    // If ariaLabel is provided, use it; otherwise generate from frets/fingers
+    const getAriaLabel = () => {
+      if (ariaLabel) return ariaLabel;
+    
+      // Build description of finger positions
+      const parts = [];
+      frets.forEach((fret, stringIdx) => {
+        if (fret > 0) {
+          const finger = fingers[stringIdx] || 0;
+          const stringName = stringNames[stringIdx] || `string ${stringIdx + 1}`;
+          if (finger > 0) {
+            parts.push(`finger ${finger} on fret ${fret} of ${stringName} string`);
+          } else {
+            parts.push(`fret ${fret} of ${stringName} string`);
+          }
+        } else if (fret === 0) {
+          const stringName = stringNames[stringIdx] || `string ${stringIdx + 1}`;
+          parts.push(`open ${stringName} string`);
+        } else {
+          const stringName = stringNames[stringIdx] || `string ${stringIdx + 1}`;
+          parts.push(`${stringName} string muted`);
+        }
+      });
+    
+      if (parts.length === 0) {
+        return "Chord diagram showing finger positions";
+      }
+    
+      return `Chord diagram: ${parts.join(', ')}`;
+    };
 
   // Calculate dynamic start fret based on chord data
   // Find minimum positive fret (ignore -1 muted and 0 open strings)
   const startFret = (() => {
     const positiveFrets = frets.filter(f => f > 0);
     if (positiveFrets.length === 0) return 1;
-    // A chord with any open string (fret 0) is played at the nut. Shifting the
-    // base fret off the nut would produce a misleading 'Nfr' label alongside
-    // the open-string markers (issue #213), so open-position voicings always
-    // start at the nut. Only barre/movable shapes with all strings fretted or
-    // muted may shift their base fret.
-    if (frets.some(f => f === 0)) return 1;
+    
+    // If the chord has open strings (fret 0), it's played at the nut.
+    // Muted strings (-1) don't count as open strings - they're just not played.
+    // So we only force start at nut if there are actual open strings (0).
+    const hasOpenStrings = frets.some(f => f === 0);
+    if (hasOpenStrings) return 1;
+    
     const minFret = Math.min(...positiveFrets);
     const maxFret = Math.max(...positiveFrets);
     // If fret range spans more than 4 frets, shift window to start from min
     if (maxFret - minFret >= 4) {
       return minFret;
     }
+    // For barre/movable chords (no open strings), start at the minimum fret
+    // unless it's fret 1 (which is the nut position)
     return minFret > 1 ? minFret : 1;
   })();
 
-  // Detect barre chords (same finger used on 2+ adjacent strings)
+  // Detect barre chords (same finger used on 2+ strings at the same fret)
   const detectBarres = () => {
     const barres = [];
-    const fingerGroups = {};
+    const fingerFretGroups = {};
     
-    // Group strings by finger number (ignore 0 and negative)
+    // Group strings by finger number AND fret (ignore 0 and negative frets/fingers)
     frets.forEach((fret, stringIdx) => {
       const finger = fingers[stringIdx] || 0;
       if (finger > 0 && fret > 0) {
-        if (!fingerGroups[finger]) {
-          fingerGroups[finger] = [];
+        const key = `${finger}-${fret}`;
+        if (!fingerFretGroups[key]) {
+          fingerFretGroups[key] = [];
         }
-        fingerGroups[finger].push({ stringIdx, fret });
+        fingerFretGroups[key].push(stringIdx);
       }
     });
     
-    // Find consecutive strings with same finger
-    Object.keys(fingerGroups).forEach(finger => {
-      const strings = fingerGroups[finger].sort((a, b) => a.stringIdx - b.stringIdx);
-      let currentBarre = [];
-      
-      strings.forEach((stringObj, idx) => {
-        if (currentBarre.length === 0) {
-          currentBarre.push(stringObj);
-        } else {
-          const last = currentBarre[currentBarre.length - 1];
-          // Check if consecutive string and same fret
-          if (stringObj.stringIdx === last.stringIdx + 1 && stringObj.fret === last.fret) {
-            currentBarre.push(stringObj);
-          } else {
-            // End of current barre, check if it's valid (2+ strings)
-            if (currentBarre.length >= 2) {
-              barres.push({
-                finger: parseInt(finger),
-                fret: currentBarre[0].fret,
-                startString: currentBarre[0].stringIdx,
-                endString: currentBarre[currentBarre.length - 1].stringIdx
-              });
-            }
-            currentBarre = [stringObj];
-          }
-        }
-        
-        // Add barre if we're at the last string and have a valid barre that wasn't already added
-        // A barre is already added if the else block fired on this iteration
-        if (idx === strings.length - 1 && currentBarre.length >= 2) {
-          // Check if this exact barre already exists (prevent duplicates)
-          const exists = barres.some(b => 
-            b.finger === parseInt(finger) && 
-            b.fret === currentBarre[0].fret && 
-            b.startString === currentBarre[0].stringIdx &&
-            b.endString === currentBarre[currentBarre.length - 1].stringIdx
-          );
-          if (!exists) {
-            barres.push({
-              finger: parseInt(finger),
-              fret: currentBarre[0].fret,
-              startString: currentBarre[0].stringIdx,
-              endString: currentBarre[currentBarre.length - 1].stringIdx
-            });
-          }
-        }
-      });
+    // For each finger+fret group with 2+ strings, draw a barre from lowest to highest string
+    Object.keys(fingerFretGroups).forEach(key => {
+      const stringIndices = fingerFretGroups[key].sort((a, b) => a - b);
+      if (stringIndices.length >= 2) {
+        const [fingerStr, fretStr] = key.split('-');
+        barres.push({
+          finger: parseInt(fingerStr),
+          fret: parseInt(fretStr),
+          startString: stringIndices[0],
+          endString: stringIndices[stringIndices.length - 1]
+        });
+      }
     });
     
     return barres;
@@ -168,7 +174,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     );
   };
 
-  // Render the 4 vertical string lines
+  // Render the vertical string lines (dynamic count based on frets.length)
   const renderStrings = () => (
     <>
       {strX.map((x, i) => (
@@ -178,7 +184,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     </>
   );
 
-  // Render 4 horizontal fret lines (span full string width)
+  // Render 5 horizontal fret lines (nut + 4 frets, span full string width)
   const renderFrets = () => (
     <>
       {[0, 1, 2, 3, 4].map(i => (
@@ -234,7 +240,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
       viewBox={`0 0 ${svgW + marginX * 2} ${svgH}`}
       style={{ display: 'block' }}
       role="img"
-      aria-label="Chord diagram showing finger positions"
+      aria-label={getAriaLabel()}
     >
       {renderTopMarkers()}
       {renderStartFretMarker()}
