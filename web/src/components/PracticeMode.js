@@ -777,7 +777,20 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const goToLine = (idx, playChordOnNavigate = false) => {
     if (idx >= 0 && idx < selectedSong.lyrics.length) {
-      if (timerRef.current) {
+      // If we're currently playing (autoplay), we need to fully stop the playback loop
+      // to prevent it from continuing to run and creating a second loop when Start is pressed again
+      if (isPlaying) {
+        if (rAFRef.current) {
+          cancelAnimationFrame(rAFRef.current);
+          rAFRef.current = null;
+        }
+        playbackStartTimeRef.current = null;
+        isPausedRef.current = false;
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+      } else if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
