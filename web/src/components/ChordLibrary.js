@@ -8,7 +8,8 @@ import { getAllChords, searchChordsByInstrument } from '../data/chords';
 // and gracefully handle environments where both are unavailable (e.g. private
 // browsing mode, disabled cookies/storage). Returns null and logs an
 // informative warning on failure so callers can degrade gracefully.
-const PREFERENCE_KEY = 'ukulele-chords-instrument';
+// SHARED KEY: used by both Tuner and ChordLibrary to sync instrument preference
+const PREFERENCE_KEY = 'guitar-ukulele-instrument';
 
 function safeStorageGet(key) {
   for (const storeName of ['localStorage', 'sessionStorage']) {
@@ -146,6 +147,7 @@ function ChordLibrary() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
+              aria-label={`Search ${instrument} chords`}
             />
             <FaSearch className="search-icon" />
           </div>
@@ -208,7 +210,13 @@ function ChordCard({ chord, selected, onClick }) {
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
     >
       <div className="chord-name">{chord.name}</div>
-      <ChordDiagram frets={chord.frets} fingers={chord.fingers} size={100} className="chord-diagram" />
+      <ChordDiagram 
+        frets={chord.frets} 
+        fingers={chord.fingers} 
+        size={100} 
+        className="chord-diagram"
+        ariaLabel={`${chord.name} chord diagram showing ${fingerCount} finger${fingerCount !== 1 ? 's' : ''}${variationCount > 0 ? `, ${variationCount} variation${variationCount > 1 ? 's' : ''} available` : ''}`}
+      />
       <div className="chord-fingers">
         {fingerCount > 0
           ? `${fingerCount} finger${fingerCount > 1 ? 's' : ''}`
