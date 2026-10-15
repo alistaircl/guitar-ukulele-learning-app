@@ -23,6 +23,10 @@ export const ALL_CHORDS = [
   { name: 'A', frets: [2, 1, 0, 0], fingers: [2, 1, 0, 0], variations: [
     { frets: [2, 1, 0, 0], fingers: [2, 1, 0, 0], label: 'A (standard)' }
   ] },
+  { name: 'Bb', frets: [3, 2, 1, 1], fingers: [1, 2, 3, 3], variations: [
+    { frets: [3, 2, 1, 1], fingers: [1, 2, 3, 3], label: 'Bb (standard)' },
+    { frets: [1, 1, 1, 1], fingers: [1, 1, 1, 1], label: 'Bb (barre)' }
+  ] },
   { name: 'B', frets: [4, 3, 2, 2], fingers: [4, 3, 2, 2], variations: [
     { frets: [4, 3, 2, 2], fingers: [4, 3, 2, 2], label: 'B (standard)' }
   ] },
