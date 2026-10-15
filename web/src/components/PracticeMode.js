@@ -217,7 +217,7 @@ lyrics: [
   { id: 7, title: 'Thinking Out Loud',
     artist: 'Ed Sheeran',
     difficulty: 'Intermediate',
-    key: 'D',
+    key: 'G',
     bpm: 79,
     chords: ['Em', 'G', 'D', 'C'],
     lyrics: [
