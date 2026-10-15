@@ -147,6 +147,7 @@ function ChordLibrary() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
+              aria-label={`Search ${instrument} chords`}
             />
             <FaSearch className="search-icon" />
           </div>
