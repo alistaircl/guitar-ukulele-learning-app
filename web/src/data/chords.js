@@ -27,8 +27,8 @@ export const ALL_CHORDS = [
   { name: 'B', frets: [4, 3, 2, 2], fingers: [4, 3, 2, 2], variations: [
     { frets: [4, 3, 2, 2], fingers: [4, 3, 2, 2], label: 'B (standard)' }
   ] },
-  { name: 'F#', frets: [1, 1, 2, 1], fingers: [1, 1, 2, 1], variations: [
-    { frets: [1, 1, 2, 1], fingers: [1, 1, 2, 1], label: 'F# (standard)' }
+  { name: 'F#', frets: [3, 1, 2, 1], fingers: [3, 1, 2, 1], variations: [
+    { frets: [3, 1, 2, 1], fingers: [3, 1, 2, 1], label: 'F# (standard)' }
   ] },
 
   // Minor chords
