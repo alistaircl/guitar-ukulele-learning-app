@@ -7,7 +7,7 @@ export const ALL_CHORDS = [
   ] },
   { name: 'D', frets: [2, 2, 2, 0], fingers: [1, 2, 3, 0], variations: [
     { frets: [2, 2, 2, 0], fingers: [1, 2, 3, 0], label: 'D (standard)' },
-    { frets: [5, 5, 5, 3], fingers: [4, 4, 4, 3], label: 'D (barre)' }
+    { frets: [7, 6, 5, 5], fingers: [1, 2, 3, 4], label: 'D (barre)' }
   ] },
   { name: 'E', frets: [4, 4, 4, 2], fingers: [4, 4, 4, 2], variations: [
     { frets: [4, 4, 4, 2], fingers: [4, 4, 4, 2], label: 'E (standard)' }
@@ -18,7 +18,7 @@ export const ALL_CHORDS = [
   ] },
   { name: 'G', frets: [0, 2, 3, 2], fingers: [0, 1, 3, 2], variations: [
     { frets: [0, 2, 3, 2], fingers: [0, 1, 3, 2], label: 'G (standard)' },
-    { frets: [3, 2, 0, 2], fingers: [3, 2, 0, 1], label: 'G (barre)' },
+    { frets: [7, 7, 7, 5], fingers: [1, 1, 1, 4], label: 'G (barre)' },
     { frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], label: 'G (simplified)' }
   ] },
   { name: 'A', frets: [2, 1, 0, 0], fingers: [2, 1, 0, 0], variations: [
@@ -36,14 +36,14 @@ export const ALL_CHORDS = [
     { frets: [2, 0, 0, 0], fingers: [1, 0, 0, 0], label: 'Am (standard)' }
   ] },
   { name: 'Bm', frets: [4, 2, 2, 2], fingers: [4, 2, 2, 2], variations: [
-    { frets: [7, 7, 7, 5], fingers: [1, 1, 1, 4], label: 'Bm (barre)' }
+    { frets: [9, 9, 8, 7], fingers: [1, 1, 1, 4], label: 'Bm (barre)' }
   ] },
   { name: 'Cm', frets: [0, 3, 3, 3], fingers: [0, 3, 3, 3], variations: [
     { frets: [0, 3, 3, 3], fingers: [0, 3, 3, 3], label: 'Cm (standard)' }
   ] },
   { name: 'Dm', frets: [2, 2, 1, 0], fingers: [2, 3, 1, 0], variations: [
     { frets: [2, 2, 1, 0], fingers: [2, 3, 1, 0], label: 'Dm (standard)' },
-    { frets: [5, 5, 4, 3], fingers: [4, 4, 3, 3], label: 'Dm (barre)' }
+    { frets: [7, 6, 5, 5], fingers: [1, 2, 3, 4], label: 'Dm (barre)' }
   ] },
   { name: 'Em', frets: [0, 4, 3, 2], fingers: [0, 4, 2, 1], variations: [
     { frets: [0, 4, 3, 2], fingers: [0, 4, 2, 1], label: 'Em (standard)' }
