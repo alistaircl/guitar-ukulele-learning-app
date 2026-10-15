@@ -13,8 +13,7 @@ export const ALL_CHORDS = [
     { frets: [4, 4, 4, 2], fingers: [4, 4, 4, 2], label: 'E (standard)' }
   ] },
   { name: 'F', frets: [2, 0, 1, 0], fingers: [2, 0, 1, 0], variations: [
-    { frets: [2, 0, 1, 0], fingers: [2, 0, 1, 0], label: 'F (standard)' },
-    { frets: [1, 0, 1, 0], fingers: [1, 0, 1, 0], label: 'F (easy)' }
+    { frets: [2, 0, 1, 0], fingers: [2, 0, 1, 0], label: 'F (standard)' }
   ] },
   { name: 'G', frets: [0, 2, 3, 2], fingers: [0, 1, 3, 2], variations: [
     { frets: [0, 2, 3, 2], fingers: [0, 1, 3, 2], label: 'G (standard)' },
