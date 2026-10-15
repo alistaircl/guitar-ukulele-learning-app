@@ -149,6 +149,10 @@ export function getAllChordNames() {
 export function searchChords(query) {
   const lowerQuery = query.toLowerCase().trim();
   
+  // Track if the query explicitly contained "minor" for precise matching
+  // This prevents "c minor" -> "cm" from matching "cmaj7" (which contains "cm")
+  const wasMinorQuery = lowerQuery.includes('minor');
+  
   // Handle common aliases and normalize to shorthand
   // Important: Remove spaces before quality words to ensure "c minor" -> "cm" not "c m"
   // Order matters: handle "major 7" and variants before standalone "major" to preserve maj7 chords
@@ -202,9 +206,18 @@ export function searchChords(query) {
   const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
   
   if (searchTerms.length === 1) {
+    const term = searchTerms[0];
+    // If the query was explicitly a minor chord search (e.g., "c minor" -> "cm"),
+    // use precise matching to avoid matching major-7th chords (e.g., "cmaj7" contains "cm")
+    if (wasMinorQuery && /^[a-g][#b]?m$/.test(term)) {
+      return ALL_CHORDS.filter(chord => {
+        const name = chord.name.toLowerCase();
+        return /^[a-g][#b]?m(7|$)/.test(name) && name.startsWith(term);
+      });
+    }
     // Single term: direct includes match
-    return ALL_CHORDS.filter(chord => 
-      chord.name.toLowerCase().includes(searchTerms[0])
+    return ALL_CHORDS.filter(chord =>
+      chord.name.toLowerCase().includes(term)
     );
   }
   
@@ -326,6 +339,10 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
   const chords = instrument === 'guitar' ? GUITAR_CHORDS : ALL_CHORDS;
   const lowerQuery = query.toLowerCase().trim();
   
+  // Track if the query explicitly contained "minor" for precise matching
+  // This prevents "c minor" -> "cm" from matching "cmaj7" (which contains "cm")
+  const wasMinorQuery = lowerQuery.includes('minor');
+  
   // Handle common aliases and normalize to shorthand
   // Order matters: handle "major 7" and variants before standalone "major" to preserve maj7 chords
   let normalizedQuery = lowerQuery
@@ -367,8 +384,18 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
   const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
   
   if (searchTerms.length === 1) {
+    const term = searchTerms[0];
+    // If the query was explicitly a minor chord search (e.g., "c minor" -> "cm"),
+    // use precise matching to avoid matching major-7th chords (e.g., "cmaj7" contains "cm")
+    if (wasMinorQuery && /^[a-g][#b]?m$/.test(term)) {
+      return chords.filter(chord => {
+        const name = chord.name.toLowerCase();
+        return /^[a-g][#b]?m(7|$)/.test(name) && name.startsWith(term);
+      });
+    }
+    // Single term: direct includes match
     return chords.filter(chord => 
-      chord.name.toLowerCase().includes(searchTerms[0])
+      chord.name.toLowerCase().includes(term)
     );
   }
   
