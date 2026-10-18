@@ -176,7 +176,7 @@ function ChordPage({ chord, onGoBack }) {
     <div className="chord-page">
       <div className="chord-page-header">
         <button onClick={onGoBack} className="back-button">
-          <FaArrowLeft /> Back to Chords
+          <FaArrowLeft /> Back to Chord Library
         </button>
         <h1>{chord.name}</h1>
       </div>
