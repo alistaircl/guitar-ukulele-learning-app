@@ -12,7 +12,7 @@ const TUNINGS = {
   'D2 A2 D3 G3 A3 D4': { name: 'DADGAD', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'G3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 196.0, 220.0, 293.66] },
   'D2 G2 D3 G3 B3 D4': { name: 'Open G (DGDGBD)', instrument: 'guitar', notes: ['D2', 'G2', 'D3', 'G3', 'B3', 'D4'], freq: [73.42, 98.0, 146.83, 196.0, 246.94, 293.66] },
   'D2 A2 D3 F#3 A3 D4': { name: 'Open D (DADF#AD)', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'F#3', 'A3', 'D4'], freq: [73.42, 110.0, 146.83, 185.0, 220.0, 293.66] },
-  'D#2 G#2 D#3 G#3 A#3 D#4': { name: 'Half-step down (Eb Ab Db Gb Bb Eb)', instrument: 'guitar', notes: ['D#2', 'G#2', 'D#3', 'G#3', 'A#3', 'D#4'], freq: [77.78, 103.83, 155.56, 207.65, 233.08, 311.13] },
+  'D#2 G#2 D#3 G#3 A#3 D#4': { name: 'Half-step down (Eb Ab Db Gb Bb Eb)', instrument: 'guitar', notes: ['D#2', 'G#2', 'C#3', 'F#3', 'A#3', 'D#4'], freq: [77.78, 103.83, 138.59, 185.0, 233.08, 311.13] },
 };
 
 // Map instrument -> ordered list of tuning keys, so the selector can render
