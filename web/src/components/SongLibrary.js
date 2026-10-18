@@ -121,7 +121,8 @@ function SongLibrary({ onStartPractice }) {
         // Song Detail View
         <SongDetail 
           songId={selectedSongId} 
-          onBack={handleBackToGrid} 
+          onBack={handleBackToGrid}
+          onStartPractice={onStartPractice}
         />
       )}
 
