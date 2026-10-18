@@ -49,40 +49,42 @@ function SongLibrary({ onStartPractice }) {
     <div className="section">
       <h2 className="section-title">Song Library</h2>
       
-      {/* Search and Filter Bar */}
-      <div className="search-bar" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div className="search-icon">🔍</div>
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Search by title or artist..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          aria-label="Search songs"
-        />
-        <select
-          value={difficultyFilter}
-          onChange={(e) => setDifficultyFilter(e.target.value)}
-          className="search-input"
-          style={{ maxWidth: '150px' }}
-          aria-label="Filter by difficulty"
-        >
-          {difficulties.map(d => (
-            <option key={d} value={d}>{d === 'All' ? 'All Difficulties' : d}</option>
-          ))}
-        </select>
-        <select
-          value={keyFilter}
-          onChange={(e) => setKeyFilter(e.target.value)}
-          className="search-input"
-          style={{ maxWidth: '120px' }}
-          aria-label="Filter by key"
-        >
-          {keys.map(k => (
-            <option key={k} value={k}>{k === 'All' ? 'All Keys' : k}</option>
-          ))}
-        </select>
-      </div>
+      {/* Search and Filter Bar (hidden while a song detail is open - issue #315) */}
+      {viewMode === 'grid' && (
+        <div className="search-bar" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div className="search-icon">🔍</div>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search by title or artist..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search songs"
+          />
+          <select
+            value={difficultyFilter}
+            onChange={(e) => setDifficultyFilter(e.target.value)}
+            className="search-input"
+            style={{ maxWidth: '150px' }}
+            aria-label="Filter by difficulty"
+          >
+            {difficulties.map(d => (
+              <option key={d} value={d}>{d === 'All' ? 'All Difficulties' : d}</option>
+            ))}
+          </select>
+          <select
+            value={keyFilter}
+            onChange={(e) => setKeyFilter(e.target.value)}
+            className="search-input"
+            style={{ maxWidth: '120px' }}
+            aria-label="Filter by key"
+          >
+            {keys.map(k => (
+              <option key={k} value={k}>{k === 'All' ? 'All Keys' : k}</option>
+            ))}
+          </select>
+        </div>
+      )}
       
       {viewMode === 'grid' ? (
         // Song Grid View
