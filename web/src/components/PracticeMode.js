@@ -1147,4 +1147,4 @@ function PracticeMode({ initialSongId, onDone }) {
 }
 
 export default PracticeMode;
-export { PRACTICE_SONGS };
+export { PRACTICE_SONGS, CHORD_FREQ };
