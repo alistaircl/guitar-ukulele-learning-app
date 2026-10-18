@@ -1,11 +1,45 @@
 import React from 'react';
 import ChordDiagram from './ChordDiagram';
+import { CHORD_FREQ } from '../components/PracticeMode';
 
 // Compare two arrays by value.
 function arraysEqual(a, b) {
   if (!Array.isArray(a) || !Array.isArray(b)) return false;
   if (a.length !== b.length) return false;
   return a.every((v, i) => v === b[i]);
+}
+
+// Play a chord's notes using the shared CHORD_FREQ table (same source of
+// truth as Practice Mode playback). Created on a user gesture so it works
+// under browser autoplay policy.
+function playChordNotes(freqs) {
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext || !freqs || freqs.length === 0) return;
+  const ctx = new AudioContext();
+  if (ctx.state === 'suspended') {
+    ctx.resume().catch(() => {});
+  }
+  const now = ctx.currentTime;
+  freqs.forEach((freq) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+    osc.start(now);
+    osc.stop(now + 0.5);
+  });
+}
+
+function playChordFor(chordName) {
+  if (!chordName) return;
+  const key = Object.keys(CHORD_FREQ).find(
+    (k) => k.toLowerCase() === chordName.toLowerCase()
+  );
+  if (key) playChordNotes(CHORD_FREQ[key]);
 }
 
 function ChordDetail({ chord, showPrimaryLabel = false }) {
@@ -26,7 +60,17 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
   
   return (
     <div className="chord-detail">
-      {!showPrimaryLabel && <h2>{chord.name}</h2>}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        {!showPrimaryLabel && <h2 style={{ margin: 0 }}>{chord.name}</h2>}
+        <button
+          className="control-btn"
+          onClick={() => playChordFor(chord.name)}
+          aria-label={`Play ${chord.name} chord`}
+          style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', cursor: 'pointer' }}
+        >
+          ▶ Play chord
+        </button>
+      </div>
       <div className="variations-grid">
         {/* Always display the primary chord first */}
         <div className="variation-item">
