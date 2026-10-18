@@ -6,7 +6,7 @@ import { PRACTICE_SONGS } from './PracticeMode';
 import ChordDiagram from './ChordDiagram';
 import { getChordByName } from '../data/chords';
 
-function SongDetail({ songId, onBack }) {
+function SongDetail({ songId, onBack, onStartPractice }) {
   // Find the song by ID
   const song = PRACTICE_SONGS.find(s => s.id === songId);
 
@@ -33,7 +33,26 @@ function SongDetail({ songId, onBack }) {
         >
           ← Back to Songs
         </button>
-        <h2 style={{ margin: 0 }}>{song.title}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h2 style={{ margin: 0 }}>{song.title}</h2>
+          {onStartPractice && (
+            <button
+              className="control-btn"
+              onClick={() => onStartPractice(song)}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '0.9rem',
+                background: 'var(--accent-primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 4,
+                cursor: 'pointer'
+              }}
+            >
+              🎯 Practice this song
+            </button>
+          )}
+        </div>
       </div>
       
       <div style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
