@@ -132,8 +132,8 @@ function ChordLibrary() {
                 }}
                 aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} chords${preferenceSaved === false ? '. Note: preference cannot be saved in this session.' : ''}`}
               >
-                {instrument === 'ukulele' ? <FaGuitar /> : <span style={{ fontSize: '1.2rem' }}>🎵</span>}
-                {instrument === 'ukulele' ? 'Guitar' : 'Ukulele'}
+                {instrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }}>🎵</span> : <FaGuitar />}
+                {instrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
               </button>
             </div>
           </div>
