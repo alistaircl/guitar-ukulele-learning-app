@@ -372,6 +372,24 @@ function PracticeMode({ initialSongId, onDone }) {
   const [beatPulse, setBeatPulse] = useState(false);
   const [audioReady, setAudioReady] = useState(true); // optimistic; flips to false when AudioContext can't reach 'running'
 
+  // Ref mirrors of state that the rAF playback loop reads directly. Using refs
+  // here avoids the stale-closure bug (#267) where the loop kept re-invoking the
+  // line-advance block every frame because it closed over an outdated currentIndex,
+  // and the resume freeze (#268) where resumeAutoplay scheduled a loop that still
+  // saw isPaused === true from its capturing render.
+  const currentIndexRef = useRef(0);
+  const isPausedRef = useRef(false);
+
+  const setCurrentIndexWithRef = (idx) => {
+    currentIndexRef.current = idx;
+    setCurrentIndex(idx);
+  };
+
+  const setIsPausedWithRef = (val) => {
+    isPausedRef.current = val;
+    setIsPaused(val);
+  };
+
   const audioCtxRef = useRef(null);
   const timerRef = useRef(null);
   const countdownRef = useRef(null);
@@ -411,8 +429,8 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const resetSong = () => {
     setIsPlaying(false);
-    setIsPaused(false);
-    setCurrentIndex(0);
+    setIsPausedWithRef(false);
+    setCurrentIndexWithRef(0);
     setCountdown(null);
     setFeedback(null);
     playbackStartTimeRef.current = null;
@@ -589,11 +607,11 @@ function PracticeMode({ initialSongId, onDone }) {
   
     // rAF-based playback loop - self-correcting timing
     const playbackLoop = useCallback(() => {
-      if (!playbackStartTimeRef.current || isPaused) return;
-    
+      if (!playbackStartTimeRef.current || isPausedRef.current) return;
+
       const elapsed = Date.now() - playbackStartTimeRef.current;
       const cumulative = cumulativeDurationsRef.current;
-    
+
       // Find which line we should be on based on elapsed time
       let targetIndex = 0;
       for (let i = 0; i < cumulative.length; i++) {
@@ -603,7 +621,7 @@ function PracticeMode({ initialSongId, onDone }) {
           break;
         }
       }
-    
+
       // If we've reached the end
       if (targetIndex >= selectedSong.lyrics.length) {
         if (rAFRef.current) {
@@ -612,47 +630,49 @@ function PracticeMode({ initialSongId, onDone }) {
         }
         playbackStartTimeRef.current = null;
         setIsPlaying(false);
-        setIsPaused(false);
+        setIsPausedWithRef(false);
         setFeedback({ type: 'complete', message: '🎵 Song complete! Great practice!' });
         if (onDone) onDone();
         return;
       }
-    
-      // If we've advanced to a new line
-      if (targetIndex !== currentIndex) {
-        setCurrentIndex(targetIndex);
+
+      // If we've advanced to a new line. Compare against the ref mirror so the
+      // line-advance block (chord playback, scroll, pulse) runs once per line
+      // change instead of every animation frame (#267).
+      if (targetIndex !== currentIndexRef.current) {
+        setCurrentIndexWithRef(targetIndex);
         setBeatPulse(true);
         setTimeout(() => setBeatPulse(false), 150);
         setFeedback(null);
         scrollToLine(targetIndex);
-      
+
         // Play chord on beat
         const chord = selectedSong.lyrics[targetIndex].chord;
         if (chord) {
           playChord(chord);
         }
       }
-    
+
       // Continue the loop
       rAFRef.current = requestAnimationFrame(playbackLoop);
-    }, [currentIndex, isPaused, selectedSong, onDone, scrollToLine, playChord]);
+    }, [selectedSong, onDone, scrollToLine, playChord]);
 
     const beginPlayback = () => {
       setIsPlaying(true);
-      setIsPaused(false);
-      setCurrentIndex(0);
+      setIsPausedWithRef(false);
+      setCurrentIndexWithRef(0);
       playbackStartTimeRef.current = Date.now();
       cumulativeDurationsRef.current = calculateCumulativeDurations();
-    
+
       // Pulse animation on the beat
       setBeatPulse(true);
       setTimeout(() => setBeatPulse(false), 150);
-    
+
       // Play first chord immediately
       if (selectedSong.lyrics[0].chord) {
         playChord(selectedSong.lyrics[0].chord);
       }
-    
+
       // Start rAF loop
       rAFRef.current = requestAnimationFrame(playbackLoop);
     };
@@ -670,34 +690,41 @@ function PracticeMode({ initialSongId, onDone }) {
         // Store elapsed in a ref (replaces window._pausedPlaybackElapsed)
         pausedElapsedRef.current = elapsed;
       }
-      setIsPaused(true);
+      setIsPausedWithRef(true);
     };
-  
+
     const resumeAutoplay = () => {
-      if (!isPaused) return;
-    
-      setIsPaused(false);
+      if (!isPausedRef.current) return;
+
+      setIsPausedWithRef(false);
       // Start from where we left off, accounting for elapsed time
       const elapsedWhilePaused = pausedElapsedRef.current || 0;
       pausedElapsedRef.current = null;
       playbackStartTimeRef.current = Date.now() - elapsedWhilePaused;
       cumulativeDurationsRef.current = calculateCumulativeDurations();
-    
+
       // Pulse animation on resume
       setBeatPulse(true);
       setTimeout(() => setBeatPulse(false), 150);
-    
-      // Resume rAF loop
+
+      // Resume rAF loop — the loop reads isPausedRef.current (now false) so it
+      // proceeds past the paused-guard on the first frame (#268).
       rAFRef.current = requestAnimationFrame(playbackLoop);
     };
-  
-  const stopAutoplay = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    setIsPlaying(false);
-  };
+
+    const stopAutoplay = () => {
+      if (rAFRef.current) {
+        cancelAnimationFrame(rAFRef.current);
+        rAFRef.current = null;
+      }
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      playbackStartTimeRef.current = null;
+      setIsPlaying(false);
+      setIsPausedWithRef(false);
+    };
 
   const markCorrect = () => {
     setFeedback({ type: 'correct', message: '✓ Nice!' });
