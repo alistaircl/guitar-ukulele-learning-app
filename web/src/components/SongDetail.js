@@ -4,9 +4,9 @@ import { PRACTICE_SONGS } from './PracticeMode';
 // Import chord diagram + lookup so the song detail view can render
 // fretboard diagrams for each chord used in the song (fixes #183).
 import ChordDiagram from './ChordDiagram';
-import { getChordByName } from '../data/chords';
+import { getChordByInstrument } from '../data/chords';
 
-function SongDetail({ songId, onBack, onStartPractice }) {
+function SongDetail({ songId, onBack, onStartPractice, instrument = 'ukulele' }) {
   // Find the song by ID
   const song = PRACTICE_SONGS.find(s => s.id === songId);
 
@@ -20,7 +20,7 @@ function SongDetail({ songId, onBack, onStartPractice }) {
   // database we still show its name so users at least see what's required.
   const resolvedChords = (song.chords || []).map(name => ({
     name,
-    chord: getChordByName(name),
+    chord: getChordByInstrument(name, instrument),
   }));
 
   return (

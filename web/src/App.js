@@ -14,6 +14,26 @@ const TABS = [
 function App() {
   const [activeTab, setActiveTab] = useState('tuner');
   const [practiceSongId, setPracticeSongId] = useState(null);
+  // Shared instrument preference (ukulele | guitar), persisted so chord
+  // diagrams in the song detail view match the user's chosen instrument
+  // (issue #270). Defaults to ukulele for backwards compatibility.
+  const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
+  const [instrument, setInstrument] = useState(() => {
+    try {
+      const saved = localStorage.getItem(INSTRUMENT_PREFERENCE_KEY);
+      if (saved === 'guitar' || saved === 'ukulele') return saved;
+    } catch (e) {
+      // localStorage unavailable — default below
+    }
+    return 'ukulele';
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(INSTRUMENT_PREFERENCE_KEY, instrument);
+    } catch (e) {
+      // localStorage unavailable or full — preference won't persist
+    }
+  }, [instrument]);
 
   const handleStartPractice = (song) => {
     setPracticeSongId(song.id);
@@ -24,7 +44,7 @@ function App() {
     switch (activeTab) {
       case 'tuner': return <Tuner />;
       case 'chords': return <ChordLibrary />;
-      case 'songs': return <SongLibrary onStartPractice={handleStartPractice} />;
+      case 'songs': return <SongLibrary instrument={instrument} onStartPractice={handleStartPractice} />;
       case 'practice': return <PracticeMode initialSongId={practiceSongId} onDone={() => setPracticeSongId(null)} />;
       default: return <Tuner />;
     }
