@@ -121,11 +121,11 @@ export const ALL_CHORDS = [
   { name: 'Esus4', frets: [4, 4, 5, 2], fingers: [4, 4, 3, 2], variations: [
     { frets: [4, 4, 5, 2], fingers: [4, 4, 3, 2], label: 'Esus4 (standard)' }
   ] },
-  { name: 'Fsus2', frets: [1, 0, 1, 1], fingers: [2, 0, 1, 1], variations: [
-    { frets: [1, 0, 1, 1], fingers: [2, 0, 1, 1], label: 'Fsus2 (standard)' }
+  { name: 'Fsus2', frets: [0, 0, 1, 3], fingers: [0, 0, 1, 3], variations: [
+    { frets: [0, 0, 1, 3], fingers: [0, 0, 1, 3], label: 'Fsus2 (standard)' }
   ] },
-  { name: 'Fsus4', frets: [2, 0, 1, 3], fingers: [2, 0, 1, 3], variations: [
-    { frets: [2, 0, 1, 3], fingers: [2, 0, 1, 3], label: 'Fsus4 (standard)' }
+  { name: 'Fsus4', frets: [3, 0, 1, 3], fingers: [3, 0, 1, 3], variations: [
+    { frets: [3, 0, 1, 3], fingers: [3, 0, 1, 3], label: 'Fsus4 (standard)' }
   ] },
   { name: 'Gsus2', frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], variations: [
     { frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], label: 'Gsus2 (standard)' }
