@@ -91,8 +91,8 @@ export const ALL_CHORDS = [
   { name: 'Dmaj7', frets: [2, 2, 2, 4], fingers: [1, 2, 3, 4], variations: [
     { frets: [2, 2, 2, 4], fingers: [1, 2, 3, 4], label: 'Dmaj7 (standard)' }
   ] },
-  { name: 'Emaj7', frets: [4, 4, 4, 4], fingers: [4, 4, 4, 4], variations: [
-    { frets: [4, 4, 4, 4], fingers: [4, 4, 4, 4], label: 'Emaj7 (standard)' }
+  { name: 'Emaj7', frets: [1, 3, 0, 2], fingers: [1, 3, 0, 2], variations: [
+    { frets: [1, 3, 0, 2], fingers: [1, 3, 0, 2], label: 'Emaj7 (standard)' }
   ] },
   { name: 'Fmaj7', frets: [2, 4, 1, 3], fingers: [2, 4, 1, 3], variations: [
     { frets: [2, 4, 1, 3], fingers: [2, 4, 1, 3], label: 'Fmaj7 (standard)' },
@@ -115,8 +115,8 @@ export const ALL_CHORDS = [
   { name: 'Dsus4', frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], variations: [
     { frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], label: 'Dsus4 (standard)' }
   ] },
-  { name: 'Esus2', frets: [1, 4, 0, 2], fingers: [1, 4, 0, 2], variations: [
-    { frets: [1, 4, 0, 2], fingers: [1, 4, 0, 2], label: 'Esus2 (standard)' }
+  { name: 'Esus2', frets: [4, 4, 2, 2], fingers: [4, 4, 2, 2], variations: [
+    { frets: [4, 4, 2, 2], fingers: [4, 4, 2, 2], label: 'Esus2 (standard)' }
   ] },
   { name: 'Esus4', frets: [4, 4, 5, 2], fingers: [4, 4, 3, 2], variations: [
     { frets: [4, 4, 5, 2], fingers: [4, 4, 3, 2], label: 'Esus4 (standard)' }
