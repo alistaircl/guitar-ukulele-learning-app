@@ -203,9 +203,16 @@ export function searchChords(query) {
   
   if (searchTerms.length === 1) {
     // Single term: direct includes match
-    return ALL_CHORDS.filter(chord => 
-      chord.name.toLowerCase().includes(searchTerms[0])
-    );
+    const term = searchTerms[0];
+    // A minor query (term ending in 'm', e.g. 'cm' from 'C minor') must not
+    // substring-match major-7th chords - 'cmaj7' contains 'cm' at positions
+    // 0-1, so a bare includes() wrongly returns Cmaj7 for 'C minor'.
+    const excludeMaj7 = term.endsWith('m');
+    return ALL_CHORDS.filter(chord => {
+      const name = chord.name.toLowerCase();
+      if (excludeMaj7 && name.includes('maj7')) return false;
+      return name.includes(term);
+    });
   }
   
   // Multiple terms: find chords matching ALL terms (AND logic)
@@ -367,9 +374,14 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
   const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
   
   if (searchTerms.length === 1) {
-    return chords.filter(chord => 
-      chord.name.toLowerCase().includes(searchTerms[0])
-    );
+    return chords.filter(chord => {
+      const term = searchTerms[0];
+      const name = chord.name.toLowerCase();
+      // A minor query (term ending in 'm') must not substring-match
+      // major-7th chords ('cmaj7' contains 'cm').
+      if (term.endsWith('m') && name.includes('maj7')) return false;
+      return name.includes(term);
+    });
   }
   
   // Multiple terms: find chords matching ALL terms (AND logic)
