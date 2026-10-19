@@ -30,6 +30,7 @@ export const ALL_CHORDS = [
   { name: 'F#', frets: [1, 1, 2, 1], fingers: [1, 1, 2, 1], variations: [
     { frets: [1, 1, 2, 1], fingers: [1, 1, 2, 1], label: 'F# (standard)' }
   ] },
+  { name: 'Bb', frets: [3, 2, 1, 1], fingers: [3, 2, 1, 1], variations: [] },
 
   // Minor chords
   { name: 'Am', frets: [2, 0, 0, 0], fingers: [1, 0, 0, 0], variations: [
@@ -246,7 +247,8 @@ export const GUITAR_CHORDS = [
   { name: 'B', frets: [-1, 2, 4, 4, 4, 2], fingers: [0, 1, 3, 4, 4, 2], variations: [
     { frets: [7, 9, 9, 8, 7, 7], fingers: [1, 3, 4, 2, 1, 1], label: 'B (high barre)' }
   ] },
-  
+  { name: 'Bb', frets: [-1, 1, 3, 3, 3, 1], fingers: [0, 1, 3, 3, 3, 1], variations: [] },
+
   // Minor chords
   { name: 'Am', frets: [-1, 0, 2, 2, 1, 0], fingers: [0, 0, 2, 3, 1, 0], variations: [
     { frets: [5, 7, 7, 5, 5, 5], fingers: [1, 3, 4, 1, 1, 1], label: 'Am (barre)' }
