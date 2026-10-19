@@ -615,8 +615,25 @@ body {
 }
 
 .variation-info {
-  text-align: left;
+  text-align: center;
   margin-top: 0.5rem;
+}
+
+/* Chord detail variation grid: each variation's diagram and caption are
+   centered together so the caption stays aligned with its own diagram
+   instead of pinned to the page edge (#297). */
+.variations-grid {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 1rem 0 0;
+}
+.variation-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .variation-label {
