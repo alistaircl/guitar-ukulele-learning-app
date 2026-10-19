@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Tuner from './components/Tuner';
 import ChordLibrary from './components/ChordLibrary';
 import SongLibrary from './components/SongLibrary';
@@ -18,7 +18,7 @@ function App() {
   // diagrams in the song detail view match the user's chosen instrument
   // (issue #270). Defaults to ukulele for backwards compatibility.
   const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
-  const [instrument, setInstrument] = useState(() => {
+  const [instrument] = useState(() => {
     try {
       const saved = localStorage.getItem(INSTRUMENT_PREFERENCE_KEY);
       if (saved === 'guitar' || saved === 'ukulele') return saved;

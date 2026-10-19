@@ -400,6 +400,22 @@ function PracticeMode({ initialSongId, onDone }) {
   const cumulativeDurationsRef = useRef([]); // Cache of cumulative line durations
   const pausedElapsedRef = useRef(null); // Track elapsed time during pause (replaces window._pausedPlaybackElapsed)
 
+  const resetSong = useCallback(() => {
+    setIsPlaying(false);
+    setIsPausedWithRef(false);
+    setCurrentIndexWithRef(0);
+    setCountdown(null);
+    setFeedback(null);
+    playbackStartTimeRef.current = null;
+    cumulativeDurationsRef.current = [];
+    if (rAFRef.current) {
+      cancelAnimationFrame(rAFRef.current);
+      rAFRef.current = null;
+    }
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (countdownRef.current) clearTimeout(countdownRef.current);
+  }, []);
+
   // If initialSongId changes (user picks a new song from SongLibrary), switch to it
   useEffect(() => {
     if (initialSongId) {
@@ -409,7 +425,7 @@ function PracticeMode({ initialSongId, onDone }) {
         resetSong();
       }
     }
-  }, [initialSongId]);
+  }, [initialSongId, resetSong]);
 
   // Cleanup timers on unmount
   useEffect(() => {
@@ -426,22 +442,6 @@ function PracticeMode({ initialSongId, onDone }) {
   useEffect(() => {
     saveProgress(selectedSong.id, streak, totalCorrect);
   }, [streak, totalCorrect, selectedSong.id]);
-
-  const resetSong = () => {
-    setIsPlaying(false);
-    setIsPausedWithRef(false);
-    setCurrentIndexWithRef(0);
-    setCountdown(null);
-    setFeedback(null);
-    playbackStartTimeRef.current = null;
-    cumulativeDurationsRef.current = [];
-    if (rAFRef.current) {
-      cancelAnimationFrame(rAFRef.current);
-      rAFRef.current = null;
-    }
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (countdownRef.current) clearTimeout(countdownRef.current);
-  };
   
   const playNote = useCallback((freq) => {
     // AudioContext should be initialized by initAudioContext() before first playNote call
