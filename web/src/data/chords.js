@@ -289,7 +289,7 @@ export const GUITAR_CHORDS = [
   // middle on G at 2nd fret, open high E). Barre variation at 1st fret
   // parallels the full barre F shape (root on low E string).
   { name: 'Fmaj7', frets: [-1, -1, -1, 2, 1, 0], fingers: [0, 0, 0, 2, 1, 0], variations: [
-    { frets: [1, 3, 2, 1, 1, 1], fingers: [1, 3, 2, 1, 1, 1], label: 'Fmaj7 (barre)' }
+    { frets: [1, 3, 3, 2, 1, 1], fingers: [1, 3, 3, 2, 1, 1], label: 'Fmaj7 (barre)' }
   ] },
   { name: 'Gmaj7', frets: [3, 2, 0, 0, 0, 2], fingers: [3, 2, 0, 0, 0, 4], variations: [] },
   
