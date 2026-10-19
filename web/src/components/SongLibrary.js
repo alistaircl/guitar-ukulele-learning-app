@@ -12,7 +12,7 @@ const DIFFICULTY_CLASS_MAP = {
   'Hard': 'hard'
 };
 
-function SongLibrary({ onStartPractice }) {
+function SongLibrary({ instrument = 'ukulele', onStartPractice }) {
   const [selectedSongId, setSelectedSongId] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'detail'
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,6 +123,7 @@ function SongLibrary({ onStartPractice }) {
           songId={selectedSongId} 
           onBack={handleBackToGrid}
           onStartPractice={onStartPractice}
+          instrument={instrument}
         />
       )}
 
