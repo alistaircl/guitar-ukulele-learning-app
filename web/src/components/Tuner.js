@@ -5,7 +5,7 @@ const TUNINGS = {
   // Ukulele tunings
   'G4 C4 E4 A4': { name: 'Standard (GCEA)', instrument: 'ukulele', notes: ['G4', 'C4', 'E4', 'A4'], freq: [392, 261.63, 329.63, 440] },
   'G3 C4 E4 A4': { name: 'Low G (GCEA)', instrument: 'ukulele', notes: ['G3', 'C4', 'E4', 'A4'], freq: [196.0, 261.63, 329.63, 440] },
-  'D4 G4 B4 E5': { name: 'Baritone (DGBE)', instrument: 'ukulele', notes: ['D4', 'G4', 'B4', 'E5'], freq: [293.66, 392, 493.88, 659.25] },
+  'D3 G3 B3 E4': { name: 'Baritone (DGBE)', instrument: 'ukulele', notes: ['D3', 'G3', 'B3', 'E4'], freq: [146.83, 196, 246.94, 329.63] },
   // Guitar tunings
   'E2 A2 D3 G3 B3 E4': { name: 'Standard (EADGBE)', instrument: 'guitar', notes: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [82.41, 110.0, 146.83, 196.0, 246.94, 329.63] },
   'D2 A2 D3 G3 B3 E4': { name: 'Drop D (DADGBE)', instrument: 'guitar', notes: ['D2', 'A2', 'D3', 'G3', 'B3', 'E4'], freq: [73.42, 110.0, 146.83, 196.0, 246.94, 329.63] },
