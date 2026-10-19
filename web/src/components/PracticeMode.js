@@ -743,10 +743,18 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const goToLine = (idx, playChordOnNavigate = false) => {
     if (idx >= 0 && idx < selectedSong.lyrics.length) {
+      // Hand off from autoplay: cancel the rAF loop and reset the playback
+      // clock so auto-advance/auto-chord/auto-scroll stop and the Start
+      // button does not reappear mid-playback (#275).
+      if (rAFRef.current) {
+        cancelAnimationFrame(rAFRef.current);
+        rAFRef.current = null;
+      }
       if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
+      playbackStartTimeRef.current = null;
       setIsPlaying(false);
       setCurrentIndex(idx);
       setFeedback(null);
