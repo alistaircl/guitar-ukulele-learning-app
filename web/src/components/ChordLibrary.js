@@ -179,7 +179,7 @@ function ChordPage({ chord, onGoBack }) {
         <button onClick={onGoBack} className="back-button">
           <FaArrowLeft /> Back to Chord Library
         </button>
-        <h1>{chord.name}</h1>
+        <h2 className="section-title">{chord.name}</h2>
       </div>
       <ChordDetail chord={chord} showPrimaryLabel={true} />
     </div>
