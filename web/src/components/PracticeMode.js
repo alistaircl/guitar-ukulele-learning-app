@@ -783,6 +783,14 @@ function PracticeMode({ initialSongId, onDone }) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
+      // Cancel any in-progress 3-2-1 countdown: clicking Prev/Next mid-countdown
+      // must not leave countdown !== null, which freezes the overlay, hides the
+      // lyrics, and blocks playback (#351).
+      if (countdownRef.current) {
+        clearTimeout(countdownRef.current);
+        countdownRef.current = null;
+      }
+      setCountdown(null);
       playbackStartTimeRef.current = null;
       setIsPlaying(false);
       setCurrentIndex(idx);
