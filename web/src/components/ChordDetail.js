@@ -9,6 +9,30 @@ function arraysEqual(a, b) {
   return a.every((v, i) => v === b[i]);
 }
 
+// Detect whether a voicing uses a barre: the same finger (>0) pressing 2+
+// adjacent strings at the same fret (>0). Open/muted strings (fret <= 0)
+// and finger 0 are ignored.
+function isBarreVoicing(frets, fingers) {
+  const groups = {};
+  frets.forEach((fret, stringIdx) => {
+    const finger = fingers[stringIdx] || 0;
+    if (finger > 0 && fret > 0) {
+      if (!groups[finger]) groups[finger] = [];
+      groups[finger].push({ stringIdx, fret });
+    }
+  });
+  return Object.values(groups).some(strings => {
+    strings.sort((a, b) => a.stringIdx - b.stringIdx);
+    for (let k = 1; k < strings.length; k++) {
+      if (strings[k].stringIdx === strings[k - 1].stringIdx + 1 &&
+          strings[k].fret === strings[k - 1].fret) {
+        return true;
+      }
+    }
+    return false;
+  });
+}
+
 // Play a chord's notes using the shared CHORD_FREQ table (same source of
 // truth as Practice Mode playback). Created on a user gesture so it works
 // under browser autoplay policy.
@@ -82,7 +106,7 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
           />
           <div className="variation-info">
             <p className="variation-label">{showPrimaryLabel ? 'Primary' : 'Standard'}</p>
-            <p className="variation-desc">Standard open position voicing</p>
+            <p className="variation-desc">{isBarreVoicing(chord.frets, chord.fingers) ? 'Barre chord shape — great for moving up the neck' : 'Standard open position voicing'}</p>
           </div>
         </div>
         
