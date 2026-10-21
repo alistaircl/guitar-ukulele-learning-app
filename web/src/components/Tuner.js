@@ -24,7 +24,9 @@ const TUNINGS_BY_INSTRUMENT = Object.keys(TUNINGS).reduce((acc, key) => {
   return acc;
 }, {});
 
-const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-tuner-instrument';
+// Single shared instrument preference key so Tuner, Chord Library and Song
+// Detail all reflect one instrument choice (issue #370).
+const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
 // Per-instrument tuning preference keys
 const tuningStorageKey = (instrument) => `${instrument}-tuner-tuning`;
 
@@ -83,7 +85,7 @@ function getNearestNote(freq) {
   return { note: nearest, diff: signedDiff, freq, targetFreq, cents };
 }
 
-function Tuner() {
+function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } = {}) {
   // Active instrument — persisted across sessions via the safe storage helpers.
   // Defaults to ukulele to stay backwards-compatible with existing users.
   const [instrument, setInstrument] = useState(() => {
@@ -100,6 +102,14 @@ function Tuner() {
     }
     return 'ukulele';
   });
+  // When a parent (App) supplies the instrument prop, this component is
+  // controlled by it so Tuner, Chord Library and Song Detail stay in sync
+  // (issue #370). Otherwise fall back to the persisted preference.
+  const activeInstrument = instrumentProp !== undefined ? instrumentProp : instrument;
+  const setActiveInstrument = (next) => {
+    setInstrument(next);
+    setInstrumentProp?.(next);
+  };
   const [tuning, setTuning] = useState(() => {
     const inst = (() => {
       const saved = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
@@ -383,22 +393,27 @@ function Tuner() {
   // Save tuning preference to available storage when it changes (per instrument)
   useEffect(() => {
     try {
-      safeStorageSet(tuningStorageKey(instrument), tuning);
+      safeStorageSet(tuningStorageKey(activeInstrument), tuning);
     } catch (e) {
       console.warn('Could not save tuning to storage:', e);
     }
-  }, [tuning, instrument]);
+  }, [tuning, activeInstrument]);
 
-  // Persist the active instrument so it survives refresh / revisit
+  // Persist the active instrument so it survives refresh / revisit.
+  // When parent-controlled (instrumentProp provided), the parent owns
+  // persistence so we don't write here.
   useEffect(() => {
+    if (instrumentProp !== undefined) {
+      return;
+    }
     safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
   }, [instrument]);
 
   // Switch instrument, and reset to that instrument's first tuning so the
   // selector never shows a tuning that doesn't belong to the active instrument.
   const toggleInstrument = () => {
-    const next = instrument === 'ukulele' ? 'guitar' : 'ukulele';
-    setInstrument(next);
+    const next = activeInstrument === 'ukulele' ? 'guitar' : 'ukulele';
+    setActiveInstrument(next);
     setTuning(TUNINGS_BY_INSTRUMENT[next][0]);
   };
 
@@ -434,10 +449,10 @@ function Tuner() {
             fontSize: '0.9rem',
             fontWeight: '600'
           }}
-          aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} tuner`}
+          aria-label={`Switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'} tuner`}
         >
-          {instrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span> : <FaGuitar aria-hidden="true" />}
-                     {instrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
+          {activeInstrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span> : <FaGuitar aria-hidden="true" />}
+                     {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
         </button>
       </div>
       <div className="tuner-display">
