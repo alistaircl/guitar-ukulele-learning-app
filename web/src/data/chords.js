@@ -43,7 +43,7 @@ export const ALL_CHORDS = [
   ] },
   { name: 'Dm', frets: [2, 2, 1, 0], fingers: [2, 3, 1, 0], variations: [
     { frets: [2, 2, 1, 0], fingers: [2, 3, 1, 0], label: 'Dm (standard)' },
-    { frets: [2, 2, 1, 5], fingers: [1, 1, 1, 4], label: 'Dm (barre)' }
+    { frets: [2, 2, 1, 5], fingers: [1, 1, 2, 4], label: 'Dm (barre)' }
   ] },
   { name: 'Em', frets: [0, 4, 3, 2], fingers: [0, 4, 2, 1], variations: [
     { frets: [0, 4, 3, 2], fingers: [0, 4, 2, 1], label: 'Em (standard)' }
@@ -57,8 +57,8 @@ export const ALL_CHORDS = [
   { name: 'F#m', frets: [2, 1, 2, 0], fingers: [2, 1, 3, 0], variations: [
     { frets: [2, 1, 2, 0], fingers: [2, 1, 3, 0], label: 'F#m (standard)' }
   ] },
-  { name: 'G#m', frets: [4, 3, 4, 2], fingers: [4, 3, 4, 2], variations: [
-    { frets: [4, 3, 4, 2], fingers: [4, 3, 4, 2], label: 'G#m (standard)' }
+  { name: 'G#m', frets: [1, 3, 4, 2], fingers: [1, 3, 4, 2], variations: [
+    { frets: [1, 3, 4, 2], fingers: [1, 3, 4, 2], label: 'G#m (standard)' }
   ] },
 
   // 7th chords
@@ -77,8 +77,8 @@ export const ALL_CHORDS = [
   { name: 'E7', frets: [1, 2, 0, 2], fingers: [1, 2, 0, 3], variations: [
     { frets: [1, 2, 0, 2], fingers: [1, 2, 0, 3], label: 'E7 (standard)' }
   ] },
-  { name: 'F7', frets: [2, 3, 1, 3], fingers: [2, 3, 1, 3], variations: [
-    { frets: [2, 3, 1, 3], fingers: [2, 3, 1, 3], label: 'F7 (standard)' }
+  { name: 'F7', frets: [2, 3, 1, 3], fingers: [2, 3, 1, 4], variations: [
+    { frets: [2, 3, 1, 3], fingers: [2, 3, 1, 4], label: 'F7 (standard)' }
   ] },
   { name: 'G7', frets: [0, 2, 1, 2], fingers: [0, 2, 1, 3], variations: [
     { frets: [0, 2, 1, 2], fingers: [0, 2, 1, 3], label: 'G7 (standard)' }
@@ -124,8 +124,8 @@ export const ALL_CHORDS = [
   { name: 'Fsus2', frets: [0, 0, 1, 3], fingers: [0, 0, 1, 3], variations: [
     { frets: [0, 0, 1, 3], fingers: [0, 0, 1, 3], label: 'Fsus2 (standard)' }
   ] },
-  { name: 'Fsus4', frets: [3, 0, 1, 3], fingers: [3, 0, 1, 3], variations: [
-    { frets: [3, 0, 1, 3], fingers: [3, 0, 1, 3], label: 'Fsus4 (standard)' }
+  { name: 'Fsus4', frets: [3, 0, 1, 3], fingers: [3, 0, 1, 4], variations: [
+    { frets: [3, 0, 1, 3], fingers: [3, 0, 1, 4], label: 'Fsus4 (standard)' }
   ] },
   { name: 'Gsus2', frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], variations: [
     { frets: [0, 2, 3, 0], fingers: [0, 1, 3, 0], label: 'Gsus2 (standard)' }
