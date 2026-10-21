@@ -18,7 +18,7 @@ function App() {
   // diagrams in the song detail view match the user's chosen instrument
   // (issue #270). Defaults to ukulele for backwards compatibility.
   const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
-  const [instrument] = useState(() => {
+  const [instrument, setInstrument] = useState(() => {
     try {
       const saved = localStorage.getItem(INSTRUMENT_PREFERENCE_KEY);
       if (saved === 'guitar' || saved === 'ukulele') return saved;
@@ -43,7 +43,7 @@ function App() {
   const renderContent = () => {
     switch (activeTab) {
       case 'tuner': return <Tuner />;
-      case 'chords': return <ChordLibrary />;
+      case 'chords': return <ChordLibrary setInstrument={setInstrument} />;
       case 'songs': return <SongLibrary instrument={instrument} onStartPractice={handleStartPractice} />;
       case 'practice': return <PracticeMode initialSongId={practiceSongId} onDone={() => setPracticeSongId(null)} />;
       default: return <Tuner />;
