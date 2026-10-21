@@ -42,8 +42,8 @@ function App() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'tuner': return <Tuner />;
-      case 'chords': return <ChordLibrary setInstrument={setInstrument} />;
+      case 'tuner': return <Tuner instrument={instrument} setInstrument={setInstrument} />;
+      case 'chords': return <ChordLibrary instrument={instrument} setInstrument={setInstrument} />;
       case 'songs': return <SongLibrary instrument={instrument} onStartPractice={handleStartPractice} />;
       case 'practice': return <PracticeMode initialSongId={practiceSongId} onDone={() => setPracticeSongId(null)} />;
       default: return <Tuner />;

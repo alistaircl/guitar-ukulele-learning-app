@@ -8,7 +8,9 @@ import { getAllChords, searchChordsByInstrument } from '../data/chords';
 // and gracefully handle environments where both are unavailable (e.g. private
 // browsing mode, disabled cookies/storage). Returns null and logs an
 // informative warning on failure so callers can degrade gracefully.
-const PREFERENCE_KEY = 'ukulele-chords-instrument';
+// Single shared preference key so Tuner, Chord Library and Song Detail all
+// reflect one instrument choice (issue #370).
+const PREFERENCE_KEY = 'guitar-ukulele-instrument';
 
 function safeStorageGet(key) {
   for (const storeName of ['localStorage', 'sessionStorage']) {
@@ -37,7 +39,7 @@ function safeStorageSet(key, value) {
   return false;
 }
 
-function ChordLibrary({ setInstrument: setSharedInstrument } = {}) {
+function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInstrument } = {}) {
   const [selectedChord, setSelectedChord] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [instrument, setInstrument] = useState(() => {
@@ -50,6 +52,14 @@ function ChordLibrary({ setInstrument: setSharedInstrument } = {}) {
     }
     return 'ukulele'; // Default to ukulele
   });
+  // When a parent (App) supplies the instrument prop, this component is
+  // controlled by it so Tuner, Chord Library and Song Detail stay in sync
+  // (issue #370). Otherwise fall back to the persisted preference.
+  const activeInstrument = instrumentProp !== undefined ? instrumentProp : instrument;
+  const setActiveInstrument = (next) => {
+    setInstrument(next);
+    setSharedInstrument?.(next);
+  };
   const [filteredChords, setFilteredChords] = useState(getAllChords('ukulele'));
   // null = unknown (no write attempted yet), true = saved, false = both
   // storage backends rejected the write — surface a UI hint in that case.
@@ -57,29 +67,32 @@ function ChordLibrary({ setInstrument: setSharedInstrument } = {}) {
 
   // Update filtered chords when search query or instrument changes
   React.useEffect(() => {
-    const chords = getAllChords(instrument);
+    const chords = getAllChords(activeInstrument);
     if (searchQuery.trim() === '') {
       setFilteredChords(chords);
     } else {
-      setFilteredChords(searchChordsByInstrument(searchQuery, instrument));
+      setFilteredChords(searchChordsByInstrument(searchQuery, activeInstrument));
     }
-  }, [searchQuery, instrument]);
+  }, [searchQuery, activeInstrument]);
 
   // Save instrument preference to available storage when it changes.
   // localStorage is preferred; sessionStorage is a fallback. If both fail
   // (e.g. private browsing with all storage blocked), record it so the UI
   // can inform the user that their preference won't persist across refreshes.
+  // When parent-controlled (instrumentProp provided), the parent owns
+  // persistence so we don't write here.
   React.useEffect(() => {
+    if (instrumentProp !== undefined) {
+      setPreferenceSaved(true);
+      return;
+    }
     const saved = safeStorageSet(PREFERENCE_KEY, instrument);
     setPreferenceSaved(saved);
-  }, [instrument]);
+  }, [instrument, instrumentProp]);
 
   const toggleInstrument = () => {
-    const nextInstrument = instrument === 'ukulele' ? 'guitar' : 'ukulele';
-    setInstrument(nextInstrument);
-    // Write to the shared preference key so SongDetail (via App) renders the
-    // matching instrument's chord diagrams (issue #270 / #347).
-    setSharedInstrument?.(nextInstrument);
+    const nextInstrument = activeInstrument === 'ukulele' ? 'guitar' : 'ukulele';
+    setActiveInstrument(nextInstrument);
     setSearchQuery('');
   };
 
@@ -134,10 +147,10 @@ function ChordLibrary({ setInstrument: setSharedInstrument } = {}) {
                   fontSize: '0.9rem',
                   fontWeight: '600'
                 }}
-                aria-label={`Switch to ${instrument === 'ukulele' ? 'guitar' : 'ukulele'} chords${preferenceSaved === false ? '. Note: preference cannot be saved in this session.' : ''}`}
+                aria-label={`Switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'} chords${preferenceSaved === false ? '. Note: preference cannot be saved in this session.' : ''}`}
               >
-                {instrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }}>🎵</span> : <FaGuitar />}
-                {instrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
+                {activeInstrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }}>🎵</span> : <FaGuitar />}
+                {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
               </button>
             </div>
           </div>
@@ -146,11 +159,11 @@ function ChordLibrary({ setInstrument: setSharedInstrument } = {}) {
           <div className="search-bar">
             <input
               type="text"
-              placeholder={`Search ${instrument} chords (C, G, Am, F, etc.)...`}
+              placeholder={`Search ${activeInstrument} chords (C, G, Am, F, etc.)...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
-              aria-label={`Search ${instrument} chords`}
+              aria-label={`Search ${activeInstrument} chords`}
             />
             <FaSearch className="search-icon" />
           </div>
