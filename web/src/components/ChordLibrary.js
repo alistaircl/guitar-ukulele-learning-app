@@ -37,7 +37,7 @@ function safeStorageSet(key, value) {
   return false;
 }
 
-function ChordLibrary() {
+function ChordLibrary({ setInstrument: setSharedInstrument } = {}) {
   const [selectedChord, setSelectedChord] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [instrument, setInstrument] = useState(() => {
@@ -75,7 +75,11 @@ function ChordLibrary() {
   }, [instrument]);
 
   const toggleInstrument = () => {
-    setInstrument(instrument === 'ukulele' ? 'guitar' : 'ukulele');
+    const nextInstrument = instrument === 'ukulele' ? 'guitar' : 'ukulele';
+    setInstrument(nextInstrument);
+    // Write to the shared preference key so SongDetail (via App) renders the
+    // matching instrument's chord diagrams (issue #270 / #347).
+    setSharedInstrument?.(nextInstrument);
     setSearchQuery('');
   };
 
