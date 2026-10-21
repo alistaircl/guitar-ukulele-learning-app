@@ -103,7 +103,7 @@ function SongDetail({ songId, onBack, onStartPractice, instrument = 'ukulele' })
                     fingers={chord.fingers}
                     size={90}
                     className="chord-diagram"
-                    aria-label={`${name} chord diagram`}
+                    ariaLabel={`${name} chord diagram`}
                   />
                 ) : (
                   <div
