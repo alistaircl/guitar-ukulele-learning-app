@@ -197,7 +197,18 @@ export function searchChords(query) {
       return /^[a-g][#b]?m(7|$)/.test(name);
     });
   }
-  
+
+  // Bare quality-word queries (no root): match all chords of that quality
+  if (lowerQuery === 'minor') {
+    return ALL_CHORDS.filter(chord => /^[a-g][#b]?m(7|$)/.test(chord.name.toLowerCase()));
+  }
+  if (['major 7', 'major seventh', 'major 7th'].includes(lowerQuery)) {
+    return ALL_CHORDS.filter(chord => chord.name.toLowerCase().includes('maj7'));
+  }
+  if (lowerQuery === 'seventh') {
+    return ALL_CHORDS.filter(chord => /^[a-g][#b]?7$/.test(chord.name.toLowerCase()));
+  }
+
   // Handle multiple search terms (e.g., "C minor G major" → ["cm", "g"])
   const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
   
@@ -371,8 +382,19 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
       return /^[a-g][#b]?m(7|$)/.test(name);
     });
   }
-  
-  const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
+
+  // Bare quality-word queries (no root): match all chords of that quality
+  if (lowerQuery === 'minor') {
+    return chords.filter(chord => /^[a-g][#b]?m(7|$)/.test(chord.name.toLowerCase()));
+  }
+  if (['major 7', 'major seventh', 'major 7th'].includes(lowerQuery)) {
+    return chords.filter(chord => chord.name.toLowerCase().includes('maj7'));
+  }
+  if (lowerQuery === 'seventh') {
+    return chords.filter(chord => /^[a-g][#b]?7$/.test(chord.name.toLowerCase()));
+  }
+
+  const searchTerms = normalizedQuery.split(/\\s+/).filter(term => term.length > 0);
   
   if (searchTerms.length === 1) {
     return chords.filter(chord => {
