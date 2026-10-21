@@ -282,7 +282,7 @@ export const GUITAR_CHORDS = [
   
   // 7th chords
   { name: 'A7', frets: [-1, 0, 2, 0, 2, 0], fingers: [0, 0, 2, 0, 3, 0], variations: [] },
-  { name: 'B7', frets: [-1, 2, 1, 2, 0, 2], fingers: [0, 2, 1, 2, 0, 3], variations: [] },
+  { name: 'B7', frets: [-1, 2, 1, 2, 0, 2], fingers: [0, 2, 1, 3, 0, 4], variations: [] },
   { name: 'C7', frets: [-1, 3, 2, 3, 1, 0], fingers: [0, 3, 2, 4, 1, 0], variations: [] },
   { name: 'D7', frets: [-1, -1, 0, 2, 1, 2], fingers: [0, 0, 0, 2, 1, 3], variations: [] },
   { name: 'E7', frets: [0, 2, 0, 1, 0, 0], fingers: [0, 2, 0, 1, 0, 0], variations: [] },
@@ -310,7 +310,7 @@ export const GUITAR_CHORDS = [
   { name: 'Dsus4', frets: [-1, -1, 0, 2, 3, 3], fingers: [0, 0, 0, 1, 2, 2], variations: [] },
   { name: 'Esus2', frets: [0, 2, 4, 4, 0, 0], fingers: [0, 1, 3, 4, 0, 0], variations: [] },
   { name: 'Esus4', frets: [0, 0, 2, 2, 0, 0], fingers: [0, 0, 1, 2, 0, 0], variations: [] },
-  { name: 'Fsus2', frets: [1, 3, 3, 0, 1, 1], fingers: [1, 3, 4, 0, 1, 1], variations: [] },
+  { name: 'Fsus2', frets: [-1, 3, 3, 0, 1, 1], fingers: [0, 3, 3, 0, 1, 1], variations: [] },
   { name: 'Fsus4', frets: [1, 1, 3, 3, 1, 1], fingers: [1, 1, 2, 3, 1, 1], variations: [] },
   { name: 'Gsus2', frets: [3, 5, 5, 5, 3, 3], fingers: [1, 3, 4, 4, 1, 1], variations: [
     { frets: [3, 5, 0, 0, 3, 3], fingers: [1, 2, 0, 0, 3, 3], label: 'Gsus2 (partial)' }
