@@ -739,7 +739,9 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const markIncorrect = () => {
     setFeedback({ type: 'incorrect', message: '✗ Keep trying!' });
-    setStreak(s => Math.max(0, s - 1));
+    // A miss breaks the consecutive-success chain, so reset the streak to 0
+    // rather than decrementing by 1 (issue #388).
+    setStreak(0);
   };
 
   const resetProgress = () => {
