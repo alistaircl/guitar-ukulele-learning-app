@@ -559,12 +559,14 @@ function PracticeMode({ initialSongId, onDone }) {
     }
   };
 
-  const startAutoplay = async () => {
-    // Initialize audio context on user gesture (required by browsers)
-    // Awaiting ensures the context is fully resumed before playback starts;
-    // the countdown gives ample time for resume() to complete.
-    await initAudioContext();
-    
+  const startAutoplay = () => {
+    // Start the countdown immediately — the visual practice flow must not
+    // depend on audio permission or on AudioContext.resume() resolving, which
+    // may never happen (no audio device, strict autoplay policy). Audio is
+    // optional: practice continues visually either way, and the existing
+    // "Enable Audio" banner surfaces when audio can't start (issue #387).
+    initAudioContext();
+
     // Use rAF with performance.now() for precise, drift-free countdown timing
     const startTime = performance.now();
     const COUNTDOWN_DURATION = 2400; // 3 counts * 800ms each
