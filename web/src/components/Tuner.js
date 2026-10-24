@@ -407,7 +407,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       return;
     }
     safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
-  }, [instrument]);
+  }, [instrument, instrumentProp]);
 
   // Switch instrument, and reset to that instrument's first tuning so the
   // selector never shows a tuning that doesn't belong to the active instrument.
