@@ -255,7 +255,7 @@ export const GUITAR_CHORDS = [
   { name: 'F#', frets: [2, 4, 4, 3, 2, 2], fingers: [1, 3, 4, 2, 1, 1], variations: [
     { frets: [-1, -1, 4, 3, 2, 2], fingers: [0, 0, 4, 3, 2, 2], label: 'F# (easy)' }
   ] },
-  { name: 'G', frets: [3, 2, 0, 0, 0, 3], fingers: [3, 2, 0, 0, 0, 4], variations: [
+  { name: 'G', frets: [3, 2, 0, 0, 0, 3], fingers: [3, 2, 0, 0, 0, 3], variations: [
     { frets: [3, 5, 5, 4, 3, 3], fingers: [1, 3, 4, 2, 1, 1], label: 'G (barre)' }
   ] },
   { name: 'A', frets: [-1, 0, 2, 2, 2, 0], fingers: [0, 0, 1, 2, 3, 0], variations: [
@@ -270,8 +270,8 @@ export const GUITAR_CHORDS = [
   { name: 'Am', frets: [-1, 0, 2, 2, 1, 0], fingers: [0, 0, 2, 3, 1, 0], variations: [
     { frets: [5, 7, 7, 5, 5, 5], fingers: [1, 3, 4, 1, 1, 1], label: 'Am (barre)' }
   ] },
-  { name: 'Bm', frets: [-1, 2, 4, 4, 3, 2], fingers: [0, 1, 3, 4, 2, 1], variations: [] },
-  { name: 'Cm', frets: [-1, 3, 5, 5, 4, 3], fingers: [0, 1, 3, 4, 2, 1], variations: [] },
+  { name: 'Bm', frets: [-1, 2, 4, 4, 3, 2], fingers: [0, 1, 3, 3, 2, 2], variations: [] },
+  { name: 'Cm', frets: [-1, 3, 5, 5, 4, 3], fingers: [0, 1, 3, 4, 2, 2], variations: [] },
   { name: 'Dm', frets: [-1, -1, 0, 2, 3, 1], fingers: [0, 0, 0, 2, 3, 1], variations: [
     { frets: [5, 5, 7, 7, 6, 5], fingers: [1, 1, 3, 4, 2, 1], label: 'Dm (barre)' }
   ] },
@@ -310,7 +310,7 @@ export const GUITAR_CHORDS = [
   { name: 'Fmaj7', frets: [-1, -1, 3, 2, 1, 0], fingers: [0, 0, 3, 2, 1, 0], variations: [
     { frets: [1, 3, 3, 2, 1, 0], fingers: [1, 3, 3, 2, 4, 0], label: 'Fmaj7 (barre)' }
   ] },
-  { name: 'Gmaj7', frets: [3, 2, 0, 0, 0, 2], fingers: [3, 2, 0, 0, 0, 4], variations: [] },
+  { name: 'Gmaj7', frets: [3, 2, 0, 0, 0, 2], fingers: [3, 2, 0, 0, 0, 3], variations: [] },
   
   // Suspended chords
   { name: 'Csus2', frets: [-1, 3, 5, 5, 3, 3], fingers: [0, 1, 3, 4, 1, 1], variations: [
