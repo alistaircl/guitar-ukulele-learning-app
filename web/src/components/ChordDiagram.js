@@ -239,6 +239,31 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     });
   };
 
+  // Generate descriptive aria-label from frets/fingers for accessibility
+  const generateAriaLabel = () => {
+    const stringNames = numStrings === 6 
+      ? ['low E', 'A', 'D', 'G', 'B', 'high E']  // Guitar: E2, A2, D3, G3, B3, E4
+      : ['G', 'C', 'E', 'A'];  // Ukulele: G, C, E, A
+    
+    const parts = [];
+    frets.forEach((fret, stringIdx) => {
+      if (fret === -1) {
+        // Muted strings don't add to description
+      } else if (fret === 0) {
+        parts.push(`open ${stringNames[stringIdx]}`);
+      } else if (fret > 0) {
+        const finger = fingers[stringIdx] || 0;
+        const fingerText = finger > 0 ? ` with finger ${finger}` : '';
+        parts.push(`fret ${fret} on ${stringNames[stringIdx]}${fingerText}`);
+      }
+    });
+    
+    if (parts.length === 0) {
+      return "Chord diagram showing finger positions";
+    }
+    return `Chord diagram: ${parts.join(', ')}`;
+  };
+
   // Show "X" marker for starting fret > 1
   const renderStartFretMarker = () => {
     if (startFret <= 1) return null;
