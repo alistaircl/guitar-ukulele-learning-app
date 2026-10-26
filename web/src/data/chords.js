@@ -316,7 +316,7 @@ export const GUITAR_CHORDS = [
   { name: 'Csus2', frets: [-1, 3, 5, 5, 3, 3], fingers: [0, 1, 3, 4, 1, 1], variations: [
     { frets: [-1, 3, 0, 0, 1, -1], fingers: [0, 2, 0, 0, 3, 0], label: 'Csus2 (low)' }
   ] },
-  { name: 'Csus4', frets: [-1, -1, 3, 3, 1, 1], fingers: [0, 0, 1, 2, 3, 3], variations: [] },
+  { name: 'Csus4', frets: [-1, -1, 3, 0, 1, -1], fingers: [0, 0, 3, 0, 1, 0], variations: [] },
   { name: 'Dsus2', frets: [-1, -1, 0, 2, 3, 0], fingers: [0, 0, 0, 1, 2, 0], variations: [] },
   { name: 'Dsus4', frets: [-1, -1, 0, 2, 3, 3], fingers: [0, 0, 0, 1, 2, 2], variations: [] },
   { name: 'Esus2', frets: [0, 2, 4, 4, 0, 0], fingers: [0, 1, 3, 4, 0, 0], variations: [] },
