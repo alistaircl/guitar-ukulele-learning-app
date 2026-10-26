@@ -392,7 +392,7 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
     return chords.filter(chord => /^[a-g][#b]?7$/.test(chord.name.toLowerCase()));
   }
 
-  const searchTerms = normalizedQuery.split(/\\s+/).filter(term => term.length > 0);
+  const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
   
   if (searchTerms.length === 1) {
     return chords.filter(chord => {
