@@ -852,8 +852,8 @@ function PracticeMode({ initialSongId, onDone }) {
   return (
     <div className="section">
       <h2 className="section-title">Practice</h2>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', minWidth: 0, gap: '0.5rem', alignItems: 'center' }}>
           <select
             value={selectedSong?.id || ''}
             onChange={e => {
@@ -872,7 +872,7 @@ function PracticeMode({ initialSongId, onDone }) {
           >
             {PRACTICE_SONGS.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
           </select>
-          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {selectedSong.bpm} BPM • {selectedSong.artist}
           </span>
         </div>
