@@ -251,7 +251,7 @@ lyrics: [
   },
   { id: 8, title: 'I\'m Yours',
     artist: 'Jason Mraz',
-    difficulty: 'Beginner',
+    difficulty: 'Intermediate',
     key: 'B',
     bpm: 104,
     chords: ['B', 'E', 'G#m', 'F#'],
