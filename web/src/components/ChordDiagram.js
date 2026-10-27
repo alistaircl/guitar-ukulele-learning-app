@@ -7,7 +7,20 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
   const nutH = 5;
   const markerTop = 10;   // y offset where open/muted markers sit
   const fretTop = nutH + markerTop + 12; // y where fret 1 starts
-  const numFrets = 4;
+  // Fret span of the voicing (ignore -1 muted and 0 open strings)
+  const positiveFrets = frets.filter(f => f > 0);
+  const hasOpenString = frets.some(f => f === 0);
+  const minFret = positiveFrets.length > 0 ? Math.min(...positiveFrets) : 1;
+  const maxFret = positiveFrets.length > 0 ? Math.max(...positiveFrets) : 1;
+
+  // The diagram must be tall enough to hold the widest fret span in the
+  // voicing. Default to 4 frets; widen when a movable/barre shape spans
+  // more than 4 frets and has no open string anchored at the nut. Without
+  // this, dots on frets beyond the window are silently dropped
+  // (issue #407: Dm (barre) [2,2,1,5] lost its fret-5 note).
+  const numFrets = (hasOpenString || positiveFrets.length === 0)
+    ? 4
+    : Math.max(4, maxFret - minFret + 1);
   const fretH = (svgH - fretTop) / numFrets;
   const marginX = 8;
   const strAreaX = marginX;
@@ -17,25 +30,21 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
   const numStrings = frets.length;
   
   // String x positions (dynamically calculated based on number of strings)
-  const strX = Array.from({ length: numStrings }, (_, i) => 
-    numStrings === 1 
-      ? strAreaX + strAreaW / 2 
+  const strX = Array.from({ length: numStrings }, (_, i) =>
+    numStrings === 1
+      ? strAreaX + strAreaW / 2
       : strAreaX + (i / (numStrings - 1)) * strAreaW
   );
 
   // Calculate dynamic start fret based on chord data
-  // Find minimum positive fret (ignore -1 muted and 0 open strings)
   const startFret = (() => {
-    const positiveFrets = frets.filter(f => f > 0);
     if (positiveFrets.length === 0) return 1;
     // A chord with any open string (fret 0) is played at the nut. Shifting the
     // base fret off the nut would produce a misleading 'Nfr' label alongside
     // the open-string markers (issue #213), so open-position voicings always
     // start at the nut. Only barre/movable shapes with all strings fretted or
     // muted may shift their base fret.
-    if (frets.some(f => f === 0)) return 1;
-    const minFret = Math.min(...positiveFrets);
-    const maxFret = Math.max(...positiveFrets);
+    if (hasOpenString) return 1;
     // If fret range spans more than 4 frets, shift window to start from min
     if (maxFret - minFret >= 4) {
       return minFret;
@@ -206,7 +215,7 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
   // Render 4 horizontal fret lines (span full string width)
   const renderFrets = () => (
     <>
-      {[0, 1, 2, 3, 4].map(i => (
+      {Array.from({ length: numFrets + 1 }, (_, i) => i).map(i => (
         <line key={`fret-${i}`}
           x1={strX[0]} y1={fretTop + i * fretH}
           x2={strX[numStrings - 1]} y2={fretTop + i * fretH}
