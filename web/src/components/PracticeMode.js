@@ -1148,7 +1148,7 @@ function PracticeMode({ initialSongId, onDone }) {
         <span>✓ {totalCorrect}</span>
         <button
           onClick={resetProgress}
-          aria-label="Reset practice progress for this song"
+          aria-label="Reset practice progress for all songs"
           title="Reset progress"
           style={{
             background: 'none',
