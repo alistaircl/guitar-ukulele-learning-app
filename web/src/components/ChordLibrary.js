@@ -60,7 +60,7 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
     setInstrument(next);
     setSharedInstrument?.(next);
   };
-  const [filteredChords, setFilteredChords] = useState(getAllChords('ukulele'));
+  const [filteredChords, setFilteredChords] = useState(getAllChords(activeInstrument));
   // null = unknown (no write attempted yet), true = saved, false = both
   // storage backends rejected the write — surface a UI hint in that case.
   const [preferenceSaved, setPreferenceSaved] = useState(null);

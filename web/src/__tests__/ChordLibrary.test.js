@@ -19,11 +19,27 @@ test('renders ChordLibrary with chord diagrams', () => {
 // Regression guard for singular/plural aria-label (issue #214)
 test('renders ChordLibrary with chord cards that have correct aria-labels', () => {
   render(<ChordLibrary />);
-  
+
   const chordCards = screen.getAllByRole('button');
   expect(chordCards.length).toBeGreaterThan(0);
-  
+
   // Check that at least one card has an aria-label
   const cardsWithLabels = chordCards.filter(card => card.getAttribute('aria-label'));
   expect(cardsWithLabels.length).toBeGreaterThan(0);
+});
+
+// Regression guard for issue #427: when a parent passes the instrument prop,
+// ChordLibrary must initialize filteredChords from that instrument (not a
+// hardcoded 'ukulele'), otherwise the grid flashes ukulele chords before the
+// useEffect syncs to the prop value.
+test('initializes filtered chords from the instrument prop (no ukulele flash)', () => {
+  const chordsModule = require('../data/chords');
+  const spy = jest.spyOn(chordsModule, 'getAllChords');
+
+  render(<ChordLibrary instrument="guitar" setInstrument={() => {}} />);
+
+  // The useState initializer must use the prop instrument, so getAllChords
+  // must NOT be called with 'ukulele' during the initial render.
+  expect(spy).not.toHaveBeenCalledWith('ukulele');
+  spy.mockRestore();
 });
