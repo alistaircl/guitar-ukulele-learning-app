@@ -408,6 +408,13 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
   // Multiple terms: find chords matching ALL terms (AND logic)
   return chords.filter(chord => {
     const chordName = chord.name.toLowerCase();
+    // A minor query (any term ending in 'm') must not substring-match
+    // major-7th chords: 'cmaj7' contains both 'c' and 'm', so a bare AND
+    // match wrongly returns Cmaj7 for 'C minor'. Apply the same maj7
+    // exclusion that the single-term path already uses.
+    if (searchTerms.some(term => term.endsWith('m')) && chordName.includes('maj7')) {
+      return false;
+    }
     return searchTerms.every(term => chordName.includes(term));
   });
 }
