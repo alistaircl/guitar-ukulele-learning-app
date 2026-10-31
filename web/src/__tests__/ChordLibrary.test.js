@@ -29,6 +29,22 @@ test('renders ChordLibrary with chord cards that have correct aria-labels', () =
   expect(cardsWithLabels.length).toBeGreaterThan(0);
 });
 
+// Regression guard for issue #427: when a parent passes the instrument prop,
+// ChordLibrary must initialize filteredChords from that instrument (not a
+// hardcoded 'ukulele'), otherwise the grid flashes ukulele chords before the
+// useEffect syncs to the prop value.
+test('initializes filtered chords from the instrument prop (no ukulele flash)', () => {
+  const chordsModule = require('../data/chords');
+  const spy = jest.spyOn(chordsModule, 'getAllChords');
+
+  render(<ChordLibrary instrument="guitar" setInstrument={() => {}} />);
+
+  // The useState initializer must use the prop instrument, so getAllChords
+  // must NOT be called with 'ukulele' during the initial render.
+  expect(spy).not.toHaveBeenCalledWith('ukulele');
+  spy.mockRestore();
+});
+
 // Regression guard for issue #426: multi-term chord search must not match
 // major-7th chords when any search term is a minor query (term ending in 'm').
 // E.g. searching "c m" (C minor) must not return Cmaj7 because "cmaj7"
