@@ -204,7 +204,12 @@ function ChordPage({ chord, onGoBack }) {
 }
 
 function ChordCard({ chord, selected, onClick }) {
-  const fingerCount = chord.frets.filter(f => f > 0).length;
+  // Count distinct fingers actually used (not fretted strings), so barre
+  // shapes where one finger presses multiple strings aren't overstated.
+  // Falls back to the fretted-string count when no finger data is present.
+  const fingerCount = (chord.fingers || []).filter(f => f > 0).length
+    ? new Set(chord.fingers.filter(f => f > 0)).size
+    : chord.frets.filter(f => f > 0).length;
   // Count only variations that are distinct from the primary shape (same dedupe
   // logic as ChordDetail, issue #190 — a variation whose frets AND fingers
   // equal the primary is a duplicate and should not be advertised as available).

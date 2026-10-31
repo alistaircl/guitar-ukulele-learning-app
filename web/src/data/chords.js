@@ -202,6 +202,13 @@ export function searchChords(query) {
   if (lowerQuery === 'minor') {
     return ALL_CHORDS.filter(chord => /^[a-g][#b]?m(7|$)/.test(chord.name.toLowerCase()));
   }
+  if (lowerQuery === 'major') {
+    return ALL_CHORDS.filter(chord => {
+      const name = chord.name.toLowerCase();
+      // Match basic major (C, F#, G) and major 7th (Cmaj7, F#maj7)
+      return /^[a-g][#b]?(maj7)?$/.test(name);
+    });
+  }
   if (['major 7', 'major seventh', 'major 7th'].includes(lowerQuery)) {
     return ALL_CHORDS.filter(chord => chord.name.toLowerCase().includes('maj7'));
   }
@@ -222,6 +229,12 @@ export function searchChords(query) {
     return ALL_CHORDS.filter(chord => {
       const name = chord.name.toLowerCase();
       if (excludeMaj7 && name.includes('maj7')) return false;
+      // Bare root note (e.g. "c", "f#", "bb") matches the exact chord only,
+      // not substring matches like Cm/C7/Cmaj7 for query "c". "c major"
+      // normalizes to "c", so this also fixes that query.
+      if (/^[a-g][#b]?$/.test(term)) {
+        return name === term;
+      }
       return name.includes(term);
     });
   }
@@ -385,6 +398,12 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
   if (lowerQuery === 'minor') {
     return chords.filter(chord => /^[a-g][#b]?m(7|$)/.test(chord.name.toLowerCase()));
   }
+  if (lowerQuery === 'major') {
+    return chords.filter(chord => {
+      const name = chord.name.toLowerCase();
+      return /^[a-g][#b]?(maj7)?$/.test(name);
+    });
+  }
   if (['major 7', 'major seventh', 'major 7th'].includes(lowerQuery)) {
     return chords.filter(chord => chord.name.toLowerCase().includes('maj7'));
   }
@@ -395,19 +414,30 @@ export function searchChordsByInstrument(query, instrument = 'ukulele') {
   const searchTerms = normalizedQuery.split(/\s+/).filter(term => term.length > 0);
   
   if (searchTerms.length === 1) {
+    const term = searchTerms[0];
     return chords.filter(chord => {
-      const term = searchTerms[0];
       const name = chord.name.toLowerCase();
       // A minor query (term ending in 'm') must not substring-match
       // major-7th chords ('cmaj7' contains 'cm').
       if (term.endsWith('m') && name.includes('maj7')) return false;
-      return name.includes(term);
+    // Bare root note (e.g. "c", "f#", "bb") matches the exact chord only.
+    if (/^[a-g][#b]?$/.test(term)) {
+      return name === term;
+    }
+    return name.includes(term);
     });
   }
   
   // Multiple terms: find chords matching ALL terms (AND logic)
   return chords.filter(chord => {
     const chordName = chord.name.toLowerCase();
+    // A minor query (any term ending in 'm') must not substring-match
+    // major-7th chords: 'cmaj7' contains both 'c' and 'm', so a bare AND
+    // match wrongly returns Cmaj7 for 'C minor'. Apply the same maj7
+    // exclusion that the single-term path already uses.
+    if (searchTerms.some(term => term.endsWith('m')) && chordName.includes('maj7')) {
+      return false;
+    }
     return searchTerms.every(term => chordName.includes(term));
   });
 }

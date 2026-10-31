@@ -7,7 +7,19 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
   const nutH = 5;
   const markerTop = 10;   // y offset where open/muted markers sit
   const fretTop = nutH + markerTop + 12; // y where fret 1 starts
-  const numFrets = 4;
+
+  // Find minimum positive fret (ignore -1 muted and 0 open strings)
+  const positiveFrets = frets.filter(f => f > 0);
+  const hasOpenString = frets.some(f => f === 0);
+  const minFret = positiveFrets.length > 0 ? Math.min(...positiveFrets) : 1;
+  const maxFret = positiveFrets.length > 0 ? Math.max(...positiveFrets) : 1;
+
+  // Number of frets to display: at least 4, wider if the shape spans more
+  // frets than a 4-fret window can hold (e.g. Dm barre [2,2,1,5] spans 1-5).
+  // Open-position voicings always start at the nut and keep a 4-fret window.
+  const numFrets = hasOpenString || positiveFrets.length === 0
+    ? 4
+    : Math.max(4, maxFret - minFret + 1);
   const fretH = (svgH - fretTop) / numFrets;
   const marginX = 8;
   const strAreaX = marginX;
@@ -24,18 +36,14 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
   );
 
   // Calculate dynamic start fret based on chord data
-  // Find minimum positive fret (ignore -1 muted and 0 open strings)
   const startFret = (() => {
-    const positiveFrets = frets.filter(f => f > 0);
     if (positiveFrets.length === 0) return 1;
     // A chord with any open string (fret 0) is played at the nut. Shifting the
     // base fret off the nut would produce a misleading 'Nfr' label alongside
     // the open-string markers (issue #213), so open-position voicings always
     // start at the nut. Only barre/movable shapes with all strings fretted or
     // muted may shift their base fret.
-    if (frets.some(f => f === 0)) return 1;
-    const minFret = Math.min(...positiveFrets);
-    const maxFret = Math.max(...positiveFrets);
+    if (hasOpenString) return 1;
     // If fret range spans more than 4 frets, shift window to start from min
     if (maxFret - minFret >= 4) {
       return minFret;
@@ -43,71 +51,41 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     return minFret > 1 ? minFret : 1;
   })();
 
-  // Detect barre chords (same finger used on 2+ adjacent strings)
+  // Detect barre chords: same finger used on 2+ strings at the same fret,
+  // whether the strings are adjacent or not (e.g. a partial barre with a gap,
+  // or muted/open strings between the barred strings).
   const detectBarres = () => {
     const barres = [];
-    const fingerGroups = {};
-    
-    // Group strings by finger number (ignore 0 and negative)
+    const groups = {};
+
+    // Group strings by (finger, fret). Ignore open (0) and muted (-1) strings
+    // and strings with no finger assigned.
     frets.forEach((fret, stringIdx) => {
       const finger = fingers[stringIdx] || 0;
       if (finger > 0 && fret > 0) {
-        if (!fingerGroups[finger]) {
-          fingerGroups[finger] = [];
+        const key = `${finger}:${fret}`;
+        if (!groups[key]) {
+          groups[key] = [];
         }
-        fingerGroups[finger].push({ stringIdx, fret });
+        groups[key].push({ stringIdx, fret, finger });
       }
     });
-    
-    // Find consecutive strings with same finger
-    Object.keys(fingerGroups).forEach(finger => {
-      const strings = fingerGroups[finger].sort((a, b) => a.stringIdx - b.stringIdx);
-      let currentBarre = [];
-      
-      strings.forEach((stringObj, idx) => {
-        if (currentBarre.length === 0) {
-          currentBarre.push(stringObj);
-        } else {
-          const last = currentBarre[currentBarre.length - 1];
-          // Check if consecutive string and same fret
-          if (stringObj.stringIdx === last.stringIdx + 1 && stringObj.fret === last.fret) {
-            currentBarre.push(stringObj);
-          } else {
-            // End of current barre, check if it's valid (2+ strings)
-            if (currentBarre.length >= 2) {
-              barres.push({
-                finger: parseInt(finger),
-                fret: currentBarre[0].fret,
-                startString: currentBarre[0].stringIdx,
-                endString: currentBarre[currentBarre.length - 1].stringIdx
-              });
-            }
-            currentBarre = [stringObj];
-          }
-        }
-        
-        // Add barre if we're at the last string and have a valid barre that wasn't already added
-        // A barre is already added if the else block fired on this iteration
-        if (idx === strings.length - 1 && currentBarre.length >= 2) {
-          // Check if this exact barre already exists (prevent duplicates)
-          const exists = barres.some(b => 
-            b.finger === parseInt(finger) && 
-            b.fret === currentBarre[0].fret && 
-            b.startString === currentBarre[0].stringIdx &&
-            b.endString === currentBarre[currentBarre.length - 1].stringIdx
-          );
-          if (!exists) {
-            barres.push({
-              finger: parseInt(finger),
-              fret: currentBarre[0].fret,
-              startString: currentBarre[0].stringIdx,
-              endString: currentBarre[currentBarre.length - 1].stringIdx
-            });
-          }
-        }
-      });
+
+    // Any group with 2+ strings sharing the same finger and fret is a barre.
+    // The barre line spans from the lowest to the highest string index in the
+    // group (issue #428), regardless of whether the strings are consecutive.
+    Object.keys(groups).forEach(key => {
+      const strings = groups[key].sort((a, b) => a.stringIdx - b.stringIdx);
+      if (strings.length >= 2) {
+        barres.push({
+          finger: strings[0].finger,
+          fret: strings[0].fret,
+          startString: strings[0].stringIdx,
+          endString: strings[strings.length - 1].stringIdx,
+        });
+      }
     });
-    
+
     return barres;
   };
 
@@ -203,10 +181,11 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     </>
   );
 
-  // Render 4 horizontal fret lines (span full string width)
+  // Render horizontal fret lines (span full string width); numFrets+1 lines
+  // for numFrets fret spaces (e.g. 5 frets needs 6 lines).
   const renderFrets = () => (
     <>
-      {[0, 1, 2, 3, 4].map(i => (
+      {[...Array(numFrets + 1)].map((_, i) => (
         <line key={`fret-${i}`}
           x1={strX[0]} y1={fretTop + i * fretH}
           x2={strX[numStrings - 1]} y2={fretTop + i * fretH}

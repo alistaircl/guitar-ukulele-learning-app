@@ -7,6 +7,12 @@
   --text-secondary: #9090a0;
   --accent-primary: #6366f1;
   --accent-secondary: #8b5cf6;
+  /* Lighter accent for accent-colored text on dark backgrounds (WCAG AA 4.5:1) */
+  --accent-text: #818cf1;
+  /* Darker accent for accent backgrounds under white text (WCAG AA 4.5:1) */
+  --accent-bg: #4f46e5;
+  /* Lighter red for error text on the existing error fill background */
+  --danger-text: #f87171;
   --success: #22c55e;
   --warning: #f59e0b;
   --danger: #ef4444;
@@ -188,8 +194,8 @@ body {
   font-size: 0.9rem;
 }
 
-.tuning-btn:hover { background: var(--accent-primary); color: white; }
-.tuning-btn.active { background: var(--accent-primary); color: white; }
+.tuning-btn:hover { background: var(--accent-bg); color: white; }
+.tuning-btn.active { background: var(--accent-bg); color: white; }
 .tuning-btn:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 
 /* Reference tone buttons for tuner */
@@ -206,14 +212,14 @@ body {
   background: var(--bg-tertiary);
   border: 1px solid var(--accent-primary);
   border-radius: 6px;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   cursor: pointer;
   transition: var(--transition);
   font-size: 0.85rem;
   font-weight: 500;
 }
 
-.tone-btn:hover { background: var(--accent-primary); color: white; }
+.tone-btn:hover { background: var(--accent-bg); color: white; }
 .tone-btn:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 
 .tuner-controls {
@@ -224,7 +230,7 @@ body {
 
 .control-btn {
   padding: 0.8rem 1.5rem;
-  background: var(--accent-primary);
+  background: var(--accent-bg);
   border: none;
   border-radius: var(--border-radius);
   color: white;
@@ -251,7 +257,7 @@ body {
 .error-message {
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid var(--danger);
-  color: var(--danger);
+  color: var(--danger-text);
   padding: 1rem;
   border-radius: var(--border-radius);
   margin: 1rem 0;
@@ -296,7 +302,7 @@ body {
   background: rgba(102, 126, 234, 0.15);
   border-radius: 4px;
   font-size: 0.75rem;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font-weight: 600;
   text-align: center;
 }
@@ -468,7 +474,7 @@ body {
   box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.6);
   outline-color: #ffffff;
 }
-.bottom-nav .nav-btn.active { color: var(--accent-primary); }
+.bottom-nav .nav-btn.active { color: var(--accent-text); }
 
 .nav-icon { font-size: 1.2rem; }
 .nav-label {

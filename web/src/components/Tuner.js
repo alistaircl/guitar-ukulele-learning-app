@@ -409,12 +409,16 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
   }, [instrument, instrumentProp]);
 
-  // Switch instrument, and reset to that instrument's first tuning so the
+  // Switch instrument, and restore that instrument's saved tuning if one
+  // exists; otherwise fall back to the instrument's first tuning so the
   // selector never shows a tuning that doesn't belong to the active instrument.
+  // Previously this always reset to the first tuning AND clobbered the saved
+  // per-instrument preference (issue #416).
   const toggleInstrument = () => {
     const next = activeInstrument === 'ukulele' ? 'guitar' : 'ukulele';
     setActiveInstrument(next);
-    setTuning(TUNINGS_BY_INSTRUMENT[next][0]);
+    const saved = safeStorageGet(tuningStorageKey(next));
+    setTuning(saved && TUNINGS[saved] && TUNINGS[saved].instrument === next ? saved : TUNINGS_BY_INSTRUMENT[next][0]);
   };
 
   // Gauge uses a centered marker that moves left (flat) or right (sharp)
