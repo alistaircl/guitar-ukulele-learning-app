@@ -878,7 +878,7 @@ function PracticeMode({ initialSongId, onDone }) {
         </div>
         <div>
           {!isPlaying && countdown === null && (
-            <button className="control-btn" onClick={startAutoplay} style={{ background: 'var(--accent-primary)', color: 'white', fontSize: '1rem', padding: '0.6rem 1.5rem' }}>
+            <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); startAutoplay(); }} style={{ background: 'var(--accent-primary)', color: 'white', fontSize: '1rem', padding: '0.6rem 1.5rem' }}>
               ▶ Start
             </button>
           )}
