@@ -132,6 +132,7 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
                 </span>
               )}
               <button
+                type="button"
                 onClick={toggleInstrument}
                 className="control-btn"
                 style={{
@@ -193,7 +194,7 @@ function ChordPage({ chord, onGoBack }) {
   return (
     <div className="chord-page">
       <div className="chord-page-header">
-        <button onClick={onGoBack} className="back-button">
+        <button type="button" onClick={onGoBack} className="back-button">
           <FaArrowLeft /> Back to Chord Library
         </button>
         <h2 className="section-title">{chord.name}</h2>
