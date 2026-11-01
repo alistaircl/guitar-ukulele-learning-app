@@ -1189,8 +1189,9 @@ function PracticeMode({ initialSongId, onDone }) {
           ✗ Missed
         </button>
         <button 
+          type="button"
           className="control-btn" 
-          onClick={() => current.chord && playChord(current.chord)}
+          onClick={(e) => { e.preventDefault(); current.chord && playChord(current.chord); }}
           aria-label="Play chord sound"
           style={{ background: 'var(--accent-secondary)' }}
         >
