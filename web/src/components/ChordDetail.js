@@ -87,6 +87,7 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
         {!showPrimaryLabel && <h2 style={{ margin: 0 }}>{chord.name}</h2>}
         <button
+          type="button"
           className="control-btn"
           onClick={() => playChordFor(chord.name)}
           aria-label={`Play ${chord.name} chord`}
