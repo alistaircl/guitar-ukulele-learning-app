@@ -438,7 +438,8 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 className="section-title" style={{ margin: 0 }}>Tuner</h2>
         <button
-          onClick={toggleInstrument}
+          type="button"
+          onClick={(e) => { e.preventDefault(); toggleInstrument(); }}
           className="control-btn"
           style={{
             display: 'flex',
@@ -498,7 +499,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         ))}
       </div>
       <div className="tuner-controls">
-        <button className="control-btn" type="button" onClick={isListening ? stopTuner : startTuner}>
+        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }}>
           {isListening ? 'Stop' : 'Start'}
         </button>
       </div>
