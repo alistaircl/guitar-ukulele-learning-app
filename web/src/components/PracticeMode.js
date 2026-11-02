@@ -1169,35 +1169,19 @@ function PracticeMode({ initialSongId, onDone }) {
 
       {/* Action buttons */}
       <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-        <button className="control-btn" onClick={prevLine} aria-label="Previous line" disabled={currentIndex === 0}>
+        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); prevLine(); }} aria-label="Previous line" disabled={currentIndex === 0}>
           ← Prev
         </button>
-        <button 
-          className="control-btn" 
-          onClick={markCorrect}
-          aria-label="Mark as correct"
-          style={{ background: 'var(--success)', color: 'white' }}
-        >
+        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); markCorrect(); }} aria-label="Mark as correct" style={{ background: 'var(--success)', color: 'white' }}>
           ✓ Got it!
         </button>
-        <button 
-          className="control-btn" 
-          onClick={markIncorrect}
-          aria-label="Mark as missed"
-          style={{ background: 'var(--danger)', color: 'white' }}
-        >
+        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); markIncorrect(); }} aria-label="Mark as missed" style={{ background: 'var(--danger)', color: 'white' }}>
           ✗ Missed
         </button>
-        <button 
-          type="button"
-          className="control-btn" 
-          onClick={(e) => { e.preventDefault(); current.chord && playChord(current.chord); }}
-          aria-label="Play chord sound"
-          style={{ background: 'var(--accent-secondary)' }}
-        >
+        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); current.chord && playChord(current.chord); }} aria-label="Play chord sound" style={{ background: 'var(--accent-secondary)' }}>
           🔊 Play
         </button>
-        <button className="control-btn" onClick={nextLine} aria-label="Next line" disabled={currentIndex === selectedSong.lyrics.length - 1}>
+        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); nextLine(); }} aria-label="Next line" disabled={currentIndex === selectedSong.lyrics.length - 1}>
           Next →
         </button>
       </div>
