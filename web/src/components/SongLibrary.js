@@ -131,6 +131,7 @@ function SongLibrary({ instrument = 'ukulele', onStartPractice }) {
       {viewMode === 'grid' && selectedSongId && (
         <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
           <button
+            type="button"
             className="control-btn"
             onClick={(e) => { e.stopPropagation(); if (onStartPractice) onStartPractice(selectedSong); }}
           >

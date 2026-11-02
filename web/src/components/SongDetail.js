@@ -27,8 +27,9 @@ function SongDetail({ songId, onBack, onStartPractice, instrument = 'ukulele' })
     <div className="section">
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <button 
+          type="button"
           className="control-btn" 
-          onClick={onBack}
+          onClick={(e) => { e.preventDefault(); onBack(); }}
           style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
         >
           ← Back to Songs
