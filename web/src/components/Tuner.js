@@ -151,9 +151,18 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         throw error;
       }
 
-      // Explicitly check for available audio input devices
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const hasMic = devices.some(device => device.kind === 'audioinput');
+      // Explicitly check for available audio input devices.
+      // enumerateDevices() can fail in restricted environments (headless
+      // browsers, private modes, blocked permissions) — treat that as
+      // non-fatal and still attempt getUserMedia(), which will surface its
+      // own clear error if no microphone is available (issue #433).
+      let hasMic = true;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        hasMic = devices.some(device => device.kind === 'audioinput');
+      } catch (enumErr) {
+        console.warn('enumerateDevices() failed, proceeding to getUserMedia():', enumErr.message || enumErr);
+      }
       
       if (!hasMic) {
         setError('No microphone found. Please connect a microphone and try again.');
