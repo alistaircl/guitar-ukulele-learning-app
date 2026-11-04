@@ -199,7 +199,7 @@ function ChordPage({ chord, onGoBack }) {
         </button>
         <h2 className="section-title">{chord.name}</h2>
       </div>
-      <ChordDetail chord={chord} showPrimaryLabel={true} />
+      <ChordDetail chord={chord} showPrimaryLabel={true} onClose={onGoBack} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ChordDiagram from './ChordDiagram';
 import { CHORD_FREQ } from '../components/PracticeMode';
 
@@ -66,8 +66,19 @@ function playChordFor(chordName) {
   if (key) playChordNotes(CHORD_FREQ[key]);
 }
 
-function ChordDetail({ chord, showPrimaryLabel = false }) {
+function ChordDetail({ chord, showPrimaryLabel = false, onClose }) {
   const variations = chord.variations || [];
+
+  // Close the chord detail view on Escape key (issue #467).
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose?.();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
   // Filter out variations that are identical to the primary shape on BOTH frets
   // and fingers — those render the exact same diagram twice (issue #190).
   // Variations that share frets but use different fingers (e.g. "C (pinky)",
@@ -95,6 +106,25 @@ function ChordDetail({ chord, showPrimaryLabel = false }) {
         >
           ▶ Play chord
         </button>
+        {onClose && (
+          <button
+            type="button"
+            className="control-btn"
+            onClick={onClose}
+            aria-label="Close chord detail"
+            style={{
+              padding: '0.4rem 0.8rem',
+              fontSize: '1.2rem',
+              cursor: 'pointer',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        )}
       </div>
       <div className="variations-grid">
         {/* Always display the primary chord first */}
