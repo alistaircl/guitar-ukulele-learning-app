@@ -40,22 +40,33 @@ function playChordNotes(freqs) {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext || !freqs || freqs.length === 0) return;
   const ctx = new AudioContext();
-  if (ctx.state === 'suspended') {
-    ctx.resume().catch(() => {});
+  const play = () => {
+    const now = ctx.currentTime;
+    freqs.forEach((freq) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+      osc.start(now);
+      osc.stop(now + 0.5);
+    });
+  };
+  // Ensure the AudioContext is running before scheduling oscillators.
+  // Without this, oscillators started into a suspended context produce no
+  // audio — the resume() promise resolves asynchronously, so we must wait
+  // for it before playing (issue #465).
+  if (ctx.state === 'running') {
+    play();
+  } else {
+    ctx.resume().then(() => {
+      if (ctx.state === 'running') play();
+    }).catch(() => {});
   }
-  const now = ctx.currentTime;
-  freqs.forEach((freq) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'triangle';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-    osc.start(now);
-    osc.stop(now + 0.5);
-  });
+  setTimeout(() => ctx.close(), 600);
 }
 
 function playChordFor(chordName) {
