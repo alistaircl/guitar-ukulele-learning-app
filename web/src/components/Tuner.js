@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaGuitar } from 'react-icons/fa';
 
 const TUNINGS = {
   // Ukulele tunings
@@ -465,8 +464,12 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
           }}
           aria-label={`Switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'} tuner`}
         >
-          {activeInstrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span> : <FaGuitar aria-hidden="true" />}
-                     {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
+          {activeInstrument === 'ukulele' ? (
+            <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span>
+          ) : (
+            <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎸</span>
+          )}
+          {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
         </button>
       </div>
       <div className="tuner-display">
