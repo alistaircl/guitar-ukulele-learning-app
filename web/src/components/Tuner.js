@@ -164,11 +164,12 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         console.warn('enumerateDevices() failed, proceeding to getUserMedia():', enumErr.message || enumErr);
       }
       
-      if (!hasMic) {
-        setError('No microphone found. Please connect a microphone and try again.');
-        return;
-      }
-
+      // Note: we deliberately do NOT bail out here when hasMic is false.
+      // enumerateDevices() can return an empty list in headless/test
+      // environments or when the mic is temporarily unavailable, but
+      // getUserMedia() is the authoritative check — it will surface its own
+      // clear error (NotFoundError) if no microphone exists. Bail out only
+      // after getUserMedia() has had a chance to report the real problem.
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
