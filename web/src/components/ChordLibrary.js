@@ -61,9 +61,6 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
     setSharedInstrument?.(next);
   };
   const [filteredChords, setFilteredChords] = useState(getAllChords(activeInstrument));
-  // null = unknown (no write attempted yet), true = saved, false = both
-  // storage backends rejected the write — surface a UI hint in that case.
-  const [preferenceSaved, setPreferenceSaved] = useState(null);
 
   // Update filtered chords when search query or instrument changes
   React.useEffect(() => {
@@ -76,18 +73,16 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
   }, [searchQuery, activeInstrument]);
 
   // Save instrument preference to available storage when it changes.
-  // localStorage is preferred; sessionStorage is a fallback. If both fail
-  // (e.g. private browsing with all storage blocked), record it so the UI
-  // can inform the user that their preference won't persist across refreshes.
+  // localStorage is preferred; sessionStorage is a fallback. In private
+  // browsing or when storage is blocked, the write silently fails and the
+  // preference just won't persist across refreshes (silent fallback).
   // When parent-controlled (instrumentProp provided), the parent owns
   // persistence so we don't write here.
   React.useEffect(() => {
     if (instrumentProp !== undefined) {
-      setPreferenceSaved(true);
       return;
     }
-    const saved = safeStorageSet(PREFERENCE_KEY, instrument);
-    setPreferenceSaved(saved);
+    safeStorageSet(PREFERENCE_KEY, instrument);
   }, [instrument, instrumentProp]);
 
   const toggleInstrument = () => {
@@ -108,29 +103,7 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h2 className="section-title" style={{ margin: 0 }}>Chord Library</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {preferenceSaved === false && (
-                <span
-                  role="status"
-                  aria-live="polite"
-                  title="Private browsing mode or disabled browser storage prevents saving your instrument preference. It will reset to ukulele on refresh."
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '1.25rem',
-                    height: '1.25rem',
-                    borderRadius: '50%',
-                    background: 'var(--warning)',
-                    color: '#fff',
-                    fontSize: '0.75rem',
-                    fontWeight: '700',
-                    cursor: 'help'
-                  }}
-                  aria-label="Warning: instrument preference cannot be saved in this browser session"
-                >
-                  !
-                </span>
-              )}
+
               <button
                 type="button"
                 onClick={toggleInstrument}
@@ -141,14 +114,14 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
                   gap: '0.5rem',
                   padding: '0.5rem 1rem',
                   background: 'var(--bg-panel)',
-                  border: `2px solid ${preferenceSaved === false ? 'var(--warning)' : 'var(--accent-primary)'}`,
+                  border: '2px solid var(--accent-primary)',
                   borderRadius: '8px',
                   color: 'var(--text-primary)',
                   cursor: 'pointer',
                   fontSize: '0.9rem',
                   fontWeight: '600'
                 }}
-                aria-label={`Current instrument: ${activeInstrument}. Click to switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'} chords${preferenceSaved === false ? '. Note: preference cannot be saved in this session.' : ''}`}
+                aria-label={`Current instrument: ${activeInstrument}. Click to switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'} chords`}
               >
                 {activeInstrument === 'ukulele' ? (
                 <span style={{ fontSize: '1.2rem' }}>🎵</span>
