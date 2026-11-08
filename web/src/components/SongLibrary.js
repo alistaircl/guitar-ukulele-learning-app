@@ -12,12 +12,35 @@ const DIFFICULTY_CLASS_MAP = {
   'Hard': 'hard'
 };
 
+// Persist Song Library filters (search, difficulty, key) so they survive
+// navigating away from the Songs tab and returning (issue #482).
+const SONG_FILTERS_KEY = 'guitar-ukulele-song-filters';
+
+const loadSavedFilters = () => {
+  try {
+    const raw = localStorage.getItem(SONG_FILTERS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        searchQuery: parsed.searchQuery ?? '',
+        difficultyFilter: parsed.difficultyFilter ?? 'All',
+        keyFilter: parsed.keyFilter ?? 'All',
+      };
+    }
+  } catch (e) {
+    // localStorage unavailable or corrupt — start from defaults
+  }
+  return { searchQuery: '', difficultyFilter: 'All', keyFilter: 'All' };
+};
+
 function SongLibrary({ instrument = 'ukulele', onStartPractice }) {
   const [selectedSongId, setSelectedSongId] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'detail'
-  const [searchQuery, setSearchQuery] = useState('');
-  const [difficultyFilter, setDifficultyFilter] = useState('All');
-  const [keyFilter, setKeyFilter] = useState('All');
+  // Restore persisted filters so they survive navigating away and back (issue #482)
+  const initialFilters = loadSavedFilters();
+  const [searchQuery, setSearchQuery] = useState(initialFilters.searchQuery);
+  const [difficultyFilter, setDifficultyFilter] = useState(initialFilters.difficultyFilter);
+  const [keyFilter, setKeyFilter] = useState(initialFilters.keyFilter);
 
   // Get unique difficulties and keys for filter dropdowns
   const difficulties = ['All', ...new Set(PRACTICE_SONGS.map(s => s.difficulty))];
@@ -32,6 +55,22 @@ function SongLibrary({ instrument = 'ukulele', onStartPractice }) {
     const matchesKey = keyFilter === 'All' || song.key === keyFilter;
     return matchesSearch && matchesDifficulty && matchesKey;
   });
+
+  // Persist filters whenever they change so they survive navigation (issue #482)
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(
+        SONG_FILTERS_KEY,
+        JSON.stringify({
+          searchQuery,
+          difficultyFilter,
+          keyFilter,
+        })
+      );
+    } catch (e) {
+      // localStorage unavailable or full — filters won't persist across sessions
+    }
+  }, [searchQuery, difficultyFilter, keyFilter]);
 
   // Find song by ID
   const selectedSong = PRACTICE_SONGS.find(s => s.id === selectedSongId);

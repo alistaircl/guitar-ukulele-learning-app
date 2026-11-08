@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ChordDetail from './ChordDetail';
 import ChordDiagram from './ChordDiagram';
-import { FaArrowLeft, FaSearch, FaGuitar } from 'react-icons/fa';
+import { FaArrowLeft, FaSearch } from 'react-icons/fa';
 import { getAllChords, searchChordsByInstrument } from '../data/chords';
 
 // Safe storage helpers: try localStorage first, fall back to sessionStorage,
@@ -150,8 +150,12 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
                 }}
                 aria-label={`Current instrument: ${activeInstrument}. Click to switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'} chords${preferenceSaved === false ? '. Note: preference cannot be saved in this session.' : ''}`}
               >
-                {activeInstrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }}>🎵</span> : <FaGuitar />}
-                {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}<span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '0.25rem' }}> • current</span>
+                {activeInstrument === 'ukulele' ? (
+                <span style={{ fontSize: '1.2rem' }}>🎵</span>
+              ) : (
+                <span style={{ fontSize: '1.2rem' }}>🎸</span>
+              )}
+              {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}<span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '0.25rem' }}> • current</span>
               </button>
             </div>
           </div>
@@ -220,7 +224,7 @@ function ChordCard({ chord, selected, onClick }) {
              (v.fingers || []).length === chord.fingers.length &&
              (v.fingers || []).every((f, i) => f === chord.fingers[i]))
   );
-  const variationCount = distinctVariations.length;
+  const variationCount = distinctVariations.length > 0 ? distinctVariations.length + 1 : 0;
   return (
     <div
       className={`chord-card ${selected ? 'selected' : ''}`}

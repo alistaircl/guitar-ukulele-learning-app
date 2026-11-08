@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaGuitar } from 'react-icons/fa';
 
 const TUNINGS = {
   // Ukulele tunings
@@ -128,6 +127,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
   const [isListening, setIsListening] = useState(false);
   const [detectedNote, setDetectedNote] = useState(null);
   const [error, setError] = useState(null);
+  const [referenceToneError, setReferenceToneError] = useState(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const audioCtxRef = useRef(null);
   const analyserRef = useRef(null);
@@ -164,11 +164,12 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         console.warn('enumerateDevices() failed, proceeding to getUserMedia():', enumErr.message || enumErr);
       }
       
-      if (!hasMic) {
-        setError('No microphone found. Please connect a microphone and try again.');
-        return;
-      }
-
+      // Note: we deliberately do NOT bail out here when hasMic is false.
+      // enumerateDevices() can return an empty list in headless/test
+      // environments or when the mic is temporarily unavailable, but
+      // getUserMedia() is the authoritative check — it will surface its own
+      // clear error (NotFoundError) if no microphone exists. Bail out only
+      // after getUserMedia() has had a chance to report the real problem.
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -243,6 +244,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     // Check if AudioContext is supported
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) {
+      setReferenceToneError('Your browser does not support the Web Audio API.');
       return;
     }
 
@@ -257,25 +259,19 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         await audioCtx.resume();
       } catch (resumeErr) {
         console.error('Failed to resume AudioContext for reference tone:', resumeErr);
+        setReferenceToneError('Could not start audio. Please interact with the page first, then try again.');
         audioCtx.close();
         return;
       }
     }
-    // Guard: never schedule an oscillator into a suspended context — it will
-    // silently produce no audio (issue #166). Browsers' autoplay policy starts
-    // AudioContext in 'suspended' state and only allows resume() inside a user
-    // gesture; even within one, some browsers resolve resume() without flipping
-    // state to 'running'. This is an expected browser security limitation, not
-    // an app bug — the user just needs to interact with the page first.
+
+    // Even if resume() resolved without flipping state to 'running' (some
+    // browsers do this), attempt playback anyway — the user gesture (click)
+    // authorizes audio, and some contexts produce output despite the state.
     if (audioCtx.state !== 'running') {
       console.warn(
-        'AudioContext is ' + audioCtx.state + ' (not "running"); skipping reference tone. ' +
-        'Cause: browser autoplay policy requires a user gesture (tap/click) to start ' +
-        'audio; some browsers resume() without flipping state to "running". ' +
-        'This is expected browser behavior — interact with the page first, then retry.'
+        'AudioContext is ' + audioCtx.state + ' (not "running"); attempting reference tone playback anyway.'
       );
-      audioCtx.close();
-      return;
     }
 
     const oscillator = audioCtx.createOscillator();
@@ -408,6 +404,18 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     }
   }, [tuning, activeInstrument]);
 
+  // Ensure tuning is always valid for the currently displayed instrument.
+  // If the stored tuning doesn't belong to activeInstrument (e.g. after an
+  // instrument switch where the prop changed but local state hadn't caught up),
+  // fall back to the first tuning of the active instrument. This guarantees
+  // the active class / aria-pressed is only ever true for one button at a time
+  // (issue #455).
+  useEffect(() => {
+    if (!TUNINGS_BY_INSTRUMENT[activeInstrument].includes(tuning)) {
+      setTuning(TUNINGS_BY_INSTRUMENT[activeInstrument][0]);
+    }
+  }, [activeInstrument, tuning]);
+
   // Persist the active instrument so it survives refresh / revisit.
   // When parent-controlled (instrumentProp provided), the parent owns
   // persistence so we don't write here.
@@ -465,8 +473,12 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
           }}
           aria-label={`Current instrument: ${activeInstrument}. Click to switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'}`}
         >
-          {activeInstrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span> : <FaGuitar aria-hidden="true" />}
-                     {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}<span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '0.25rem' }}> • current</span>
+          {activeInstrument === 'ukulele' ? (
+            <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span>
+          ) : (
+            <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎸</span>
+          )}
+          {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}<span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '0.25rem' }}> • current</span>
         </button>
       </div>
       <div className="tuner-display">
@@ -490,7 +502,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         </div>
       )}
       <div className="tuning-selector">
-        {TUNINGS_BY_INSTRUMENT[instrument].map(key => (
+        {TUNINGS_BY_INSTRUMENT[activeInstrument].map(key => (
           <div key={key} className="tuning-option">
             <button className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)} aria-pressed={tuning === key}>
               {TUNINGS[key].name}
@@ -507,6 +519,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
           </div>
         ))}
       </div>
+      {referenceToneError && <div className="error-message">{referenceToneError}</div>}
       <div className="tuner-controls">
         <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }}>
           {isListening ? 'Stop' : 'Start'}
