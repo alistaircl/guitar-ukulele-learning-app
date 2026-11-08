@@ -100,3 +100,13 @@ test('Start begins the countdown even when AudioContext.resume() never resolves 
     global.AudioContext = OriginalAudioContext;
   }
 });
+
+// Regression guard for issue #458: clicking Start initiates a practice session
+// (countdown begins and the Start button gives way to playback controls).
+test('Start button initiates a practice session', async () => {
+  const { getByText, queryByText } = render(<PracticeMode />);
+  fireEvent.click(getByText('▶ Start'));
+  await waitFor(() => expect(getByText('3')).toBeDefined(), { timeout: 5000 });
+  // Start button gives way to playback controls once the countdown is underway
+  expect(queryByText('▶ Start')).toBeNull();
+});
