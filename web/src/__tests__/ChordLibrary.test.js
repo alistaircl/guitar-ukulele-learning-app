@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ChordLibrary from '../components/ChordLibrary';
 import { searchChordsByInstrument } from '../data/chords';
 
@@ -69,4 +69,14 @@ test('searchChordsByInstrument excludes maj7 chords for multi-term query "g m"',
   const names = results.map(chord => chord.name);
   expect(names).not.toContain('Gmaj7');
   expect(names).toContain('Gm');
+});
+
+// Regression guard for issue #456: typing in the Chord Library search filters
+// the chord cards to those matching the query.
+test('chord library search filters the rendered cards', () => {
+  render(<ChordLibrary />);
+  const input = screen.getByPlaceholderText(/Search ukulele chords/);
+  fireEvent.change(input, { target: { value: 'Cmaj7' } });
+  expect(screen.getByText('Cmaj7')).toBeTruthy();
+  expect(screen.queryByText('C')).toBeNull();
 });
