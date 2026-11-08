@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ChordDetail from './ChordDetail';
 import ChordDiagram from './ChordDiagram';
-import { FaArrowLeft, FaSearch, FaGuitar } from 'react-icons/fa';
+import { FaArrowLeft, FaSearch } from 'react-icons/fa';
 import { getAllChords, searchChordsByInstrument } from '../data/chords';
 
 // Safe storage helpers: try localStorage first, fall back to sessionStorage,
@@ -150,8 +150,12 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
                 }}
                 aria-label={`Switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'} chords${preferenceSaved === false ? '. Note: preference cannot be saved in this session.' : ''}`}
               >
-                {activeInstrument === 'ukulele' ? <span style={{ fontSize: '1.2rem' }}>🎵</span> : <FaGuitar />}
-                {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
+                {activeInstrument === 'ukulele' ? (
+                <span style={{ fontSize: '1.2rem' }}>🎵</span>
+              ) : (
+                <span style={{ fontSize: '1.2rem' }}>🎸</span>
+              )}
+              {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
               </button>
             </div>
           </div>
