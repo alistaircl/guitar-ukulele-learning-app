@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ChordLibrary from '../components/ChordLibrary';
 import { searchChordsByInstrument } from '../data/chords';
 
@@ -82,4 +82,26 @@ test('searchChordsByInstrument excludes maj7 chords for multi-term query "g m"',
   const names = results.map(chord => chord.name);
   expect(names).not.toContain('Gmaj7');
   expect(names).toContain('Gm');
+});
+
+// Regression guard for issue #472: searching "m" returns only minor chords,
+// excluding maj7 chords (whose names merely contain the substring "m").
+test('searching "m" returns only minor chords, excludes maj7', () => {
+  const results = searchChordsByInstrument('m', 'ukulele');
+  const names = results.map(chord => chord.name);
+  expect(names).toContain('Am');
+  expect(names).toContain('Cm');
+  expect(names).toContain('Dm');
+  expect(names).not.toContain('Cmaj7');
+  expect(names).not.toContain('Gmaj7');
+  expect(names).not.toContain('Fmaj7');
+});
+
+// Regression guard for issue #485: clicking a chord card opens the chord
+// detail view (ChordPage/ChordDetail) instead of leaving the grid unchanged.
+test('clicking a chord card opens the chord detail view', () => {
+  render(<ChordLibrary />);
+  fireEvent.click(screen.getByText('C').closest('[role="button"]'));
+  expect(screen.getByText('▶ Play chord')).toBeTruthy();
+  expect(screen.getByText('Primary')).toBeTruthy();
 });
