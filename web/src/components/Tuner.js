@@ -471,14 +471,14 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
             fontSize: '0.9rem',
             fontWeight: '600'
           }}
-          aria-label={`Switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'} tuner`}
+          aria-label={`Current instrument: ${activeInstrument}. Click to switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'}`}
         >
           {activeInstrument === 'ukulele' ? (
             <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎵</span>
           ) : (
             <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🎸</span>
           )}
-          {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
+          {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}<span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '0.25rem' }}> • current</span>
         </button>
       </div>
       <div className="tuner-display">

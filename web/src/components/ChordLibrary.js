@@ -148,14 +148,14 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
                   fontSize: '0.9rem',
                   fontWeight: '600'
                 }}
-                aria-label={`Switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'} chords${preferenceSaved === false ? '. Note: preference cannot be saved in this session.' : ''}`}
+                aria-label={`Current instrument: ${activeInstrument}. Click to switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'} chords${preferenceSaved === false ? '. Note: preference cannot be saved in this session.' : ''}`}
               >
                 {activeInstrument === 'ukulele' ? (
                 <span style={{ fontSize: '1.2rem' }}>🎵</span>
               ) : (
                 <span style={{ fontSize: '1.2rem' }}>🎸</span>
               )}
-              {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}
+              {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}<span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '0.25rem' }}> • current</span>
               </button>
             </div>
           </div>
