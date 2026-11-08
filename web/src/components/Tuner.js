@@ -403,6 +403,18 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     }
   }, [tuning, activeInstrument]);
 
+  // Ensure tuning is always valid for the currently displayed instrument.
+  // If the stored tuning doesn't belong to activeInstrument (e.g. after an
+  // instrument switch where the prop changed but local state hadn't caught up),
+  // fall back to the first tuning of the active instrument. This guarantees
+  // the active class / aria-pressed is only ever true for one button at a time
+  // (issue #455).
+  useEffect(() => {
+    if (!TUNINGS_BY_INSTRUMENT[activeInstrument].includes(tuning)) {
+      setTuning(TUNINGS_BY_INSTRUMENT[activeInstrument][0]);
+    }
+  }, [activeInstrument, tuning]);
+
   // Persist the active instrument so it survives refresh / revisit.
   // When parent-controlled (instrumentProp provided), the parent owns
   // persistence so we don't write here.
@@ -489,7 +501,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         </div>
       )}
       <div className="tuning-selector">
-        {TUNINGS_BY_INSTRUMENT[instrument].map(key => (
+        {TUNINGS_BY_INSTRUMENT[activeInstrument].map(key => (
           <div key={key} className="tuning-option">
             <button className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)} aria-pressed={tuning === key}>
               {TUNINGS[key].name}
