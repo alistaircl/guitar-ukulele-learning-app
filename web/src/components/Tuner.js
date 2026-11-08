@@ -127,6 +127,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
   const [isListening, setIsListening] = useState(false);
   const [detectedNote, setDetectedNote] = useState(null);
   const [error, setError] = useState(null);
+  const [referenceToneError, setReferenceToneError] = useState(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const audioCtxRef = useRef(null);
   const analyserRef = useRef(null);
@@ -242,6 +243,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     // Check if AudioContext is supported
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) {
+      setReferenceToneError('Your browser does not support the Web Audio API.');
       return;
     }
 
@@ -256,25 +258,19 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         await audioCtx.resume();
       } catch (resumeErr) {
         console.error('Failed to resume AudioContext for reference tone:', resumeErr);
+        setReferenceToneError('Could not start audio. Please interact with the page first, then try again.');
         audioCtx.close();
         return;
       }
     }
-    // Guard: never schedule an oscillator into a suspended context — it will
-    // silently produce no audio (issue #166). Browsers' autoplay policy starts
-    // AudioContext in 'suspended' state and only allows resume() inside a user
-    // gesture; even within one, some browsers resolve resume() without flipping
-    // state to 'running'. This is an expected browser security limitation, not
-    // an app bug — the user just needs to interact with the page first.
+
+    // Even if resume() resolved without flipping state to 'running' (some
+    // browsers do this), attempt playback anyway — the user gesture (click)
+    // authorizes audio, and some contexts produce output despite the state.
     if (audioCtx.state !== 'running') {
       console.warn(
-        'AudioContext is ' + audioCtx.state + ' (not "running"); skipping reference tone. ' +
-        'Cause: browser autoplay policy requires a user gesture (tap/click) to start ' +
-        'audio; some browsers resume() without flipping state to "running". ' +
-        'This is expected browser behavior — interact with the page first, then retry.'
+        'AudioContext is ' + audioCtx.state + ' (not "running"); attempting reference tone playback anyway.'
       );
-      audioCtx.close();
-      return;
     }
 
     const oscillator = audioCtx.createOscillator();
@@ -510,6 +506,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
           </div>
         ))}
       </div>
+      {referenceToneError && <div className="error-message">{referenceToneError}</div>}
       <div className="tuner-controls">
         <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }}>
           {isListening ? 'Stop' : 'Start'}
