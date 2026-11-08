@@ -224,7 +224,7 @@ function ChordCard({ chord, selected, onClick }) {
              (v.fingers || []).length === chord.fingers.length &&
              (v.fingers || []).every((f, i) => f === chord.fingers[i]))
   );
-  const variationCount = distinctVariations.length;
+  const variationCount = distinctVariations.length > 0 ? distinctVariations.length + 1 : 0;
   return (
     <div
       className={`chord-card ${selected ? 'selected' : ''}`}
