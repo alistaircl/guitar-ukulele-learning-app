@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ChordDiagram from './ChordDiagram';
+import { getChordByInstrument } from '../data/chords';
 
 // Issue #161: Persist practice progress (streak, totalCorrect) per song in
 // localStorage so progress survives component unmount/remount (tab switches).
@@ -832,6 +834,10 @@ function PracticeMode({ initialSongId, onDone }) {
   };
 
   const current = selectedSong?.lyrics ? selectedSong.lyrics[currentIndex] : null;
+  // Look up the current chord's fret/finger data so Practice Mode can render a
+  // real chord diagram (issue #510). Defaults to the ukulele library, matching
+  // the app's default instrument; every practice-song chord exists there.
+  const chordData = current?.chord ? getChordByInstrument(current.chord, 'ukulele') : null;
 
   if (!selectedSong) {
     return (
@@ -1011,6 +1017,15 @@ function PracticeMode({ initialSongId, onDone }) {
               }}>
                 {current.chord}
               </span>
+              {isPlaying && chordData && (
+                <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center' }}>
+                  <ChordDiagram
+                    frets={chordData.frets}
+                    fingers={chordData.fingers}
+                    size={120}
+                    ariaLabel={`Chord diagram for ${current.chord}`} />
+                </div>
+              )}
             </div>
           )}
 
