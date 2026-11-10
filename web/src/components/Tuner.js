@@ -469,11 +469,11 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       <div className="tuner-display">
         <div className="note-display">{detectedNote ? detectedNote.note : '—'}</div>
         <div className="frequency-display">{detectedNote ? `${detectedNote.freq.toFixed(1)} Hz` : '— Hz'}</div>
-        {detectedNote && detectedNote.note !== '?' && (
-          <div className="cents-display">
-            {detectedNote.cents > 0 ? '+' : ''}{detectedNote.cents}¢
-          </div>
-        )}
+        <div className="cents-display">
+          {detectedNote && detectedNote.note !== '?'
+            ? `${detectedNote.cents > 0 ? '+' : ''}${detectedNote.cents}¢`
+            : '—¢'}
+        </div>
       </div>
       <div className="tuner-gauge">
         <div className="gauge-center-marker" />
