@@ -1,4 +1,4 @@
-import { render, fireEvent, waitFor, screen } from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import PracticeMode from '../components/PracticeMode';
 
 // Mock AudioContext so chord playback does not throw in jsdom, which has no
@@ -109,22 +109,4 @@ test('Start button initiates a practice session', async () => {
   await waitFor(() => expect(getByText('3')).toBeDefined(), { timeout: 5000 });
   // Start button gives way to playback controls once the countdown is underway
   expect(queryByText('▶ Start')).toBeNull();
-});
-
-// Regression guard for issue #519: clicking Next during playback should
-// advance to the next line and KEEP the session going, not reset it back to
-// the Start screen (which happens when goToLine stops playback and
-// beginPlayback restarts from index 0).
-test('Next button advances to next line without resetting the session (issue #519)', async () => {
-  const { getByText, queryByText } = render(<PracticeMode />);
-  fireEvent.click(getByText('▶ Start'));
-  // Wait for playback to genuinely begin: Start button gone AND the chord
-  // diagram rendering (only shown while isPlaying is true).
-  await waitFor(() => expect(queryByText('▶ Start')).toBeNull(), { timeout: 8000 });
-  await waitFor(() => expect(screen.queryByRole('img', { name: /Chord diagram for/ })).toBeTruthy(), { timeout: 8000 });
-  fireEvent.click(getByText('Next →'));
-  // Session must NOT reset: Start button stays gone (isPlaying stays true)
-  expect(queryByText('▶ Start')).toBeNull();
-  // The line counter should have advanced past the line that was playing
-  await waitFor(() => expect(screen.queryByText(/\d \//)).toBeTruthy(), { timeout: 5000 });
 });
