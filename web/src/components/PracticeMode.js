@@ -492,7 +492,7 @@ function PracticeMode({ initialSongId, onDone }) {
   // Auto-scroll the active line into view
   const scrollToLine = useCallback((idx) => {
     const el = lineRefs.current[idx];
-    if (el) {
+    if (el && typeof el.scrollIntoView === 'function') {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, []);
@@ -823,13 +823,49 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const nextLine = () => {
     if (currentIndex < selectedSong.lyrics.length - 1) {
-      goToLine(currentIndex + 1, true);
+      advanceLine(currentIndex + 1);
     }
   };
 
   const prevLine = () => {
     if (currentIndex > 0) {
-      goToLine(currentIndex - 1, true);
+      advanceLine(currentIndex - 1);
+    }
+  };
+
+  // Advance to a different line while KEEPING the practice session alive.
+  // Unlike goToLine() (which cancels the rAF loop and stops playback — used
+  // only for jumping to a lyric line when the session is not playing),
+  // advanceLine() lets the user move between lines during playback without
+  // resetting the session back to the Start screen (issue #519).
+  const advanceLine = (nextIdx) => {
+    // Cancel any in-progress countdown so it cannot freeze the overlay (#351)
+    if (countdownRef.current) {
+      clearTimeout(countdownRef.current);
+      countdownRef.current = null;
+    }
+    setCountdown(null);
+    setCurrentIndex(nextIdx);
+    currentIndexRef.current = nextIdx;
+    setFeedback(null);
+    scrollToLine(nextIdx);
+    // Play the chord for the new line, consistent with the autoplay beat.
+    const chord = selectedSong.lyrics[nextIdx].chord;
+    if (chord) {
+      playChord(chord);
+    }
+    // Keep the session alive: re-anchor the playback clock to the new line
+    // and keep the rAF loop running so auto-advance continues instead of
+    // stopping and showing the Start button again (issue #519). Only applies
+    // when playback is actually underway (cumulativeDurations populated).
+    if (cumulativeDurationsRef.current.length > 0) {
+      const elapsedAtNext = nextIdx === 0 ? 0 : cumulativeDurationsRef.current[nextIdx - 1];
+      playbackStartTimeRef.current = Date.now() - elapsedAtNext;
+      if (!rAFRef.current) {
+        rAFRef.current = requestAnimationFrame(playbackLoop);
+      }
+      setIsPlaying(true);
+      setIsPausedWithRef(false);
     }
   };
 
