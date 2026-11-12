@@ -22,6 +22,18 @@ test('song library search filters results', () => {
   expect(screen.queryByText('You Are My Sunshine')).toBeNull();
 });
 
+// Regression guard for issue #516: filtering by difficulty shows only songs
+// of the selected difficulty (Beginner songs are excluded).
+test('difficulty filter filters results (issue #516)', () => {
+  localStorage.clear();
+  render(<SongLibrary />);
+  const select = screen.getByLabelText(/Filter by difficulty/);
+  fireEvent.change(select, { target: { value: 'Intermediate' } });
+  expect(screen.getByText('House of Gold')).toBeTruthy();
+  expect(screen.getByText('Stand By Me')).toBeTruthy();
+  expect(screen.queryByText('Somewhere Over the Rainbow')).toBeNull();
+});
+
 // Regression guard for issue #487: every chord used in a practice song must
 // resolve to a diagram in the chord library (ukulele or guitar) so the Song
 // Detail view never renders "Diagram not in library".
