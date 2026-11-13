@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChordDiagram from './ChordDiagram';
 import { CHORD_FREQ } from '../components/PracticeMode';
 
@@ -79,6 +79,13 @@ function playChordFor(chordName) {
 
 function ChordDetail({ chord, showPrimaryLabel = false, onClose }) {
   const variations = chord.variations || [];
+  const [isPlayingChord, setIsPlayingChord] = useState(false);
+
+  const handlePlayChord = () => {
+    playChordFor(chord.name);
+    setIsPlayingChord(true);
+    setTimeout(() => setIsPlayingChord(false), 700);
+  };
 
   // Close the chord detail view on Escape key (issue #467).
   useEffect(() => {
@@ -111,11 +118,19 @@ function ChordDetail({ chord, showPrimaryLabel = false, onClose }) {
         <button
           type="button"
           className="control-btn"
-          onClick={() => playChordFor(chord.name)}
-          aria-label={`Play ${chord.name} chord`}
-          style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', cursor: 'pointer' }}
+          onClick={handlePlayChord}
+          aria-label={isPlayingChord ? `Pause ${chord.name} chord` : `Play ${chord.name} chord`}
+          aria-pressed={isPlayingChord}
+          style={{
+            padding: '0.4rem 0.8rem',
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            opacity: isPlayingChord ? 0.8 : 1,
+            background: isPlayingChord ? 'var(--accent-primary)' : 'var(--bg-panel)',
+            color: isPlayingChord ? 'white' : 'var(--text-primary)'
+          }}
         >
-          ▶ Play chord
+          {isPlayingChord ? '⏸ Playing chord' : '▶ Play chord'}
         </button>
         {onClose && (
           <button
