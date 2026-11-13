@@ -375,6 +375,7 @@ function PracticeMode({ initialSongId, onDone }) {
   const [feedback, setFeedback] = useState(null);
   const [beatPulse, setBeatPulse] = useState(false);
   const [audioReady, setAudioReady] = useState(true); // optimistic; flips to false when AudioContext can't reach 'running'
+  const [isPlayingSound, setIsPlayingSound] = useState(false);
 
   // Ref mirrors of state that the rAF playback loop reads directly. Using refs
   // here avoids the stale-closure bug (#267) where the loop kept re-invoking the
@@ -731,6 +732,17 @@ function PracticeMode({ initialSongId, onDone }) {
       setIsPlaying(false);
       setIsPausedWithRef(false);
     };
+
+  const handlePlaySound = async () => {
+    if (!current.chord) return;
+    setIsPlayingSound(true);
+    try {
+      await playChord(current.chord);
+    } finally {
+      // Keep the playing indicator visible for the duration of the tone
+      setTimeout(() => setIsPlayingSound(false), 500);
+    }
+  };
 
   const markCorrect = () => {
     setFeedback({ type: 'correct', message: '✓ Nice!' });
@@ -1239,14 +1251,18 @@ function PracticeMode({ initialSongId, onDone }) {
         >
           ✗ Missed
         </button>
-        <button 
+        <button
           type="button"
-          className="control-btn" 
-          onClick={(e) => { e.preventDefault(); current.chord && playChord(current.chord); }}
-          aria-label="Play chord sound"
-          style={{ background: 'var(--accent-secondary)' }}
+          className="control-btn"
+          onClick={handlePlaySound}
+          aria-label={isPlayingSound ? 'Stop playing chord sound' : 'Play chord sound'}
+          aria-pressed={isPlayingSound}
+          style={{
+            background: isPlayingSound ? 'var(--accent-secondary)' : 'var(--accent-secondary)',
+            opacity: isPlayingSound ? 0.8 : 1
+          }}
         >
-          🔊 Play
+          {isPlayingSound ? '🔊 Playing…' : '🔊 Play'}
         </button>
         <button className="control-btn" onClick={nextLine} aria-label="Next line" disabled={currentIndex === selectedSong.lyrics.length - 1}>
           Next →
