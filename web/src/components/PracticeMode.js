@@ -373,6 +373,7 @@ function PracticeMode({ initialSongId, onDone }) {
     return p ? p.totalCorrect : 0;
   });
   const [feedback, setFeedback] = useState(null);
+  const [confirmingReset, setConfirmingReset] = useState(false);
   const [beatPulse, setBeatPulse] = useState(false);
   const [audioReady, setAudioReady] = useState(true); // optimistic; flips to false when AudioContext can't reach 'running'
   const [isPlayingSound, setIsPlayingSound] = useState(false);
@@ -1209,25 +1210,76 @@ function PracticeMode({ initialSongId, onDone }) {
         <span>🔥 {streak}</span>
         <span>{currentIndex + 1} / {selectedSong.lyrics.length}</span>
         <span>✓ {totalCorrect}</span>
-        <button
-          onClick={resetProgress}
-          aria-label="Reset practice progress for all songs"
-          title="Reset progress"
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-secondary)',
-            fontSize: '0.75rem',
-            cursor: 'pointer',
-            textDecoration: 'underline',
-            padding: '0.25rem 0.5rem',
-            opacity: 0.6,
-          }}
-          onMouseEnter={(e) => e.target.style.opacity = '1'}
-          onMouseLeave={(e) => e.target.style.opacity = '0.6'}
-        >
-          Reset
-        </button>
+        {confirmingReset ? (
+          <>
+            <span
+              style={{
+                color: 'var(--text-secondary)',
+                fontSize: '0.75rem',
+                marginRight: '0.5rem',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              This will delete saved practice progress for ALL songs and
+              cannot be undone.
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmingReset(false);
+                resetProgress();
+              }}
+              aria-label="Confirm Reset — delete all practice progress"
+              style={{
+                background: 'var(--danger)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '0.25rem 0.75rem',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                marginRight: '0.5rem'
+              }}
+            >
+              Confirm Reset
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmingReset(false)}
+              aria-label="Cancel reset"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => setConfirmingReset(true)}
+            aria-label="Reset practice progress for all songs"
+            title="Reset progress"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: '0.25rem 0.5rem',
+              opacity: 0.6
+            }}
+            onMouseEnter={(e) => (e.target.style.opacity = '1')}
+            onMouseLeave={(e) => (e.target.style.opacity = '0.6')}
+          >
+            Reset
+          </button>
+        )}
       </div>
 
       {/* Action buttons */}

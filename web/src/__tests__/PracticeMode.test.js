@@ -111,6 +111,28 @@ test('Start button initiates a practice session', async () => {
   expect(queryByText('▶ Start')).toBeNull();
 });
 
+// Regression guard for issue #536: Reset requires explicit confirmation
+// before clearing saved practice progress for all songs.
+test('Reset requires confirmation before clearing all progress (issue #536)', () => {
+  localStorage.clear();
+  const { getByText, queryByText } = render(<PracticeMode />);
+
+  // First click opens the confirmation instead of resetting immediately
+  fireEvent.click(getByText('Reset'));
+  expect(queryByText('Reset')).toBeNull();
+  expect(getByText(/cannot be undone/i)).toBeTruthy();
+
+  // Cancel aborts the reset
+  fireEvent.click(getByText('Cancel'));
+  expect(queryByText(/cannot be undone/i)).toBeNull();
+  expect(getByText('Reset')).toBeTruthy();
+
+  // Confirm performs the reset and surfaces an info message
+  fireEvent.click(getByText('Reset'));
+  fireEvent.click(getByText('Confirm Reset'));
+  expect(getByText(/Progress reset for all songs/i)).toBeTruthy();
+});
+
 // Regression guard for issue #519: clicking Next during playback should
 // advance to the next line and KEEP the session going, not reset it back to
 // the Start screen (which happens when goToLine stops playback and
