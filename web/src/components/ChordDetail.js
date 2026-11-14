@@ -36,7 +36,7 @@ function isBarreVoicing(frets, fingers) {
 // Play a chord's notes using the shared CHORD_FREQ table (same source of
 // truth as Practice Mode playback). Created on a user gesture so it works
 // under browser autoplay policy.
-function playChordNotes(freqs) {
+function playChordNotes(freqs, onError) {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext || !freqs || freqs.length === 0) return;
   const ctx = new AudioContext();
@@ -58,31 +58,44 @@ function playChordNotes(freqs) {
   // Ensure the AudioContext is running before scheduling oscillators.
   // Without this, oscillators started into a suspended context produce no
   // audio — the resume() promise resolves asynchronously, so we must wait
-  // for it before playing (issue #465).
+  // for it before playing (issue #465). Any resume failure is surfaced to
+  // the caller instead of being silently swallowed (issue #533).
+  const fail = (err) => {
+    console.error('Chord playback failed: AudioContext could not reach "running" state', err);
+    onError?.(err);
+  };
   if (ctx.state === 'running') {
     play();
   } else {
     ctx.resume().then(() => {
       if (ctx.state === 'running') play();
-    }).catch(() => {});
+      else fail(new Error('AudioContext did not reach "running" state after resume()'));
+    }).catch((err) => fail(err));
   }
   setTimeout(() => ctx.close(), 600);
 }
 
-function playChordFor(chordName) {
+function playChordFor(chordName, onError) {
   if (!chordName) return;
   const key = Object.keys(CHORD_FREQ).find(
     (k) => k.toLowerCase() === chordName.toLowerCase()
   );
-  if (key) playChordNotes(CHORD_FREQ[key]);
+  if (key) playChordNotes(CHORD_FREQ[key], onError);
 }
 
 function ChordDetail({ chord, showPrimaryLabel = false, onClose }) {
   const variations = chord.variations || [];
   const [isPlayingChord, setIsPlayingChord] = useState(false);
+  const [chordAudioError, setChordAudioError] = useState(null);
 
   const handlePlayChord = () => {
-    playChordFor(chord.name);
+    setChordAudioError(null);
+    playChordFor(chord.name, (err) => {
+      console.error('Failed to play chord audio:', err);
+      setChordAudioError(
+        'Could not play chord audio. Audio may be blocked by browser autoplay policy — interact with the page, then try again.'
+      );
+    });
     setIsPlayingChord(true);
     setTimeout(() => setIsPlayingChord(false), 700);
   };
@@ -152,6 +165,7 @@ function ChordDetail({ chord, showPrimaryLabel = false, onClose }) {
           </button>
         )}
       </div>
+      {chordAudioError && <div className="error-message">{chordAudioError}</div>}
       <div className="variations-grid">
         {/* Always display the primary chord first */}
         <div className="variation-item">

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import ChordDetail from '../components/ChordDetail';
 import { getAllChords } from '../data/chords';
 
@@ -30,4 +30,52 @@ test('does not rename the first variation to Primary (issue #212)', () => {
   expect(
     screen.getByText('Alternative fingering using pinky')
   ).toBeTruthy();
+});
+
+// Regression guard for issue #533: AudioContext resume errors when playing a
+// chord must be logged and surfaced to the user, not silently swallowed with
+// an empty catch block.
+test('surfaces AudioContext resume failure when playing a chord (issue #533)', async () => {
+  const originalAudioContext = window.AudioContext;
+  const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  window.AudioContext = class {
+    constructor() {
+      this.state = 'suspended';
+      this.destination = {};
+    }
+    resume() {
+      return Promise.reject(new Error('AudioContext resume failed'));
+    }
+    createOscillator() {
+      return {
+        connect: () => {},
+        type: '',
+        frequency: { value: 0 },
+        start: () => {},
+        stop: () => {},
+      };
+    }
+    createGain() {
+      return {
+        connect: () => {},
+        gain: { setValueAtTime: () => {}, exponentialRampToValueAtTime: () => {} },
+      };
+    }
+    close() {
+      return Promise.resolve();
+    }
+  };
+
+  try {
+    const cChord = getAllChords('ukulele').find((c) => c.name === 'C');
+    render(<ChordDetail chord={cChord} />);
+    fireEvent.click(screen.getByText(/^▶ Play chord$/));
+    // Flush the promise chain from playChordNotes -> resume() rejection
+    await act(async () => {});
+    expect(errorSpy).toHaveBeenCalled();
+    expect(screen.getByText(/Could not play chord audio/i)).toBeTruthy();
+  } finally {
+    window.AudioContext = originalAudioContext;
+    errorSpy.mockRestore();
+  }
 });
