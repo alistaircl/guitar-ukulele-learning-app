@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 // import ChordDiagram from './ChordLibrary'; // Reuse the ChordDiagram from ChordLibrary
 import SongDetail from './SongDetail';
-
-// Import the song data with lyrics from PracticeMode
 import { PRACTICE_SONGS } from './PracticeMode';
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage';
+import { useToast } from './Toast';
 
 // Map difficulty values to CSS class names
 const DIFFICULTY_CLASS_MAP = {
@@ -16,28 +16,29 @@ const DIFFICULTY_CLASS_MAP = {
 // navigating away from the Songs tab and returning (issue #482).
 const SONG_FILTERS_KEY = 'guitar-ukulele-song-filters';
 
-const loadSavedFilters = () => {
-  try {
-    const raw = localStorage.getItem(SONG_FILTERS_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return {
-        searchQuery: parsed.searchQuery ?? '',
-        difficultyFilter: parsed.difficultyFilter ?? 'All',
-        keyFilter: parsed.keyFilter ?? 'All',
-      };
-    }
-  } catch (e) {
-    // localStorage unavailable or corrupt — start from defaults
-  }
-  return { searchQuery: '', difficultyFilter: 'All', keyFilter: 'All' };
-};
-
 function SongLibrary({ instrument = 'ukulele', onStartPractice }) {
+  const { add: addToast } = useToast();
   const [selectedSongId, setSelectedSongId] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'detail'
   // Restore persisted filters so they survive navigating away and back (issue #482)
-  const initialFilters = loadSavedFilters();
+  const { value: raw, error: readError } = safeStorageGet(SONG_FILTERS_KEY);
+  if (readError) {
+    addToast('Unable to read your saved song filters (storage unavailable).');
+  }
+  const parsedFilters = raw
+    ? (() => {
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      })()
+    : null;
+  const initialFilters = {
+    searchQuery: parsedFilters?.searchQuery ?? '',
+    difficultyFilter: parsedFilters?.difficultyFilter ?? 'All',
+    keyFilter: parsedFilters?.keyFilter ?? 'All',
+  };
   const [searchQuery, setSearchQuery] = useState(initialFilters.searchQuery);
   const [difficultyFilter, setDifficultyFilter] = useState(initialFilters.difficultyFilter);
   const [keyFilter, setKeyFilter] = useState(initialFilters.keyFilter);
@@ -58,19 +59,15 @@ function SongLibrary({ instrument = 'ukulele', onStartPractice }) {
 
   // Persist filters whenever they change so they survive navigation (issue #482)
   React.useEffect(() => {
-    try {
-      localStorage.setItem(
+    if (
+      !safeStorageSet(
         SONG_FILTERS_KEY,
-        JSON.stringify({
-          searchQuery,
-          difficultyFilter,
-          keyFilter,
-        })
-      );
-    } catch (e) {
-      // localStorage unavailable or full — filters won't persist across sessions
+        JSON.stringify({ searchQuery, difficultyFilter, keyFilter })
+      )
+    ) {
+      addToast('Unable to save your song filters (storage unavailable or full).');
     }
-  }, [searchQuery, difficultyFilter, keyFilter]);
+  }, [searchQuery, difficultyFilter, keyFilter, addToast]);
 
   // Find song by ID
   const selectedSong = PRACTICE_SONGS.find(s => s.id === selectedSongId);

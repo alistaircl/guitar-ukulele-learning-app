@@ -3,50 +3,25 @@ import ChordDetail from './ChordDetail';
 import ChordDiagram from './ChordDiagram';
 import { FaArrowLeft, FaSearch } from 'react-icons/fa';
 import { getAllChords, searchChordsByInstrument } from '../data/chords';
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage';
+import { useToast } from './Toast';
 
-// Safe storage helpers: try localStorage first, fall back to sessionStorage,
-// and gracefully handle environments where both are unavailable (e.g. private
-// browsing mode, disabled cookies/storage). Returns null and logs an
-// informative warning on failure so callers can degrade gracefully.
 // Single shared preference key so Tuner, Chord Library and Song Detail all
 // reflect one instrument choice (issue #370).
 const PREFERENCE_KEY = 'guitar-ukulele-instrument';
 
-function safeStorageGet(key) {
-  for (const storeName of ['localStorage', 'sessionStorage']) {
-    try {
-      const store = window[storeName];
-      const value = store.getItem(key);
-      return value;
-    } catch (e) {
-      console.warn(`Could not read "${key}" from ${storeName}:`, e.message || e);
-    }
-  }
-  return null;
-}
-
-// Attempt to persist. Returns true on success, false if every available
-// store rejected the write (caller may surface a UI hint to the user).
-function safeStorageSet(key, value) {
-  for (const storeName of ['localStorage', 'sessionStorage']) {
-    try {
-      window[storeName].setItem(key, value);
-      return true;
-    } catch (e) {
-      console.warn(`Could not save "${key}" to ${storeName}:`, e.message || e);
-    }
-  }
-  return false;
-}
-
 function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInstrument } = {}) {
   const [selectedChord, setSelectedChord] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const { add: addToast } = useToast();
   const [instrument, setInstrument] = useState(() => {
     // Load saved instrument from available storage on mount.
     // localStorage is preferred; sessionStorage is a fallback that at
     // least keeps the preference alive for the duration of the session.
-    const saved = safeStorageGet(PREFERENCE_KEY);
+    const { value: saved, error } = safeStorageGet(PREFERENCE_KEY);
+    if (error) {
+      addToast(`Unable to read your saved instrument preference: ${error.message}`);
+    }
     if (saved === 'guitar' || saved === 'ukulele') {
       return saved;
     }
@@ -82,8 +57,10 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
     if (instrumentProp !== undefined) {
       return;
     }
-    safeStorageSet(PREFERENCE_KEY, instrument);
-  }, [instrument, instrumentProp]);
+    if (!safeStorageSet(PREFERENCE_KEY, instrument)) {
+      addToast('Unable to save your instrument preference (storage unavailable or full).');
+    }
+  }, [instrument, instrumentProp, addToast]);
 
   const toggleInstrument = () => {
     const nextInstrument = activeInstrument === 'ukulele' ? 'guitar' : 'ukulele';
