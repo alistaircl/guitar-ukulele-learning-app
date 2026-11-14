@@ -125,6 +125,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     return TUNINGS_BY_INSTRUMENT[inst][0];
   });
   const [isListening, setIsListening] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
   const [detectedNote, setDetectedNote] = useState(null);
   const [error, setError] = useState(null);
   const [referenceToneError, setReferenceToneError] = useState(null);
@@ -142,7 +143,12 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       setError('Your browser does not support the Web Audio API. This tuner requires a modern browser with audio capabilities.');
       return;
     }
+    // Guard against double-clicks: don't start a new flow while one is in
+    // flight or while the tuner is already listening.
+    if (isListening || isStarting) return;
 
+    setIsStarting(true);
+    setError(null);
     try {
       // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -203,6 +209,10 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       } else {
         setError(`Microphone error: ${err.message || 'Unknown error'}. Please check your mic and try again.`);
       }
+    } finally {
+      // Always clear the starting flag, whether the flow succeeded or failed,
+      // so the Start button re-enables and the loading state clears.
+      setIsStarting(false);
     }
   };
 
@@ -506,13 +516,18 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       </div>
       {referenceToneError && <div className="error-message">{referenceToneError}</div>}
       <div className="tuner-controls">
-        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }}>
-          {isListening ? 'Stop' : 'Start'}
+        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }} disabled={isStarting}>
+          {isStarting ? (isCalibrating ? 'Calibrating…' : 'Starting…') : isListening ? 'Stop' : 'Start'}
         </button>
       </div>
+      {isStarting && (
+        <div className="loading" role="status" aria-live="polite" aria-label="Tuner is initializing — microphone access and audio context are being set up">
+          <div className="spinner" aria-hidden="true" />
+        </div>
+      )}
       {error && <div className="error-message">{error}</div>}
       <div className={`tuner-status ${isListening ? 'listening' : 'stopped'}`} aria-live="polite">
-        {isCalibrating ? 'Calibrating...' : isListening ? 'Listening...' : 'Press Start to begin'}
+        {isStarting ? (isCalibrating ? 'Calibrating…' : 'Requesting microphone access…') : isCalibrating ? 'Calibrating...' : isListening ? 'Listening...' : 'Press Start to begin'}
       </div>
     </div>
   );
