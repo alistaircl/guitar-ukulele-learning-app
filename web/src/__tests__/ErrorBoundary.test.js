@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import ErrorBoundary from '../components/ErrorBoundary';
 
 // Regression test for issue #152: ErrorBoundary must not silently swallow errors.
@@ -85,4 +85,19 @@ test('renders the error message in the fallback so users can report it (issue #1
   // rendered (was dead-code-eliminated in production before the fix).
   expect(errorPre.tagName).toBe('PRE');
   expect(errorPre.closest('details')).not.toBeNull();
+});
+
+// Regression guard for issue #535: unhandled promise rejections (which React
+// error boundaries cannot catch) must surface the fallback UI with a recovery
+// path instead of leaving the user with a silent blank screen.
+test('global unhandled promise rejection surfaces the error boundary (issue #535)', () => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+  const { getByText } = render(<ErrorBoundary><div>ok</div></ErrorBoundary>);
+  const reason = new Error('unhandled-rejection-test-error');
+  act(() => {
+    window.dispatchEvent(Object.assign(new Event('unhandledrejection'), { reason }));
+  });
+  expect(getByText('Something went wrong')).toBeTruthy();
+  expect(getByText(/Try Again/)).toBeTruthy();
+  expect(getByText(/Reload Page/)).toBeTruthy();
 });
