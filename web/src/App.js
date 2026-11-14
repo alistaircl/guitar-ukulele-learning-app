@@ -3,6 +3,8 @@ import Tuner from './components/Tuner';
 import ChordLibrary from './components/ChordLibrary';
 import SongLibrary from './components/SongLibrary';
 import PracticeMode from './components/PracticeMode';
+import { useToast } from './components/Toast';
+import { safeStorageGet, safeStorageSet } from './utils/safeStorage';
 
 const TABS = [
   { id: 'tuner', label: 'Tuner', icon: '🎵' },
@@ -12,6 +14,7 @@ const TABS = [
 ];
 
 function App() {
+  const { add: addToast } = useToast();
   const [activeTab, setActiveTab] = useState('tuner');
   const [practiceSongId, setPracticeSongId] = useState(null);
   // Shared instrument preference (ukulele | guitar), persisted so chord
@@ -19,21 +22,18 @@ function App() {
   // (issue #270). Defaults to ukulele for backwards compatibility.
   const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
   const [instrument, setInstrument] = useState(() => {
-    try {
-      const saved = localStorage.getItem(INSTRUMENT_PREFERENCE_KEY);
-      if (saved === 'guitar' || saved === 'ukulele') return saved;
-    } catch (e) {
-      // localStorage unavailable — default below
+    const { value: saved, error } = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
+    if (error) {
+      addToast(`Unable to read your saved instrument preference: ${error.message}`);
     }
+    if (saved === 'guitar' || saved === 'ukulele') return saved;
     return 'ukulele';
   });
   useEffect(() => {
-    try {
-      localStorage.setItem(INSTRUMENT_PREFERENCE_KEY, instrument);
-    } catch (e) {
-      // localStorage unavailable or full — preference won't persist
+    if (!safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument)) {
+      addToast('Unable to save your instrument preference (storage unavailable or full).');
     }
-  }, [instrument]);
+  }, [instrument, addToast]);
 
   const handleStartPractice = (song) => {
     setPracticeSongId(song.id);

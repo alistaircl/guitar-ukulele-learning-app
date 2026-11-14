@@ -780,7 +780,7 @@ function PracticeMode({ initialSongId, onDone }) {
         // browsing, security exception). Don't silently swallow — surface it
         // so the user knows their persisted streak may re-appear on reload.
         // See issue #171: previous empty catch(e){} hid this from users.
-        console.warn('Failed to clear practice progress from localStorage:', e?.message || e);
+        console.error('Failed to clear practice progress from localStorage:', e?.message || e);
         storageReset = false;
       }
     }

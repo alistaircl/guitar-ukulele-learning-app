@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage';
+import { useToast } from './Toast';
 
 const TUNINGS = {
   // Ukulele tunings
@@ -28,31 +30,6 @@ const TUNINGS_BY_INSTRUMENT = Object.keys(TUNINGS).reduce((acc, key) => {
 const INSTRUMENT_PREFERENCE_KEY = 'guitar-ukulele-instrument';
 // Per-instrument tuning preference keys
 const tuningStorageKey = (instrument) => `${instrument}-tuner-tuning`;
-
-// Safe storage helpers (mirrors ChordLibrary): try localStorage, then
-// sessionStorage, and gracefully handle environments where storage is blocked.
-function safeStorageGet(key) {
-  for (const storeName of ['localStorage', 'sessionStorage']) {
-    try {
-      const store = window[storeName];
-      return store.getItem(key);
-    } catch (e) {
-      console.warn(`Could not read "${key}" from ${storeName}:`, e.message || e);
-    }
-  }
-  return null;
-}
-function safeStorageSet(key, value) {
-  for (const storeName of ['localStorage', 'sessionStorage']) {
-    try {
-      window[storeName].setItem(key, value);
-      return true;
-    } catch (e) {
-      console.warn(`Could not save "${key}" to ${storeName}:`, e.message || e);
-    }
-  }
-  return false;
-}
 
 const NOTE_FREQ_MAP = {
   // Lower octaves needed for guitar tunings (low E2 = 82.41 Hz, A2 = 110 Hz).
@@ -85,17 +62,24 @@ function getNearestNote(freq) {
 }
 
 function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } = {}) {
+  const { add: addToast } = useToast();
   // Active instrument — persisted across sessions via the safe storage helpers.
   // Defaults to ukulele to stay backwards-compatible with existing users.
   const [instrument, setInstrument] = useState(() => {
-    const saved = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
+    const { value: saved, error } = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
+    if (error) {
+      addToast(`Unable to read your saved instrument preference: ${error.message}`);
+    }
     if (saved === 'guitar' || saved === 'ukulele') {
       return saved;
     }
     // Backwards compatibility: migrate the old single localStorage key so users
     // who previously selected a guitar tuning under `ukulele-tuner-tuning` keep
     // their choice when we split the keys by instrument.
-    const oldSaved = safeStorageGet('ukulele-tuner-tuning');
+    const { value: oldSaved, error: oldError } = safeStorageGet('ukulele-tuner-tuning');
+    if (oldError) {
+      addToast(`Unable to read your saved tuner tuning: ${oldError.message}`);
+    }
     if (oldSaved && TUNINGS[oldSaved] && TUNINGS[oldSaved].instrument === 'guitar') {
       return 'guitar';
     }
@@ -111,13 +95,35 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
   };
   const [tuning, setTuning] = useState(() => {
     const inst = (() => {
-      const saved = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
+      const { value: saved, error } = safeStorageGet(INSTRUMENT_PREFERENCE_KEY);
+      if (error) {
+        addToast(`Unable to read your saved instrument preference: ${error.message}`);
+      }
       if (saved === 'guitar' || saved === 'ukulele') return saved;
-      const oldSaved = safeStorageGet('ukulele-tuner-tuning');
+      const { value: oldSaved, error: oldError } = safeStorageGet('ukulele-tuner-tuning');
+      if (oldError) {
+        addToast(`Unable to read your saved tuner tuning: ${oldError.message}`);
+      }
       if (oldSaved && TUNINGS[oldSaved] && TUNINGS[oldSaved].instrument === 'guitar') return 'guitar';
       return 'ukulele';
     })();
-    const saved = safeStorageGet(tuningStorageKey(inst)) || safeStorageGet('ukulele-tuner-tuning');
+    let saved = null;
+    let readError = null;
+    const { value: v1, error: e1 } = safeStorageGet(tuningStorageKey(inst));
+    if (v1 !== null) {
+      saved = v1;
+    } else if (e1) {
+      readError = e1;
+    }
+    const { value: v2, error: e2 } = safeStorageGet('ukulele-tuner-tuning');
+    if (saved === null && v2 !== null) {
+      saved = v2;
+    } else if (e2 && !readError) {
+      readError = e2;
+    }
+    if (readError) {
+      addToast(`Unable to read your saved tuner tuning: ${readError.message}`);
+    }
     if (saved && TUNINGS[saved] && TUNINGS[saved].instrument === inst) {
       return saved;
     }
@@ -392,12 +398,10 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
 
   // Save tuning preference to available storage when it changes (per instrument)
   useEffect(() => {
-    try {
-      safeStorageSet(tuningStorageKey(activeInstrument), tuning);
-    } catch (e) {
-      console.warn('Could not save tuning to storage:', e);
+    if (!safeStorageSet(tuningStorageKey(activeInstrument), tuning)) {
+      addToast('Unable to save your tuner tuning (storage unavailable or full).');
     }
-  }, [tuning, activeInstrument]);
+  }, [tuning, activeInstrument, addToast]);
 
   // Ensure tuning is always valid for the currently displayed instrument.
   // If the stored tuning doesn't belong to activeInstrument (e.g. after an
@@ -418,8 +422,10 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     if (instrumentProp !== undefined) {
       return;
     }
-    safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
-  }, [instrument, instrumentProp]);
+    if (!safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument)) {
+      addToast('Unable to save your instrument preference (storage unavailable or full).');
+    }
+  }, [instrument, instrumentProp, addToast]);
 
   // Switch instrument, and restore that instrument's saved tuning if one
   // exists; otherwise fall back to the instrument's first tuning so the
@@ -429,7 +435,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
   const toggleInstrument = () => {
     const next = activeInstrument === 'ukulele' ? 'guitar' : 'ukulele';
     setActiveInstrument(next);
-    const saved = safeStorageGet(tuningStorageKey(next));
+    const { value: saved } = safeStorageGet(tuningStorageKey(next));
     setTuning(saved && TUNINGS[saved] && TUNINGS[saved].instrument === next ? saved : TUNINGS_BY_INSTRUMENT[next][0]);
   };
 
