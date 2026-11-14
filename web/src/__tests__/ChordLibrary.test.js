@@ -105,3 +105,30 @@ test('clicking a chord card opens the chord detail view', () => {
   expect(screen.getByText('▶ Play chord')).toBeTruthy();
   expect(screen.getByText('Primary')).toBeTruthy();
 });
+
+// Regression guard for issue #537: chord search normalization must handle
+// the standard chord notations from the issue:
+// - 'C major 7' == 'Cmaj7'
+// - 'C minor' == 'Cm' and must not surface Cmaj7 ('cm' is a substring of
+//   'cmaj7', so a naive substring match gets it wrong)
+// - bare 'major' keyword returns major chords including major 7ths
+test.each([['ukulele'], ['guitar']])('searchChordsByInstrument normalizes chord names (issue #537)', (instrument) => {
+  expect(searchChordsByInstrument('C major 7', instrument).map((c) => c.name)).toContain('Cmaj7');
+
+  const minorResults = searchChordsByInstrument('C minor', instrument).map((c) => c.name);
+  expect(minorResults).toContain('Cm');
+  expect(minorResults).not.toContain('Cmaj7');
+
+  const majorResults = searchChordsByInstrument('major', instrument).map((c) => c.name);
+  expect(majorResults).toContain('Cmaj7');
+  expect(majorResults).not.toContain('Cm');
+});
+
+// Unknown chord names (e.g. 'C#m' / 'Dbm', not in either library) must
+// return no results rather than a wrong match.
+test('unknown chord names return no results instead of wrong matches (issue #537)', () => {
+  expect(searchChordsByInstrument('C#m', 'ukulele')).toEqual([]);
+  expect(searchChordsByInstrument('Dbm', 'ukulele')).toEqual([]);
+  expect(searchChordsByInstrument('C#m', 'guitar')).toEqual([]);
+  expect(searchChordsByInstrument('Dbm', 'guitar')).toEqual([]);
+});
