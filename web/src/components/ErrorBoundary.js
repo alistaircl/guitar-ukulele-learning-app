@@ -19,6 +19,40 @@ class ErrorBoundary extends Component {
     this.setState({ errorInfo });
   }
 
+  componentDidMount() {
+    // Global safety net for async errors that React error boundaries cannot
+    // catch: unhandled promise rejections (e.g. from async useEffect
+    // callbacks) and window-level script errors. Without this, users see a
+    // blank screen or silent breakage with no recovery option (issue #535).
+    window.addEventListener('unhandledrejection', this.handleUnhandledRejection);
+    window.addEventListener('error', this.handleGlobalError);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('unhandledrejection', this.handleUnhandledRejection);
+    window.removeEventListener('error', this.handleGlobalError);
+  }
+
+  // Global error handler for unhandled promise rejections and script errors.
+  // Flips the boundary into its fallback state so the user gets a visible
+  // error UI with Try Again / Reload instead of a silent blank screen.
+  handleUnhandledRejection = (event) => {
+    const reason = event.reason || event.error || new Error('Unhandled promise rejection');
+    console.error('Unhandled promise rejection:', reason);
+    this.setState({ hasError: true, error: reason, errorInfo: { componentStack: 'Global unhandled rejection handler' } });
+  };
+
+  handleGlobalError = (event) => {
+    console.error(
+      'Global error:',
+      event.message,
+      event.filename || '',
+      event.lineno || '',
+      event.colno || ''
+    );
+    this.setState({ hasError: true, error: new Error(event.message), errorInfo: { componentStack: 'Global error handler' } });
+  };
+
   handleReload = () => {
     window.location.reload();
   };
