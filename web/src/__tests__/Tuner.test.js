@@ -21,15 +21,18 @@ test('shows an error message when microphone permission is denied (issue #486)',
       return Promise.reject(err);
     }),
   };
+  const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
   try {
     render(<Tuner />);
     fireEvent.click(screen.getByText('Start'));
     // Flush the async getUserMedia rejection + React re-render
     await act(async () => {});
+    expect(errorSpy).toHaveBeenCalled();
     expect(screen.getByText(/Microphone access denied/i)).toBeTruthy();
   } finally {
     window.AudioContext = originalAudioContext;
     navigator.mediaDevices = originalMediaDevices;
+    errorSpy.mockRestore();
   }
 });
 

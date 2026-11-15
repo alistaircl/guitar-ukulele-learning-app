@@ -205,6 +205,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       detectPitch();
     } catch (err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        console.error('Tuner microphone access denied:', err);
         setError('Microphone access denied. Please enable microphone permissions in your browser settings and refresh the page.');
       } else if (err.name === 'NotSupportedError') {
         setError('Browser does not support microphone access. Please try a modern browser with microphone support.');
