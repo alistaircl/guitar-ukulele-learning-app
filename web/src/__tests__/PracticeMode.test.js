@@ -150,3 +150,19 @@ test('Next button advances to next line without resetting the session (issue #51
   // The line counter should have advanced past the line that was playing
   await waitFor(() => expect(screen.queryByText(/\d \//)).toBeTruthy(), { timeout: 5000 });
 });
+
+// Regression guard for issue #554: selecting a different song from the
+// Practice mode song selector dropdown updates the practice view to that song.
+test('song selector dropdown changes the practice song (issue #554)', () => {
+  localStorage.clear();
+  const { getByLabelText, queryByText } = render(<PracticeMode />);
+  const selector = getByLabelText(/Select song to practice/);
+  // Default song is Somewhere Over the Rainbow (id 1): its first lyric line shows
+  expect(screen.getAllByText('Oooooooo ooooo ooooo ooooo').length).toBeGreaterThan(0);
+  // Switch to Let It Be (id 3)
+  fireEvent.change(selector, { target: { value: '3' } });
+  // Practice view now shows Let It Be's content
+  expect(screen.getAllByText('Mother Mary comes to me').length).toBeGreaterThan(0);
+  // Previous song's first line is no longer displayed in the practice view
+  expect(queryByText('Oooooooo ooooo ooooo ooooo')).toBeNull();
+});
