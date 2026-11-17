@@ -350,7 +350,7 @@ lyrics: [
   }
 ];
 
-function PracticeMode({ initialSongId, onDone }) {
+function PracticeMode({ initialSongId, onDone, instrument = 'ukulele' }) {
   const [selectedSong, setSelectedSong] = useState(() => {
     if (initialSongId) {
       const found = PRACTICE_SONGS.find(s => s.id === initialSongId);
@@ -884,9 +884,9 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const current = selectedSong?.lyrics ? selectedSong.lyrics[currentIndex] : null;
   // Look up the current chord's fret/finger data so Practice Mode can render a
-  // real chord diagram (issue #510). Defaults to the ukulele library, matching
-  // the app's default instrument; every practice-song chord exists there.
-  const chordData = current?.chord ? getChordByInstrument(current.chord, 'ukulele') : null;
+  // real chord diagram (issue #510). Respects the selected instrument prop so
+  // the diagram matches the user's guitar/ukulele choice (issue #556).
+  const chordData = current?.chord ? getChordByInstrument(current.chord, instrument) : null;
 
   if (!selectedSong) {
     return (

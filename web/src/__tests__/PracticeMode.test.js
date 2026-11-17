@@ -150,3 +150,47 @@ test('Next button advances to next line without resetting the session (issue #51
   // The line counter should have advanced past the line that was playing
   await waitFor(() => expect(screen.queryByText(/\d \//)).toBeTruthy(), { timeout: 5000 });
 });
+
+// Regression guard for issue #554: selecting a different song from the
+// Practice mode song selector dropdown updates the practice view to that song.
+test('song selector dropdown changes the practice song (issue #554)', () => {
+  localStorage.clear();
+  const { getByLabelText, queryByText } = render(<PracticeMode />);
+  const selector = getByLabelText(/Select song to practice/);
+  // Default song is Somewhere Over the Rainbow (id 1): its first lyric line shows
+  expect(screen.getAllByText('Oooooooo ooooo ooooo ooooo').length).toBeGreaterThan(0);
+  // Switch to Let It Be (id 3)
+  fireEvent.change(selector, { target: { value: '3' } });
+  // Practice view now shows Let It Be's content
+  expect(screen.getAllByText('Mother Mary comes to me').length).toBeGreaterThan(0);
+  // Previous song's first line is no longer displayed in the practice view
+  expect(queryByText('Oooooooo ooooo ooooo ooooo')).toBeNull();
+});
+
+// Regression guard for issue #556: Practice Mode must render chord diagrams
+// matching the selected instrument (guitar = 6 strings, ukulele = 4 strings),
+// not a hardcoded 'ukulele'. Chord diagrams render once playback begins, so we
+// start the session and inspect the rendered SVG (matches the #519 test's
+// countdown/playback timing).
+test('renders a 6-string guitar chord diagram when instrument is guitar (issue #556)', async () => {
+  render(<PracticeMode instrument="guitar" />);
+  fireEvent.click(screen.getByText('▶ Start'));
+  await waitFor(() => expect(screen.queryByText('▶ Start')).toBeNull(), { timeout: 8000 });
+  const diagram = await waitFor(() => screen.getByRole('img', { name: /Chord diagram for C/ }), { timeout: 8000 });
+  // Vertical lines are the strings; guitar has 6, ukulele has 4.
+  const stringLines = Array.from(diagram.querySelectorAll('line')).filter(
+    (line) => line.getAttribute('x1') === line.getAttribute('x2')
+  );
+  expect(stringLines).toHaveLength(6);
+});
+
+test('renders a 4-string ukulele chord diagram by default (issue #556)', async () => {
+  render(<PracticeMode />);
+  fireEvent.click(screen.getByText('▶ Start'));
+  await waitFor(() => expect(screen.queryByText('▶ Start')).toBeNull(), { timeout: 8000 });
+  const diagram = await waitFor(() => screen.getByRole('img', { name: /Chord diagram for C/ }), { timeout: 8000 });
+  const stringLines = Array.from(diagram.querySelectorAll('line')).filter(
+    (line) => line.getAttribute('x1') === line.getAttribute('x2')
+  );
+  expect(stringLines).toHaveLength(4);
+});
