@@ -182,6 +182,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
           console.error('Failed to resume AudioContext for tuner:', resumeErr);
           // Clean up partial resources before surfacing the failure
           stream.getTracks().forEach(t => t.stop());
+          streamRef.current = null;
           throw new Error('Audio could not be initialized. Tap Start again to retry.');
         }
       }
@@ -189,6 +190,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       // analyser would never produce meaningful data and the user hears nothing.
       if (audioCtx.state !== 'running') {
         stream.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
         throw new Error('Audio context could not be activated. Tap Start again to retry.');
       }
 
@@ -198,12 +200,19 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       analyserRef.current = analyser;
       const source = audioCtx.createMediaStreamSource(stream);
       source.connect(analyser);
-      setIsListening(true);
-      setError(null);
       // Calibrate threshold before starting pitch detection
       await calibrateThreshold();
+      // Only mark as listening once audio pipeline is fully initialized (issue #560).
+      // If calibrateThreshold or anything above throws, isListening stays false
+      // and stopTuner() in the catch block cleans up any acquired resources.
+      setIsListening(true);
+      setError(null);
       detectPitch();
     } catch (err) {
+      // Clean up any acquired audio resources on failure (issue #560).
+      // Prevents microphone staying active and AudioContext leaking.
+      stopTuner();
+
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setError('Microphone access denied. Please enable microphone permissions in your browser settings and refresh the page.');
       } else if (err.name === 'NotSupportedError') {
