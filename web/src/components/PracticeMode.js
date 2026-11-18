@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ChordDiagram from './ChordDiagram';
 import { getChordByInstrument } from '../data/chords';
+import { PRACTICE_SONGS } from '../data/songs';
+import { useToast } from './Toast';
 
 // Issue #161: Persist practice progress (streak, totalCorrect) per song in
 // localStorage so progress survives component unmount/remount (tab switches).
@@ -80,277 +82,8 @@ const CHORD_FREQ = {
   'Gsus4': [392.0, 523.25, 587.33],
 };
 
-const PRACTICE_SONGS = [
-  { id: 1, title: 'Somewhere Over the Rainbow',
-    artist: 'Israel Kamakawiwo\'ole',
-    difficulty: 'Beginner',
-    key: 'C',
-    bpm: 66,
-    chords: ['C', 'F', 'G', 'Em', 'Am'],
-    lyrics: [
-      { text: "Oooooooo ooooo ooooo ooooo", chord: 'C', beats: 8 },
-      { text: "Somewhere over the rainbow", chord: null, beats: 4 },
-      { text: "Way up high", chord: 'F', beats: 4 },
-      { text: "There's a land that I heard of", chord: 'G', beats: 4 },
-      { text: "Once in a lullaby", chord: 'Em', beats: 4 },
-      { text: "Somewhere over the rainbow", chord: 'Am', beats: 4 },
-      { text: "Skies are blue", chord: 'C', beats: 4 },
-      { text: "And the dreams that you dare to dream", chord: null, beats: 4 },
-      { text: "Really do come true", chord: 'F', beats: 4 },
-      { text: "Someday I'll wish upon a star", chord: 'G', beats: 4 },
-      { text: "And wake up where the clouds are far behind me", chord: 'Em', beats: 4 },
-      { text: "Where trouble melts like lemon drops", chord: 'Am', beats: 4 },
-      { text: "High above the chimney top", chord: 'C', beats: 4 },
-      { text: "That's where you'll find me", chord: null, beats: 4 },
-      { text: "Oooooooo ooooo ooooo ooooo", chord: 'F', beats: 8 },
-      { text: "Somewhere over the rainbow", chord: 'G', beats: 4 },
-      { text: "Bluebirds fly", chord: 'Em', beats: 4 },
-      { text: "Birds fly over the rainbow", chord: 'Am', beats: 4 },
-      { text: "Why then oh why can't I?", chord: 'C', beats: 4 },
-      { text: "If happy little bluebirds fly", chord: null, beats: 4 },
-      { text: "Beyond the rainbow", chord: 'F', beats: 4 },
-      { text: "Why oh why can't I?", chord: 'G', beats: 4 },
-    ]
-  },
-  { id: 2, title: 'You Are My Sunshine',
-    artist: 'Traditional',
-    difficulty: 'Beginner',
-    key: 'C',
-    bpm: 138,
-    chords: ['C', 'F', 'G'],
-lyrics: [
-      { text: 'You are my sunshine', chord: 'C', beats: 4 },
-      { text: 'My only sunshine', chord: 'F', beats: 4 },
-      { text: 'You make me happy', chord: 'C', beats: 4 },
-      { text: "When skies are gray", chord: 'G', beats: 4 },
-      { text: "You'll never know dear", chord: 'C', beats: 4 },
-      { text: 'How much I love you', chord: 'F', beats: 4 },
-      { text: "Please don't take", chord: 'C', beats: 4 },
-      { text: 'My sunshine away', chord: 'G', beats: 4 },
-    ]
-  },
-  { id: 3, title: 'Let It Be',
-    artist: 'The Beatles',
-    difficulty: 'Beginner',
-    key: 'C',
-    bpm: 76,
-    chords: ['C', 'G', 'Am', 'F'],
-    lyrics: [
-      { text: 'When I find myself in times of trouble', chord: 'C', beats: 4 },
-      { text: 'Mother Mary comes to me', chord: 'G', beats: 4 },
-      { text: 'Speaking words of wisdom', chord: 'Am', beats: 4 },
-      { text: 'Let it be', chord: 'F', beats: 4 },
-      { text: 'And in my hour of darkness', chord: 'C', beats: 4 },
-      { text: 'She is standing right in front of me', chord: 'G', beats: 4 },
-      { text: 'Speaking words of wisdom', chord: 'Am', beats: 4 },
-      { text: 'Let it be', chord: 'F', beats: 4 },
-    ]
-  },
-  { id: 4, title: 'House of Gold',
-    artist: 'Twenty One Pilots',
-    difficulty: 'Intermediate',
-    key: 'G',
-    bpm: 150,
-    chords: ['G', 'C', 'Em', 'D'],
-    lyrics: [
-      { text: 'How do you think I\'m going to feel', chord: 'G', beats: 4 },
-      { text: 'When I\'m coming home again', chord: 'C', beats: 4 },
-      { text: 'Tell me tell me', chord: 'Em', beats: 4 },
-      { text: 'What do you see when you look at me', chord: 'D', beats: 4 },
-      { text: 'I\'ve got a house of gold', chord: 'G', beats: 4 },
-      { text: 'And a heart of gold', chord: 'C', beats: 4 },
-      { text: 'And a soul of gold', chord: 'Em', beats: 4 },
-      { text: 'And a mind of gold', chord: 'D', beats: 4 },
-      { text: 'How do you think I\'m going to feel', chord: 'G', beats: 4 },
-      { text: 'When I\'m coming home again', chord: 'C', beats: 4 },
-      { text: 'Tell me tell me', chord: 'Em', beats: 4 },
-      { text: 'What do you see when you look at me', chord: 'D', beats: 4 },
-      { text: 'She asked me son when I grow old', chord: 'G', beats: 4 },
-      { text: 'Will you buy me a house of gold', chord: 'C', beats: 4 },
-      { text: 'And when I\'m grown and feeling old', chord: 'Em', beats: 4 },
-      { text: 'Will you buy me a house of gold', chord: 'D', beats: 4 },
-    ]
-  },
-  { id: 5, title: 'Stand By Me',
-    artist: 'Ben E. King',
-    difficulty: 'Intermediate',
-    key: 'A',
-    bpm: 120,
-    chords: ['A', 'F#m', 'D', 'E'],
-    lyrics: [      { text: 'When the night has come', chord: 'A', beats: 4 },
-      { text: 'And the land is dark', chord: 'F#m', beats: 4 },
-      { text: 'And the moon is the only light we\'ll see', chord: 'D', beats: 4 },
-      { text: 'No I won\'t be afraid', chord: 'E', beats: 4 },
-      { text: 'Oh please stand by me', chord: 'A', beats: 4 },
-      { text: 'Oh please stand by me', chord: 'F#m', beats: 4 },
-      { text: 'When stormy weather raging', chord: 'A', beats: 4 },
-      { text: 'Around my door', chord: 'F#m', beats: 4 },
-      { text: 'I won\'t be afraid', chord: 'D', beats: 4 },
-      { text: 'Just as long as you stand by me', chord: 'E', beats: 4 },
-      { text: 'Oh please stand by me', chord: 'A', beats: 4 },
-      { text: 'Oh please stand by me', chord: 'F#m', beats: 4 },
-]
-  },
-  { id: 6, title: 'Riptide',
-    artist: 'Vance Joy',
-    difficulty: 'Intermediate',
-    key: 'Am',
-    bpm: 158,
-    chords: ['Am', 'G', 'C', 'F'],
-    lyrics: [
-      { text: 'I was scared of dentists and the dark', chord: 'Am', beats: 4 },
-      { text: 'I was scared of pretty girls and Sunday mornings', chord: 'G', beats: 4 },
-      { text: 'I was scared of little bits of paper in the park', chord: 'C', beats: 4 },
-      { text: 'And I turned around and you were gone', chord: 'F', beats: 4 },
-      { text: 'I love you Riptide', chord: 'Am', beats: 4 },
-      { text: 'I love you Riptide', chord: 'G', beats: 4 },
-      { text: 'I love you Riptide', chord: 'C', beats: 4 },
-      { text: 'I love you Riptide', chord: 'F', beats: 4 },
-      { text: 'I was scared of dentists and the dark', chord: 'Am', beats: 4 },
-      { text: 'I was scared of pretty girls and Sunday mornings', chord: 'G', beats: 4 },
-      { text: 'I was scared of little bits of paper in the park', chord: 'C', beats: 4 },
-      { text: 'And I turned around and you were gone', chord: 'F', beats: 4 },
-      { text: 'Lady, running down to the riptide', chord: 'Am', beats: 4 },
-      { text: 'Taken away to the dark side', chord: 'G', beats: 4 },
-      { text: 'I wanna be your left hand man', chord: 'C', beats: 4 },
-      { text: 'I love you when you\'re singing that song and', chord: 'F', beats: 4 },
-      { text: 'I got a lump in my throat', chord: 'Am', beats: 4 },
-      { text: 'And you\'re gonna sing the words wrong', chord: 'G', beats: 4 },
-    ]
-  },
-  { id: 7, title: 'Thinking Out Loud',
-    artist: 'Ed Sheeran',
-    difficulty: 'Intermediate',
-    key: 'G',
-    bpm: 79,
-    chords: ['Em', 'G', 'D', 'C'],
-    lyrics: [
-      { text: 'When your legs don\'t work like they used to before', chord: 'Em', beats: 4 },
-      { text: 'And I can\'t sweep you off of your feet', chord: 'G', beats: 4 },
-      { text: 'Will your mouth still remember the taste of my love', chord: 'D', beats: 4 },
-      { text: 'Will your eyes still smile from your cheeks', chord: 'C', beats: 4 },
-      { text: 'So baby now', chord: 'Em', beats: 4 },
-      { text: 'We\'re still young', chord: 'G', beats: 4 },
-      { text: 'And our hearts still beat as one', chord: 'D', beats: 4 },
-      { text: 'And I\'m thinking out loud', chord: 'C', beats: 4 },
-      { text: 'When your legs don\'t work like they used to before', chord: 'Em', beats: 4 },
-      { text: 'And I can\'t sweep you off of your feet', chord: 'G', beats: 4 },
-      { text: 'Will your mouth still remember the taste of my love', chord: 'D', beats: 4 },
-      { text: 'Will your eyes still smile from your cheeks', chord: 'C', beats: 4 },
-      { text: 'People fall in love in mysterious ways', chord: 'Em', beats: 4 },
-      { text: 'Maybe just the touch of a hand', chord: 'G', beats: 4 },
-      { text: 'And me I fall in love with you every single day', chord: 'D', beats: 4 },
-      { text: 'And I just wanna tell you I am', chord: 'C', beats: 4 },
-      { text: 'Take me into your loving arms', chord: 'Em', beats: 4 },
-      { text: 'Kiss me under the light of a thousand stars', chord: 'G', beats: 4 },
-      { text: 'Place your head on my beating heart', chord: 'D', beats: 4 },
-      { text: 'I\'m thinking out loud', chord: 'C', beats: 4 },
-      { text: 'That maybe we found love right where we are', chord: 'Em', beats: 4 },
-      { text: 'When your hair\'s turned grey', chord: 'G', beats: 4 },
-      { text: 'We can share a bed of roses', chord: 'D', beats: 4 },
-      { text: 'That maybe we found love right where we are', chord: 'C', beats: 4 },
-    ]
-  },
-  { id: 8, title: 'I\'m Yours',
-    artist: 'Jason Mraz',
-    difficulty: 'Intermediate',
-    key: 'B',
-    bpm: 104,
-    chords: ['B', 'E', 'G#m', 'F#'],
-    lyrics: [
-      { text: 'Well you done done me and you bet I felt it', chord: 'B', beats: 4 },
-      { text: 'I tried to be chill but you\'re so hot that I melted', chord: 'E', beats: 4 },
-      { text: 'I fell right through the cracks', chord: 'G#m', beats: 4 },
-      { text: 'And now I\'m trying to get back', chord: 'F#', beats: 4 },
-      { text: 'Before the cool done run out', chord: 'B', beats: 4 },
-      { text: 'I\'ll be giving it my best', chord: 'E', beats: 4 },
-      { text: 'Nothing\'s going to stop me but divine intervention', chord: 'G#m', beats: 4 },
-      { text: 'I reckon it\'s again my turn', chord: 'F#', beats: 4 },
-      { text: 'To win some or learn some', chord: 'B', beats: 4 },
-      { text: 'But I won\'t hesitate no more no more', chord: 'E', beats: 4 },
-      { text: 'It cannot wait I\'m yours', chord: 'G#m', beats: 4 },
-      { text: 'I won\'t hesitate no more no more', chord: 'F#', beats: 4 },
-      { text: 'It cannot wait I\'m yours', chord: 'B', beats: 4 },
-    ]
-  },
-  { id: 9, title: 'Hotel California',
-    artist: 'Eagles',
-    difficulty: 'Intermediate',
-    key: 'Am',
-    bpm: 75,
-    chords: ["Am", "E7", "G", "D", "F", "C", "Dm"],
-    lyrics: [
-      { text: "(Instrumental Intro - Fingerpicking Pattern)", chord: null, beats: 8 },
-      { text: "4-3-2-1-2-1, 3-2-1", chord: "Am", beats: 4 },
-      { text: "4-3-2-1-2-1", chord: "E7", beats: 4 },
-      { text: "4-3-2-1-2-1, 3-2-1", chord: "G", beats: 4 },
-      { text: "4-3-2-1-2-1", chord: "D", beats: 4 },
-      { text: "4-3-2-1-2-1, 3-2-1", chord: "F", beats: 4 },
-      { text: "4-3-2-1-2-1", chord: "C", beats: 4 },
-      { text: "4-3-2-1-2-1, 3-2-1", chord: "Dm", beats: 4 },
-      { text: "4-3-2-1-2-1 (Let ring)", chord: "E7", beats: 8 },
-      { text: "On a dark desert highway", chord: "Am", beats: 4 },
-      { text: "Cool wind in my hair", chord: "E7", beats: 4 },
-      { text: "Warm smell of colitas", chord: "G", beats: 4 },
-      { text: "Rising up through the air", chord: "D", beats: 4 },
-      { text: "Up ahead in the distance", chord: "F", beats: 4 },
-      { text: "I saw a shimmering light", chord: "C", beats: 4 },
-      { text: "My head grew heavy and my sight grew dim", chord: "Dm", beats: 4 },
-      { text: "I had to stop for the night", chord: "E7", beats: 4 },
-      { text: "Welcome to Hotel California", chord: "Am", beats: 4 },
-      { text: "Such a lovely place", chord: "E7", beats: 4 },
-      { text: "Such a lovely face", chord: "G", beats: 4 },
-      { text: "Plenty of room at Hotel California", chord: "D", beats: 4 },
-      { text: "Any time of year", chord: "F", beats: 4 },
-      { text: "You can find it here", chord: "C", beats: 4 },
-      { text: "Her mind is Tiffany-twisted", chord: "Dm", beats: 4 },
-      { text: "She got the Mercedes bends", chord: "E7", beats: 4 },
-      { text: "She got a lot of pretty, pretty boys", chord: "Am", beats: 4 },
-      { text: "That she calls friends", chord: "E7", beats: 4 },
-      { text: "How they dance in the courtyard", chord: "F", beats: 4 },
-      { text: "Sweet summer sweat", chord: "Dm", beats: 4 },
-      { text: "Some dance to remember", chord: "Am", beats: 4 },
-      { text: "Some dance to forget", chord: "E7", beats: 4 },
-    ]
-  },
-  { id: 10, title: 'Sweet Caroline',
-    artist: 'Neil Diamond',
-    difficulty: 'Beginner',
-    key: 'G',
-    bpm: 120,
-    chords: ['G', 'C', 'D', 'Em'],
-    lyrics: [
-      { text: "Where it began, I can't begin to knowing", chord: 'G', beats: 4 },
-      { text: "But then I know it's growing strong", chord: 'C', beats: 4 },
-      { text: "Was in the spring", chord: 'G', beats: 4 },
-      { text: "And spring became the summer", chord: 'D', beats: 4 },
-      { text: "Who'd have believed you'd come along", chord: 'G', beats: 4 },
-      { text: "Hands, touching hands", chord: 'C', beats: 4 },
-      { text: "Reaching out, touching me, touching you", chord: 'G', beats: 4 },
-      { text: "Sweet Caroline", chord: 'Em', beats: 4 },
-      { text: "Good times never seemed so good", chord: 'G', beats: 4 },
-      { text: "Good times never seemed so good", chord: 'C', beats: 4 },
-      { text: "Good times never seemed so good", chord: 'D', beats: 4 },
-      { text: "Good times never seemed so good", chord: 'Em', beats: 4 },
-      { text: "I've been inclined", chord: 'G', beats: 4 },
-      { text: "To believe they never would", chord: 'C', beats: 4 },
-      { text: "But now I", chord: 'G', beats: 4 },
-      { text: "Look at the night", chord: 'Em', beats: 4 },
-      { text: "And it don't seem so lonely", chord: 'C', beats: 4 },
-      { text: "We fill it up with only two", chord: 'G', beats: 4 },
-      { text: "And when I hurt", chord: 'Em', beats: 4 },
-      { text: "Hurting runs off my shoulder", chord: 'C', beats: 4 },
-      { text: "How can I hurt when holding you?", chord: 'G', beats: 4 },
-      { text: "Sweet Caroline", chord: 'Em', beats: 4 },
-      { text: "Good times never seemed so good", chord: 'G', beats: 4 },
-      { text: "Good times never seemed so good", chord: 'C', beats: 4 },
-      { text: "Good times never seemed so good", chord: 'D', beats: 4 },
-      { text: "Good times never seemed so good", chord: 'Em', beats: 4 }
-    ]
-  }
-];
-
-function PracticeMode({ initialSongId, onDone }) {
+function PracticeMode({ initialSongId, onDone, instrument = 'ukulele' }) {
+  const { add: addToast } = useToast();
   const [selectedSong, setSelectedSong] = useState(() => {
     if (initialSongId) {
       const found = PRACTICE_SONGS.find(s => s.id === initialSongId);
@@ -487,9 +220,17 @@ function PracticeMode({ initialSongId, onDone }) {
     // Ensure AudioContext is initialized and resumed before playing
     await initAudioContext();
     const chordKey = Object.keys(CHORD_FREQ).find(k => k.toLowerCase() === chord.toLowerCase());
+    if (!chordKey) {
+      console.warn(
+        `playChord: chord "${chord}" not found in CHORD_FREQ lookup. ` +
+        'Chord playback will be silent. Add the chord frequency to CHORD_FREQ in PracticeMode.js.'
+      );
+      addToast(`Chord "${chord}" not found in frequency table — playback will be silent.`);
+      return;
+    }
     const freqs = CHORD_FREQ[chordKey] || [440];
     freqs.forEach(freq => playNote(freq));
-  }, [playNote]);
+  }, [playNote, addToast]);
 
   // Auto-scroll the active line into view
   const scrollToLine = useCallback((idx) => {
@@ -884,9 +625,9 @@ function PracticeMode({ initialSongId, onDone }) {
 
   const current = selectedSong?.lyrics ? selectedSong.lyrics[currentIndex] : null;
   // Look up the current chord's fret/finger data so Practice Mode can render a
-  // real chord diagram (issue #510). Defaults to the ukulele library, matching
-  // the app's default instrument; every practice-song chord exists there.
-  const chordData = current?.chord ? getChordByInstrument(current.chord, 'ukulele') : null;
+  // real chord diagram (issue #510). Respects the selected instrument prop so
+  // the diagram matches the user's guitar/ukulele choice (issue #556).
+  const chordData = current?.chord ? getChordByInstrument(current.chord, instrument) : null;
 
   if (!selectedSong) {
     return (
@@ -1325,4 +1066,4 @@ function PracticeMode({ initialSongId, onDone }) {
 }
 
 export default PracticeMode;
-export { PRACTICE_SONGS, CHORD_FREQ };
+export { CHORD_FREQ };

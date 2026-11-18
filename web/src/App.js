@@ -45,7 +45,7 @@ function App() {
       case 'tuner': return <Tuner instrument={instrument} setInstrument={setInstrument} />;
       case 'chords': return <ChordLibrary instrument={instrument} setInstrument={setInstrument} />;
       case 'songs': return <SongLibrary instrument={instrument} onStartPractice={handleStartPractice} />;
-      case 'practice': return <PracticeMode initialSongId={practiceSongId} onDone={() => setPracticeSongId(null)} />;
+      case 'practice': return <PracticeMode initialSongId={practiceSongId} instrument={instrument} onDone={() => setPracticeSongId(null)} />;
       default: return <Tuner />;
     }
   };
