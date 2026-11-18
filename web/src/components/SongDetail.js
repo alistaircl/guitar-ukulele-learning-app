@@ -1,6 +1,6 @@
 import React from 'react';
-// Import the song data with lyrics from PracticeMode
-import { PRACTICE_SONGS } from './PracticeMode';
+// Import the song data with lyrics from shared data module
+import { PRACTICE_SONGS } from '../data/songs';
 // Import chord diagram + lookup so the song detail view can render
 // fretboard diagrams for each chord used in the song (fixes #183).
 import ChordDiagram from './ChordDiagram';

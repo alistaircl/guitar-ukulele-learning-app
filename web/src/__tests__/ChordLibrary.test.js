@@ -132,3 +132,34 @@ test('unknown chord names return no results instead of wrong matches (issue #537
   expect(searchChordsByInstrument('C#m', 'guitar')).toEqual([]);
   expect(searchChordsByInstrument('Dbm', 'guitar')).toEqual([]);
 });
+
+// Regression guard for issue #546: typing in the Chord Library search input
+// filters the chord grid. Bare root notes match the exact chord only
+// (intended behavior, issue #470); quality-specific queries match that quality.
+test('chord library search filters the chord grid', () => {
+  render(<ChordLibrary />);
+  const input = screen.getByPlaceholderText(/Search ukulele chords/);
+  // Bare root 'C' matches the exact chord only, not all C-family chords
+  fireEvent.change(input, { target: { value: 'C' } });
+  expect(screen.getByText('C')).toBeTruthy();
+  expect(screen.queryByText('Cm')).toBeNull();
+  expect(screen.queryByText('C7')).toBeNull();
+  expect(screen.queryByText('G')).toBeNull();
+  expect(screen.queryByText('D')).toBeNull();
+  // A quality-specific query filters to that chord
+  fireEvent.change(input, { target: { value: 'Cm' } });
+  expect(screen.getByText('Cm')).toBeTruthy();
+  expect(screen.queryByText('C')).toBeNull();
+});
+
+// Regression guard for issue #549: the search placeholder updates to reflect
+// the active instrument when the instrument toggle is switched.
+test('search placeholder updates when switching instruments (issue #549)', () => {
+  render(<ChordLibrary />);
+  const input = screen.getByPlaceholderText(/Search ukulele chords/);
+  expect(input).toBeTruthy();
+  const toggle = screen.getByLabelText(/Current instrument: ukulele. Click to switch to guitar chords/);
+  fireEvent.click(toggle);
+  const guitarInput = screen.getByPlaceholderText(/Search guitar chords/);
+  expect(guitarInput).toBeTruthy();
+});

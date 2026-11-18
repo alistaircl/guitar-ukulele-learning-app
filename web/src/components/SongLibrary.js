@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 // import ChordDiagram from './ChordLibrary'; // Reuse the ChordDiagram from ChordLibrary
 import SongDetail from './SongDetail';
-import { PRACTICE_SONGS } from './PracticeMode';
+import { PRACTICE_SONGS } from '../data/songs';
 import { safeStorageGet, safeStorageSet } from '../utils/safeStorage';
 import { useToast } from './Toast';
 

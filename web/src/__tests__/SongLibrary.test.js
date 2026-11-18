@@ -1,6 +1,6 @@
 import { render, fireEvent, screen } from '@testing-library/react';
 import SongLibrary from '../components/SongLibrary';
-import { PRACTICE_SONGS } from '../components/PracticeMode';
+import { PRACTICE_SONGS } from '../data/songs';
 import { getChordByInstrument } from '../data/chords';
 
 test('renders SongLibrary with song cards', () => {
