@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ChordDiagram from './ChordDiagram';
 import { getChordByInstrument } from '../data/chords';
 import { PRACTICE_SONGS } from '../data/songs';
+import { useToast } from './Toast';
 
 // Issue #161: Persist practice progress (streak, totalCorrect) per song in
 // localStorage so progress survives component unmount/remount (tab switches).
@@ -82,6 +83,7 @@ const CHORD_FREQ = {
 };
 
 function PracticeMode({ initialSongId, onDone, instrument = 'ukulele' }) {
+  const { add: addToast } = useToast();
   const [selectedSong, setSelectedSong] = useState(() => {
     if (initialSongId) {
       const found = PRACTICE_SONGS.find(s => s.id === initialSongId);
@@ -218,9 +220,17 @@ function PracticeMode({ initialSongId, onDone, instrument = 'ukulele' }) {
     // Ensure AudioContext is initialized and resumed before playing
     await initAudioContext();
     const chordKey = Object.keys(CHORD_FREQ).find(k => k.toLowerCase() === chord.toLowerCase());
+    if (!chordKey) {
+      console.warn(
+        `playChord: chord "${chord}" not found in CHORD_FREQ lookup. ` +
+        'Chord playback will be silent. Add the chord frequency to CHORD_FREQ in PracticeMode.js.'
+      );
+      addToast(`Chord "${chord}" not found in frequency table — playback will be silent.`);
+      return;
+    }
     const freqs = CHORD_FREQ[chordKey] || [440];
     freqs.forEach(freq => playNote(freq));
-  }, [playNote]);
+  }, [playNote, addToast]);
 
   // Auto-scroll the active line into view
   const scrollToLine = useCallback((idx) => {
