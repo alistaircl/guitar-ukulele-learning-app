@@ -186,7 +186,16 @@ function PracticeMode({ initialSongId, onDone, instrument = 'ukulele' }) {
     // AudioContext should be initialized by initAudioContext() before first playNote call
     if (!audioCtxRef.current) {
       // Fallback: create if somehow not initialized (shouldn't happen)
-      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      try {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (err) {
+        console.warn(
+          'Failed to create AudioContext in playNote fallback: ' +
+          (err && err.message ? err.message : err)
+        );
+        setAudioReady(false);
+        return;
+      }
     }
     // Guard: never schedule audio into a suspended context (issue #155).
     // Notes scheduled into a suspended AudioContext produce no audio silently.
@@ -213,6 +222,16 @@ function PracticeMode({ initialSongId, onDone, instrument = 'ukulele' }) {
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtxRef.current.currentTime + 0.4);
     osc.start();
     osc.stop(audioCtxRef.current.currentTime + 0.4);
+    // Clean up nodes after playback completes to prevent resource accumulation
+    // from rapid chord playback calls (issue #562).
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+      } catch (e) {
+        // Node may already be disconnected or context closed — safe to ignore
+      }
+    };
   }, []);
 
   const playChord = useCallback(async (chord) => {
