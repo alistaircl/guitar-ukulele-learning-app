@@ -522,7 +522,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       </div>
       {referenceToneError && <div className="error-message">{referenceToneError}</div>}
       <div className="tuner-controls">
-        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }} disabled={isStarting}>
+        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }} disabled={isStarting} aria-label={isListening ? 'Stop tuner' : 'Start tuner'}>
           {isStarting ? (isCalibrating ? 'Calibrating…' : 'Starting…') : isListening ? 'Stop' : 'Start'}
         </button>
       </div>
