@@ -120,7 +120,7 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
               className="search-input"
               aria-label={`Search ${activeInstrument} chords`}
             />
-            <FaSearch className="search-icon" />
+            <FaSearch className="search-icon" aria-hidden="true" />
           </div>
           
           <div className="chord-grid">
@@ -148,7 +148,7 @@ function ChordPage({ chord, onGoBack }) {
   return (
     <div className="chord-page">
       <div className="chord-page-header">
-        <button type="button" onClick={onGoBack} className="back-button">
+        <button type="button" onClick={onGoBack} className="back-button" aria-label="Back to Chord Library">
           <FaArrowLeft /> Back to Chord Library
         </button>
         <h2 className="section-title">{chord.name}</h2>
