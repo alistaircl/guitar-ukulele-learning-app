@@ -120,7 +120,7 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
               className="search-input"
               aria-label={`Search ${activeInstrument} chords`}
             />
-            <FaSearch className="search-icon" />
+            <FaSearch className="search-icon" aria-hidden="true" />
           </div>
           
           <div className="chord-grid">
