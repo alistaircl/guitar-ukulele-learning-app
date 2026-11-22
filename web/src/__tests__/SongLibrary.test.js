@@ -14,6 +14,7 @@ test('renders SongLibrary with song cards', () => {
 
 // Regression guard for issue #480: searching the Song Library filters the
 // displayed songs to those matching title or artist.
+// Also covers issue #588 (Song Library text search doesn't filter results).
 test('song library search filters results', () => {
   render(<SongLibrary />);
   const input = screen.getByPlaceholderText(/Search by title or artist/);
