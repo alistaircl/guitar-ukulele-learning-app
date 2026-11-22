@@ -103,6 +103,7 @@ test('Start begins the countdown even when AudioContext.resume() never resolves 
 
 // Regression guard for issue #458: clicking Start initiates a practice session
 // (countdown begins and the Start button gives way to playback controls).
+// Also covers issue #592 (Practice mode control buttons have no visible effect).
 test('Start button initiates a practice session', async () => {
   const { getByText, queryByText } = render(<PracticeMode />);
   fireEvent.click(getByText('▶ Start'));
@@ -137,6 +138,7 @@ test('Reset requires confirmation before clearing all progress (issue #536)', ()
 // advance to the next line and KEEP the session going, not reset it back to
 // the Start screen (which happens when goToLine stops playback and
 // beginPlayback restarts from index 0).
+// Also covers issue #592 (Practice mode control buttons have no visible effect).
 test('Next button advances to next line without resetting the session (issue #519)', async () => {
   const { getByText, queryByText } = render(<PracticeMode />);
   fireEvent.click(getByText('▶ Start'));
