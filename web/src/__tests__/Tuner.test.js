@@ -83,3 +83,36 @@ test('shows a loading state while tuner microphone access initializes (issue #53
     navigator.mediaDevices = originalMediaDevices;
   }
 });
+
+// Regression guard for issue #599: clicking 'Start' activates the tuner
+// (the button becomes 'Stop' and the display begins listening).
+test('Start button activates the tuner (issue #599)', async () => {
+  const originalAudioContext = window.AudioContext;
+  const originalMediaDevices = navigator.mediaDevices;
+  let resolveStream;
+  window.AudioContext = class {
+    constructor() { this.state = 'running'; }
+    createAnalyser() {
+      return { fftSize: 0, getFloatTimeDomainData: () => {}, connect: () => {} };
+    }
+    createMediaStreamSource() { return { connect: () => {} }; }
+    close() { return Promise.resolve(); }
+  };
+  navigator.mediaDevices = {
+    getUserMedia: jest.fn(() => new Promise((resolve) => { resolveStream = resolve; })),
+  };
+  try {
+    const { getByText, getByRole } = render(<Tuner />);
+    fireEvent.click(getByText('Start'));
+    // Tuner begins initializing microphone access
+    await waitFor(() => expect(getByText(/Requesting microphone access/i)).toBeTruthy(), { timeout: 5000 });
+    // Grant microphone access so getUserMedia resolves
+    resolveStream({ getTracks: () => [] });
+    await act(async () => {});
+    await waitFor(() => expect(getByText(/Listening/i)).toBeTruthy(), { timeout: 5000 });
+    expect(getByRole('button', { name: /Stop/ })).toBeTruthy();
+  } finally {
+    window.AudioContext = originalAudioContext;
+    navigator.mediaDevices = originalMediaDevices;
+  }
+});
