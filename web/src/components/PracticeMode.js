@@ -536,13 +536,18 @@ function PracticeMode({ initialSongId, onDone }) {
     if (audioCtxRef.current.state === 'suspended') {
       try {
         await audioCtxRef.current.resume();
-      } catch (err) {
+      } catch (resumeErr) {
         console.warn(
-          'Failed to resume AudioContext: ' + (err && err.message ? err.message : err) + '. ' +
+          'Failed to resume AudioContext: ' + (resumeErr && resumeErr.message ? resumeErr.message : resumeErr) + '. ' +
           'Cause: browser autoplay policy requires a user gesture (tap/click) to start audio; ' +
           'resume() is rejected outside a user gesture. This is an expected browser security ' +
           'limitation, not an app bug — engage with the page (tap "Enable Audio") to start audio (issue #206).'
         );
+        // Close the AudioContext so we don't leak it when init fails (issue #578)
+        if (audioCtxRef.current) {
+          audioCtxRef.current.close();
+          audioCtxRef.current = null;
+        }
         setAudioReady(false);
         return;
       }
@@ -555,10 +560,15 @@ function PracticeMode({ initialSongId, onDone }) {
       console.warn(
         'AudioContext state is ' + audioCtxRef.current.state + ' after resume() (expected "running"). ' +
         'Cause: browser autoplay policy requires a user gesture to start audio, and some browsers ' +
-        'resolve resume() without flipping state to "running". This is an expected browser security ' +
+        'resolve resume() without flipping state to \"running\". This is an expected browser security ' +
         'limitation, not an app bug — the user must interact with the page (tap "Enable Audio") to ' +
         'start audio.'
       );
+      // Close the AudioContext since it never reached 'running' (issue #578)
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
+        audioCtxRef.current = null;
+      }
       setAudioReady(false);
     }
   };
