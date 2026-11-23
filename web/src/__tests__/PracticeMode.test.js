@@ -152,3 +152,15 @@ test('Next button advances to next line without resetting the session (issue #51
   // The line counter should have advanced past the line that was playing
   await waitFor(() => expect(screen.queryByText(/\d \//)).toBeTruthy(), { timeout: 5000 });
 });
+
+// Regression guard for issue #600: clicking Start begins the practice session
+// (countdown runs and chord playback/highlighting starts for the selected song).
+test('Start button starts the practice session (issue #600)', async () => {
+  const { getByText, queryByText } = render(<PracticeMode />);
+  fireEvent.click(getByText('▶ Start'));
+  await waitFor(() => expect(getByText('3')).toBeDefined(), { timeout: 5000 });
+  // Countdown runs -> Start button gives way to playback controls
+  expect(queryByText('▶ Start')).toBeNull();
+  // Playback begins: current chord diagram is rendered
+  await waitFor(() => expect(screen.queryByRole('img', { name: /Chord diagram for/ })).toBeTruthy(), { timeout: 8000 });
+});
