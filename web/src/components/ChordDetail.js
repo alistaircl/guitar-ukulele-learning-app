@@ -206,15 +206,16 @@ function ChordDetail({ chord, showPrimaryLabel = false, onClose }) {
 
 function getVariationDescription(label) {
   if (!label) return '';
-  
+
   const lowerLabel = label.toLowerCase();
   if (lowerLabel.includes('barre')) return 'Barre chord shape — great for moving up the neck';
   if (lowerLabel.includes('easy')) return 'Simplified fingering — great for learners';
   if (lowerLabel.includes('no pinky')) return 'Simplified version — easier for beginners';
   if (lowerLabel.includes('standard')) return 'Standard open position voicing';
   if (lowerLabel.includes('pinky')) return 'Alternative fingering using pinky';
-  
-  return '';
+  if (lowerLabel.includes('low')) return 'Lower position voicing';
+  // Generic fallback so no variation label is left without a description
+  return 'Alternative voicing';
 }
 
 export default ChordDetail;
