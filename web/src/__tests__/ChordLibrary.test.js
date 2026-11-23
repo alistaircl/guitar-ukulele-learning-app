@@ -132,3 +132,23 @@ test('unknown chord names return no results instead of wrong matches (issue #537
   expect(searchChordsByInstrument('C#m', 'guitar')).toEqual([]);
   expect(searchChordsByInstrument('Dbm', 'guitar')).toEqual([]);
 });
+
+// Regression guard for issue #587: typing into the Chord Library search input
+// must filter the displayed chord cards to those matching the query.
+test('chord library search input filters chord cards (issue #587)', () => {
+  render(<ChordLibrary />);
+  // All chords visible initially
+  expect(screen.getByText('C')).toBeTruthy();
+  expect(screen.getByText('G')).toBeTruthy();
+  expect(screen.getByText('Am')).toBeTruthy();
+
+  // Type 'C' in search — only chord 'C' should remain
+  const input = screen.getByPlaceholderText(/Search.*chords/);
+  fireEvent.change(input, { target: { value: 'C' } });
+
+  // 'C' chord still visible
+  expect(screen.getByText('C')).toBeTruthy();
+  // Other chords should not be visible
+  expect(screen.queryByText('G')).toBeNull();
+  expect(screen.queryByText('Am')).toBeNull();
+});
