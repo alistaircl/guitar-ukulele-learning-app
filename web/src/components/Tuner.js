@@ -411,8 +411,14 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     };
   }, []);
 
-  // Save tuning preference to available storage when it changes (per instrument)
+  // Save tuning preference to available storage when it changes (per instrument).
+  // Only persist a tuning that is valid for the active instrument, so switching
+  // instruments doesn't write a now-invalid tuning and then rewrite it once the
+  // correction effect fixes it to a valid value (issue #581).
   useEffect(() => {
+    if (!TUNINGS_BY_INSTRUMENT[activeInstrument].includes(tuning)) {
+      return;
+    }
     if (!safeStorageSet(tuningStorageKey(activeInstrument), tuning)) {
       addToast('Unable to save your tuner tuning (storage unavailable or full).');
     }
