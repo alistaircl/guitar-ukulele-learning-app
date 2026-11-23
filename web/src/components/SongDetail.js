@@ -30,6 +30,7 @@ function SongDetail({ songId, onBack, onStartPractice, instrument = 'ukulele' })
           type="button"
           className="control-btn" 
           onClick={(e) => { e.preventDefault(); onBack(); }}
+          aria-label="Back to Songs"
           style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
         >
           ← Back to Songs
@@ -40,6 +41,7 @@ function SongDetail({ songId, onBack, onStartPractice, instrument = 'ukulele' })
             <button
               className="control-btn"
               onClick={() => onStartPractice(song)}
+              aria-label="Practice this song"
               style={{
                 padding: '0.5rem 1rem',
                 fontSize: '0.9rem',
