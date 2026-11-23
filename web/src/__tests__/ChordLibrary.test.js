@@ -152,3 +152,13 @@ test('chord library search input filters chord cards (issue #587)', () => {
   expect(screen.queryByText('G')).toBeNull();
   expect(screen.queryByText('Am')).toBeNull();
 });
+
+// Regression guard for issue #598: clicking a chord card must open the chord
+// detail view and surface its available variations (e.g. 'C (barre)').
+test('clicking a chord card shows its variations (issue #598)', () => {
+  render(<ChordLibrary />);
+  fireEvent.click(screen.getByText('C').closest('[role="button"]'));
+  expect(screen.getByText('▶ Play chord')).toBeTruthy();
+  // The C chord ships with a 'C (barre)' variation
+  expect(screen.getAllByText(/barre/i).length).toBeGreaterThan(0);
+});
