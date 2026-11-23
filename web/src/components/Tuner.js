@@ -134,6 +134,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
   const [isStarting, setIsStarting] = useState(false);
   const [detectedNote, setDetectedNote] = useState(null);
   const [error, setError] = useState(null);
+  const [micPermissionDenied, setMicPermissionDenied] = useState(false);
   const [referenceToneError, setReferenceToneError] = useState(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const audioCtxRef = useRef(null);
@@ -158,6 +159,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     // Declared outside try so error/cleanup paths can close a partially
     // initialized AudioContext instead of leaking it (issue #577).
     let audioCtx = null;
+    setMicPermissionDenied(false);
     try {
       // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -220,7 +222,8 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         audioCtx = null;
       }
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setError('Microphone access denied. Please enable microphone permissions in your browser settings and refresh the page.');
+        setError('Microphone access denied. Enable microphone permissions in your browser settings, then click Retry below.');
+        setMicPermissionDenied(true);
       } else if (err.name === 'NotSupportedError') {
         setError('Browser does not support microphone access. Please try a modern browser with microphone support.');
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
@@ -552,7 +555,28 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
           <div className="spinner" aria-hidden="true" />
         </div>
       )}
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message">
+          {error}
+          {micPermissionDenied && (
+            <>
+              <button
+                type="button"
+                className="control-btn"
+                onClick={(e) => {
+                  e.preventDefault();
+                  startTuner();
+                }}
+              >
+                Retry microphone access
+              </button>
+              <p className="error-hint">
+                In the meantime, use the reference tone buttons above to tune by ear.
+              </p>
+            </>
+          )}
+        </div>
+      )}
       <div className={`tuner-status ${isListening ? 'listening' : 'stopped'}`} aria-live="polite">
         {isStarting ? (isCalibrating ? 'Calibrating…' : 'Requesting microphone access…') : isCalibrating ? 'Calibrating...' : isListening ? 'Listening...' : 'Press Start to begin'}
       </div>
