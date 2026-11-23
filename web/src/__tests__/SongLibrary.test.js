@@ -25,6 +25,7 @@ test('song library search filters results', () => {
 
 // Regression guard for issue #516: filtering by difficulty shows only songs
 // of the selected difficulty (Beginner songs are excluded).
+// Also covers issue #591 (Song Library difficulty/key filters don't filter).
 test('difficulty filter filters results (issue #516)', () => {
   localStorage.clear();
   render(<SongLibrary />);
@@ -37,6 +38,7 @@ test('difficulty filter filters results (issue #516)', () => {
 
 // Regression guard for issue #517: filtering by key shows only songs in the
 // selected key (songs in other keys are excluded).
+// Also covers issue #591 (Song Library difficulty/key filters don't filter).
 test('key filter filters results (issue #517)', () => {
   localStorage.clear();
   render(<SongLibrary />);
