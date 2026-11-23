@@ -155,6 +155,9 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
 
     setIsStarting(true);
     setError(null);
+    // Declared outside try so error/cleanup paths can close a partially
+    // initialized AudioContext instead of leaking it (issue #577).
+    let audioCtx = null;
     try {
       // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -169,7 +172,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       // can return an empty list in headless/restricted environments, issue #454).
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
       // Ensure the AudioContext is active. Some browsers start it in 'suspended' state
       // and reject resume() under mobile Safari's strict autoplay policy. Wrap in its
@@ -182,6 +185,9 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
           console.error('Failed to resume AudioContext for tuner:', resumeErr);
           // Clean up partial resources before surfacing the failure
           stream.getTracks().forEach(t => t.stop());
+          // Close the AudioContext so we don't leak it when init fails (issue #577)
+          audioCtx.close();
+          audioCtx = null;
           throw new Error('Audio could not be initialized. Tap Start again to retry.');
         }
       }
@@ -189,6 +195,9 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       // analyser would never produce meaningful data and the user hears nothing.
       if (audioCtx.state !== 'running') {
         stream.getTracks().forEach(t => t.stop());
+        // Close the AudioContext so we don't leak it when init fails (issue #577)
+        audioCtx.close();
+        audioCtx = null;
         throw new Error('Audio context could not be activated. Tap Start again to retry.');
       }
 
@@ -204,6 +213,12 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       await calibrateThreshold();
       detectPitch();
     } catch (err) {
+      // Close a locally-created AudioContext that wasn't yet stored in the ref
+      // (initialization failed partway through) to avoid leaking it (issue #577).
+      if (audioCtx && audioCtxRef.current !== audioCtx) {
+        audioCtx.close();
+        audioCtx = null;
+      }
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setError('Microphone access denied. Please enable microphone permissions in your browser settings and refresh the page.');
       } else if (err.name === 'NotSupportedError') {
