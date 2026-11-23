@@ -9,13 +9,13 @@ test('switching tabs resets to library view instead of showing a detail view (is
   render(<App />);
 
   // Open Songs tab and select a song to reveal its detail view
-  fireEvent.click(screen.getByRole('button', { name: 'Songs' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Navigate to Songs' }));
   fireEvent.click(screen.getByText('Somewhere Over the Rainbow'));
   expect(screen.getByText(/Back to Songs/)).toBeTruthy();
 
   // Switch to Tuner, then back to Songs
-  fireEvent.click(screen.getByRole('button', { name: 'Tuner' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Songs' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Navigate to Tuner' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Navigate to Songs' }));
 
   // Back on Songs: library list should be shown, not the detail view
   expect(screen.queryByText(/Back to Songs/)).toBeNull();
