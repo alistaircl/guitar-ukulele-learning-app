@@ -221,6 +221,9 @@ body {
 
 .tone-btn:hover { background: var(--accent-bg); color: white; }
 .tone-btn:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+/* Visual feedback while a reference tone is playing (issue #610) */
+.tone-btn.playing { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
+.tone-btn.playing:focus-visible { outline-color: var(--accent-primary); }
 
 .tuner-controls {
   display: flex;
