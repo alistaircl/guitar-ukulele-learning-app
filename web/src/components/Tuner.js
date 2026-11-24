@@ -487,14 +487,14 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            padding: '0.5rem 1rem',
-            background: 'var(--bg-panel)',
-            border: '2px solid var(--accent-primary)',
-            borderRadius: '8px',
-            color: 'var(--text-primary)',
+            padding: '0.35rem 0.75rem',
+            background: 'transparent',
+            border: '1px solid var(--bg-tertiary)',
+            borderRadius: '6px',
+            color: 'var(--text-secondary)',
             cursor: 'pointer',
-            fontSize: '0.9rem',
-            fontWeight: '600'
+            fontSize: '0.8rem',
+            fontWeight: '500'
           }}
           aria-label={`Current instrument: ${activeInstrument}. Click to switch to ${activeInstrument === 'ukulele' ? 'guitar' : 'ukulele'}`}
         >
@@ -526,6 +526,11 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
           {gaugeColor === 'sharp' && '♯ Sharp'}
         </div>
       )}
+      <div className="tuner-controls">
+        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }} disabled={isStarting} aria-label={isListening ? 'Stop tuner' : 'Start tuner'}>
+          {isStarting ? (isCalibrating ? 'Calibrating…' : 'Starting…') : isListening ? 'Stop' : 'Start'}
+        </button>
+      </div>
       <div className="tuning-selector">
         {TUNINGS_BY_INSTRUMENT[activeInstrument].map(key => (
           <div key={key} className="tuning-option">
@@ -545,11 +550,6 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         ))}
       </div>
       {referenceToneError && <div className="error-message">{referenceToneError}</div>}
-      <div className="tuner-controls">
-        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }} disabled={isStarting} aria-label={isListening ? 'Stop tuner' : 'Start tuner'}>
-          {isStarting ? (isCalibrating ? 'Calibrating…' : 'Starting…') : isListening ? 'Stop' : 'Start'}
-        </button>
-      </div>
       {isStarting && (
         <div className="loading" role="status" aria-live="polite" aria-label="Tuner is initializing — microphone access and audio context are being set up">
           <div className="spinner" aria-hidden="true" />
