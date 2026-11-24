@@ -137,6 +137,9 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
   const [micPermissionDenied, setMicPermissionDenied] = useState(false);
   const [referenceToneError, setReferenceToneError] = useState(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
+  // Which reference tone is currently playing, used to surface visual
+  // feedback on the tone button while audio plays (issue #610).
+  const [playingToneNote, setPlayingToneNote] = useState(null);
   const audioCtxRef = useRef(null);
   const analyserRef = useRef(null);
   const streamRef = useRef(null);
@@ -535,7 +538,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
             {tuning === key && (
               <div className="reference-tones">
                 {TUNINGS[key].notes.map((note, idx) => (
-                  <button key={note} className="tone-btn" onClick={() => playReferenceTone(TUNINGS[key].freq[idx])} aria-label={`Play reference tone for ${note}`}>
+                  <button key={note} className={`tone-btn ${playingToneNote === note ? 'playing' : ''}`} onClick={() => { setPlayingToneNote(note); playReferenceTone(TUNINGS[key].freq[idx]); setTimeout(() => setPlayingToneNote(null), 1100); }} aria-label={`Play reference tone for ${note}`} aria-pressed={playingToneNote === note}>
                     {note}
                   </button>
                 ))}
