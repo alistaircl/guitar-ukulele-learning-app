@@ -110,6 +110,25 @@ function ChordDetail({ chord, showPrimaryLabel = false, onClose }) {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
+
+  // Clear the autoplay-policy error when the user interacts with the page
+  // (issue #609). A click, tap, or key press resumes the AudioContext and
+  // should dismiss the stale error so the user can retry playback.
+  useEffect(() => {
+    const clearErrorOnInteraction = () => {
+      if (chordAudioError) {
+        setChordAudioError(null);
+      }
+    };
+    document.addEventListener('click', clearErrorOnInteraction);
+    document.addEventListener('keydown', clearErrorOnInteraction);
+    document.addEventListener('pointerup', clearErrorOnInteraction);
+    return () => {
+      document.removeEventListener('click', clearErrorOnInteraction);
+      document.removeEventListener('keydown', clearErrorOnInteraction);
+      document.removeEventListener('pointerup', clearErrorOnInteraction);
+    };
+  }, [chordAudioError]);
   // Filter out variations that are identical to the primary shape on BOTH frets
   // and fingers — those render the exact same diagram twice (issue #190).
   // Variations that share frets but use different fingers (e.g. "C (pinky)",
