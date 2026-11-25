@@ -142,6 +142,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
   const streamRef = useRef(null);
   const rafRef = useRef(null);
   const silenceThresholdRef = useRef(0.01); // Default threshold, will be calibrated
+  const [playingToneNote, setPlayingToneNote] = useState(null);
 
   const startTuner = async () => {
     // Check if AudioContext is supported
@@ -259,13 +260,16 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     setDetectedNote(null);
   };
 
-  const playReferenceTone = async (freq) => {
+  const playReferenceTone = async (freq, noteName) => {
     // Check if AudioContext is supported
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) {
       setReferenceToneError('Your browser does not support the Web Audio API.');
       return;
     }
+
+    // Set visual feedback state before playing (issue #610)
+    setPlayingToneNote(noteName);
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -310,7 +314,10 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     oscillator.stop(audioCtx.currentTime + 1);
 
     // Close the AudioContext after the tone finishes to prevent memory leaks
-    setTimeout(() => audioCtx.close(), 1100);
+    setTimeout(() => {
+      audioCtx.close();
+      setPlayingToneNote(null);
+    }, 1100);
   };
 
   // Calibrate silence threshold by measuring ambient noise
@@ -535,7 +542,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
             {tuning === key && (
               <div className="reference-tones">
                 {TUNINGS[key].notes.map((note, idx) => (
-                  <button key={note} className="tone-btn" onClick={() => playReferenceTone(TUNINGS[key].freq[idx])} aria-label={`Play reference tone for ${note}`}>
+                  <button type="button" key={note} className={`tone-btn${playingToneNote === note ? ' playing' : ''}`} onClick={() => playReferenceTone(TUNINGS[key].freq[idx], note)} aria-label={`Play reference tone for ${note}`} aria-pressed={playingToneNote === note} style={{ background: playingToneNote === note ? 'var(--accent-primary)' : 'var(--bg-panel)', color: playingToneNote === note ? 'white' : 'var(--text-primary)' }}>
                     {note}
                   </button>
                 ))}
