@@ -506,6 +506,14 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
           {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}<span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '0.25rem' }}> • current</span>
         </button>
       </div>
+      {/* Start/Stop button — placed prominently below the header so it is
+          the first action button users see, avoiding confusion with the
+          instrument switch button above (issue #608). */}
+      <div className="tuner-controls">
+        <button type="button" className="control-btn" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }} disabled={isStarting} aria-label={isListening ? 'Stop tuner' : 'Start tuner'} style={{ fontSize: '1rem', padding: '0.6rem 1.5rem' }}>
+          {isStarting ? (isCalibrating ? 'Calibrating…' : 'Starting…') : isListening ? 'Stop' : 'Start'}
+        </button>
+      </div>
       <div className="tuner-display">
         <div className="note-display">{detectedNote ? detectedNote.note : '—'}</div>
         <div className="frequency-display">{detectedNote ? `${detectedNote.freq.toFixed(1)} Hz` : '— Hz'}</div>
@@ -545,11 +553,6 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         ))}
       </div>
       {referenceToneError && <div className="error-message">{referenceToneError}</div>}
-      <div className="tuner-controls">
-        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }} disabled={isStarting} aria-label={isListening ? 'Stop tuner' : 'Start tuner'}>
-          {isStarting ? (isCalibrating ? 'Calibrating…' : 'Starting…') : isListening ? 'Stop' : 'Start'}
-        </button>
-      </div>
       {isStarting && (
         <div className="loading" role="status" aria-live="polite" aria-label="Tuner is initializing — microphone access and audio context are being set up">
           <div className="spinner" aria-hidden="true" />
