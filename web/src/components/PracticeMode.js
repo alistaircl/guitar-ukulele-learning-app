@@ -558,10 +558,10 @@ function PracticeMode({ initialSongId, onDone }) {
       setAudioReady(true);
     } else {
       console.warn(
-        'AudioContext state is ' + audioCtxRef.current.state + ' after resume() (expected "running"). ' +
+        'AudioContext state is ' + audioCtxRef.current.state + ' after resume() (expected running). ' +
         'Cause: browser autoplay policy requires a user gesture to start audio, and some browsers ' +
-        'resolve resume() without flipping state to \"running\". This is an expected browser security ' +
-        'limitation, not an app bug — the user must interact with the page (tap "Enable Audio") to ' +
+        'resolve resume() without flipping state to running. This is an expected browser security ' +
+        'limitation, not an app bug — the user must interact with the page (tap Enable Audio) to ' +
         'start audio.'
       );
       // Close the AudioContext since it never reached 'running' (issue #578)
