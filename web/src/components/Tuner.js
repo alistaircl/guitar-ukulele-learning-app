@@ -529,13 +529,13 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
       <div className="tuning-selector">
         {TUNINGS_BY_INSTRUMENT[activeInstrument].map(key => (
           <div key={key} className="tuning-option">
-            <button className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)} aria-pressed={tuning === key}>
+            <button type="button" className={`tuning-btn ${tuning === key ? 'active' : ''}`} onClick={() => setTuning(key)} aria-pressed={tuning === key}>
               {TUNINGS[key].name}
             </button>
             {tuning === key && (
               <div className="reference-tones">
                 {TUNINGS[key].notes.map((note, idx) => (
-                  <button key={note} className="tone-btn" onClick={() => playReferenceTone(TUNINGS[key].freq[idx])} aria-label={`Play reference tone for ${note}`}>
+                  <button type="button" key={note} className="tone-btn" onClick={() => playReferenceTone(TUNINGS[key].freq[idx])} aria-label={`Play reference tone for ${note}`}>
                     {note}
                   </button>
                 ))}
