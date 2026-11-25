@@ -535,7 +535,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
             {tuning === key && (
               <div className="reference-tones">
                 {TUNINGS[key].notes.map((note, idx) => (
-                  <button key={note} className="tone-btn" onClick={() => playReferenceTone(TUNINGS[key].freq[idx])} aria-label={`Play reference tone for ${note}`}>
+                  <button type="button" key={note} className="tone-btn" onClick={() => playReferenceTone(TUNINGS[key].freq[idx])} aria-label={`Play reference tone for ${note}`}>
                     {note}
                   </button>
                 ))}
