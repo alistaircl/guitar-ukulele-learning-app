@@ -1271,6 +1271,7 @@ function PracticeMode({ initialSongId, onDone }) {
           </>
         ) : (
           <button
+            type="button"
             onClick={() => setConfirmingReset(true)}
             aria-label="Reset practice progress for all songs"
             title="Reset progress"
@@ -1294,10 +1295,11 @@ function PracticeMode({ initialSongId, onDone }) {
 
       {/* Action buttons */}
       <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-        <button className="control-btn" onClick={prevLine} aria-label="Previous line" disabled={currentIndex === 0}>
+        <button type="button" className="control-btn" onClick={prevLine} aria-label="Previous line" disabled={currentIndex === 0}>
           ← Prev
         </button>
         <button 
+          type="button"
           className="control-btn" 
           onClick={markCorrect}
           aria-label="Mark as correct"
@@ -1306,6 +1308,7 @@ function PracticeMode({ initialSongId, onDone }) {
           ✓ Got it!
         </button>
         <button 
+          type="button"
           className="control-btn" 
           onClick={markIncorrect}
           aria-label="Mark as missed"
@@ -1326,7 +1329,7 @@ function PracticeMode({ initialSongId, onDone }) {
         >
           {isPlayingSound ? '🔊 Playing…' : '🔊 Play'}
         </button>
-        <button className="control-btn" onClick={nextLine} aria-label="Next line" disabled={currentIndex === selectedSong.lyrics.length - 1}>
+        <button type="button" className="control-btn" onClick={nextLine} aria-label="Next line" disabled={currentIndex === selectedSong.lyrics.length - 1}>
           Next →
         </button>
       </div>
