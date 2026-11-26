@@ -30,8 +30,9 @@ function App() {
     return 'ukulele';
   });
   useEffect(() => {
-    if (!safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument)) {
-      addToast('Unable to save your instrument preference (storage unavailable or full).');
+    const result = safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
+    if (!result.success) {
+      addToast(`Unable to save your instrument preference: ${result.error.message}`);
     }
   }, [instrument, addToast]);
 
@@ -45,7 +46,7 @@ function App() {
       case 'tuner': return <Tuner instrument={instrument} setInstrument={setInstrument} />;
       case 'chords': return <ChordLibrary instrument={instrument} setInstrument={setInstrument} />;
       case 'songs': return <SongLibrary instrument={instrument} onStartPractice={handleStartPractice} />;
-      case 'practice': return <PracticeMode initialSongId={practiceSongId} onDone={() => setPracticeSongId(null)} />;
+      case 'practice': return <PracticeMode initialSongId={practiceSongId} onSongChange={setPracticeSongId} onDone={() => setPracticeSongId(null)} />;
       default: return <Tuner />;
     }
   };

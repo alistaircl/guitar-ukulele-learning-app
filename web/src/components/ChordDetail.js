@@ -80,7 +80,14 @@ function playChordFor(chordName, onError) {
   const key = Object.keys(CHORD_FREQ).find(
     (k) => k.toLowerCase() === chordName.toLowerCase()
   );
-  if (key) playChordNotes(CHORD_FREQ[key], onError);
+  if (key) {
+    playChordNotes(CHORD_FREQ[key], onError);
+  } else {
+    // Surface the missing chord instead of silently doing nothing (issue #632).
+    onError?.(
+      new Error(`Chord "${chordName}" not found in CHORD_FREQ — cannot play audio.`)
+    );
+  }
 }
 
 function ChordDetail({ chord, showPrimaryLabel = false, onClose }) {

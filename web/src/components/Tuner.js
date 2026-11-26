@@ -40,6 +40,13 @@ const NOTE_FREQ_MAP = {
   'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.0, 'G#4': 415.3, 'A4': 440.0, 'A#4': 466.16, 'B4': 493.88,
   'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.26, 'F5': 698.46, 'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.0, 'A#5': 932.33, 'B5': 987.77,
   'C6': 1046.5, 'C#6': 1108.73, 'D6': 1174.66, 'D#6': 1244.51, 'E6': 1318.51, 'F6': 1396.91, 'F#6': 1479.98, 'G6': 1567.98, 'G#6': 1661.22, 'A6': 1760.0, 'A#6': 1864.66, 'B6': 1975.53,
+  // Flat (enharmonic) equivalents at the same pitch so the tuner can show both
+  // spellings of black keys (issue #635).
+  'Db2': 69.30, 'Eb2': 77.78, 'Gb2': 92.50, 'Ab2': 103.83, 'Bb2': 116.54,
+  'Db3': 138.59, 'Eb3': 155.56, 'Gb3': 185.0, 'Ab3': 207.65, 'Bb3': 233.08,
+  'Db4': 277.18, 'Eb4': 311.13, 'Gb4': 369.99, 'Ab4': 415.3, 'Bb4': 466.16,
+  'Db5': 554.37, 'Eb5': 622.25, 'Gb5': 739.99, 'Ab5': 830.61, 'Bb5': 932.33,
+  'Db6': 1108.73, 'Eb6': 1244.51, 'Gb6': 1479.98, 'Ab6': 1661.22, 'Bb6': 1864.66,
 };
 
 function getNearestNote(freq) {
@@ -58,7 +65,16 @@ function getNearestNote(freq) {
   }
   // Calculate cents: 1200 * log2(detectedFreq / targetFreq)
   const cents = targetFreq > 0 ? Math.round(1200 * Math.log2(freq / targetFreq)) : 0;
-  return { note: nearest, diff: signedDiff, freq, targetFreq, cents };
+  // Collect enharmonic equivalents (same pitch, different spelling) so the
+  // display can show both, e.g. "C#4/Db4" (issue #635).
+  const enharmonics = [];
+  for (const [note, f] of Object.entries(NOTE_FREQ_MAP)) {
+    if (f === targetFreq && note !== nearest) {
+      enharmonics.push(note);
+    }
+  }
+  const noteLabel = enharmonics.length > 0 ? `${nearest}/${enharmonics[0]}` : nearest;
+  return { note: nearest, noteLabel, diff: signedDiff, freq, targetFreq, cents };
 }
 
 function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } = {}) {
@@ -142,6 +158,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
   const streamRef = useRef(null);
   const rafRef = useRef(null);
   const silenceThresholdRef = useRef(0.01); // Default threshold, will be calibrated
+  const [playingToneNote, setPlayingToneNote] = useState(null);
 
   const startTuner = async () => {
     // Check if AudioContext is supported
@@ -259,13 +276,16 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     setDetectedNote(null);
   };
 
-  const playReferenceTone = async (freq) => {
+  const playReferenceTone = async (freq, noteName) => {
     // Check if AudioContext is supported
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) {
       setReferenceToneError('Your browser does not support the Web Audio API.');
       return;
     }
+
+    // Set visual feedback state before playing (issue #610)
+    setPlayingToneNote(noteName);
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -310,7 +330,10 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     oscillator.stop(audioCtx.currentTime + 1);
 
     // Close the AudioContext after the tone finishes to prevent memory leaks
-    setTimeout(() => audioCtx.close(), 1100);
+    setTimeout(() => {
+      audioCtx.close();
+      setPlayingToneNote(null);
+    }, 1100);
   };
 
   // Calibrate silence threshold by measuring ambient noise
@@ -422,8 +445,9 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     if (!TUNINGS_BY_INSTRUMENT[activeInstrument].includes(tuning)) {
       return;
     }
-    if (!safeStorageSet(tuningStorageKey(activeInstrument), tuning)) {
-      addToast('Unable to save your tuner tuning (storage unavailable or full).');
+    const result = safeStorageSet(tuningStorageKey(activeInstrument), tuning);
+    if (!result.success) {
+      addToast(`Unable to save your tuner tuning: ${result.error.message}`);
     }
   }, [tuning, activeInstrument, addToast]);
 
@@ -446,8 +470,9 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     if (instrumentProp !== undefined) {
       return;
     }
-    if (!safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument)) {
-      addToast('Unable to save your instrument preference (storage unavailable or full).');
+    const result = safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
+    if (!result.success) {
+      addToast(`Unable to save your instrument preference: ${result.error.message}`);
     }
   }, [instrument, instrumentProp, addToast]);
 
@@ -506,8 +531,16 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
           {activeInstrument === 'ukulele' ? 'Ukulele' : 'Guitar'}<span style={{ fontSize: '0.8rem', opacity: 0.7, marginLeft: '0.25rem' }}> • current</span>
         </button>
       </div>
+      {/* Start/Stop button — placed prominently below the header so it is
+          the first action button users see, avoiding confusion with the
+          instrument switch button above (issue #608). */}
+      <div className="tuner-controls">
+        <button type="button" className="control-btn" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }} disabled={isStarting} aria-label={isListening ? 'Stop tuner' : 'Start tuner'} style={{ fontSize: '1rem', padding: '0.6rem 1.5rem' }}>
+          {isStarting ? (isCalibrating ? 'Calibrating…' : 'Starting…') : isListening ? 'Stop' : 'Start'}
+        </button>
+      </div>
       <div className="tuner-display">
-        <div className="note-display">{detectedNote ? detectedNote.note : '—'}</div>
+        <div className="note-display">{detectedNote ? detectedNote.noteLabel || detectedNote.note : '—'}</div>
         <div className="frequency-display">{detectedNote ? `${detectedNote.freq.toFixed(1)} Hz` : '— Hz'}</div>
         <div className="cents-display">
           {detectedNote && detectedNote.note !== '?'
@@ -535,7 +568,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
             {tuning === key && (
               <div className="reference-tones">
                 {TUNINGS[key].notes.map((note, idx) => (
-                  <button key={note} className="tone-btn" onClick={() => playReferenceTone(TUNINGS[key].freq[idx])} aria-label={`Play reference tone for ${note}`}>
+                  <button type="button" key={note} className={`tone-btn${playingToneNote === note ? ' playing' : ''}`} onClick={() => playReferenceTone(TUNINGS[key].freq[idx], note)} aria-label={`Play reference tone for ${note}`} aria-pressed={playingToneNote === note} style={{ background: playingToneNote === note ? 'var(--accent-primary)' : 'var(--bg-panel)', color: playingToneNote === note ? 'white' : 'var(--text-primary)' }}>
                     {note}
                   </button>
                 ))}
@@ -545,11 +578,6 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         ))}
       </div>
       {referenceToneError && <div className="error-message">{referenceToneError}</div>}
-      <div className="tuner-controls">
-        <button className="control-btn" type="button" onClick={(e) => { e.preventDefault(); (isListening ? stopTuner : startTuner)(); }} disabled={isStarting} aria-label={isListening ? 'Stop tuner' : 'Start tuner'}>
-          {isStarting ? (isCalibrating ? 'Calibrating…' : 'Starting…') : isListening ? 'Stop' : 'Start'}
-        </button>
-      </div>
       {isStarting && (
         <div className="loading" role="status" aria-live="polite" aria-label="Tuner is initializing — microphone access and audio context are being set up">
           <div className="spinner" aria-hidden="true" />

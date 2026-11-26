@@ -72,18 +72,32 @@ function ChordDiagram({ frets, fingers = [], size = 100, className, instrument =
     });
 
     // Any group with 2+ strings sharing the same finger and fret is a barre.
-    // The barre line spans from the lowest to the highest string index in the
-    // group (issue #428), regardless of whether the strings are consecutive.
+    // Split each group into contiguous string ranges so the barre line only
+    // covers adjacent strings that are actually barred (issue #638). A muted
+    // (-1) or open (0) string between two barred strings breaks the barre into
+    // separate segments instead of one misleading line across the gap.
     Object.keys(groups).forEach(key => {
       const strings = groups[key].sort((a, b) => a.stringIdx - b.stringIdx);
-      if (strings.length >= 2) {
-        barres.push({
-          finger: strings[0].finger,
-          fret: strings[0].fret,
-          startString: strings[0].stringIdx,
-          endString: strings[strings.length - 1].stringIdx,
-        });
+      let segment = [strings[0]];
+      const pushSegment = (seg) => {
+        if (seg.length >= 2) {
+          barres.push({
+            finger: seg[0].finger,
+            fret: seg[0].fret,
+            startString: seg[0].stringIdx,
+            endString: seg[seg.length - 1].stringIdx,
+          });
+        }
+      };
+      for (let i = 1; i < strings.length; i++) {
+        if (strings[i].stringIdx === strings[i - 1].stringIdx + 1) {
+          segment.push(strings[i]);
+        } else {
+          pushSegment(segment);
+          segment = [strings[i]];
+        }
       }
+      pushSegment(segment);
     });
 
     return barres;

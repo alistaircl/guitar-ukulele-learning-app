@@ -59,13 +59,12 @@ function SongLibrary({ instrument = 'ukulele', onStartPractice }) {
 
   // Persist filters whenever they change so they survive navigation (issue #482)
   React.useEffect(() => {
-    if (
-      !safeStorageSet(
-        SONG_FILTERS_KEY,
-        JSON.stringify({ searchQuery, difficultyFilter, keyFilter })
-      )
-    ) {
-      addToast('Unable to save your song filters (storage unavailable or full).');
+    const result = safeStorageSet(
+      SONG_FILTERS_KEY,
+      JSON.stringify({ searchQuery, difficultyFilter, keyFilter })
+    );
+    if (!result.success) {
+      addToast(`Unable to save your song filters: ${result.error.message}`);
     }
   }, [searchQuery, difficultyFilter, keyFilter, addToast]);
 

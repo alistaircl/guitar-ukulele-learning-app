@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ChordDiagram from './ChordDiagram';
 import { getChordByInstrument } from '../data/chords';
+import { useToast } from './Toast';
 
 // Issue #161: Persist practice progress (streak, totalCorrect) per song in
 // localStorage so progress survives component unmount/remount (tab switches).
@@ -350,7 +351,7 @@ lyrics: [
   }
 ];
 
-function PracticeMode({ initialSongId, onDone }) {
+function PracticeMode({ initialSongId, onSongChange, onDone }) {
   const [selectedSong, setSelectedSong] = useState(() => {
     if (initialSongId) {
       const found = PRACTICE_SONGS.find(s => s.id === initialSongId);
@@ -377,6 +378,7 @@ function PracticeMode({ initialSongId, onDone }) {
   const [beatPulse, setBeatPulse] = useState(false);
   const [audioReady, setAudioReady] = useState(true); // optimistic; flips to false when AudioContext can't reach 'running'
   const [isPlayingSound, setIsPlayingSound] = useState(false);
+  const { add: addToast } = useToast();
 
   // Ref mirrors of state that the rAF playback loop reads directly. Using refs
   // here avoids the stale-closure bug (#267) where the loop kept re-invoking the
@@ -487,9 +489,15 @@ function PracticeMode({ initialSongId, onDone }) {
     // Ensure AudioContext is initialized and resumed before playing
     await initAudioContext();
     const chordKey = Object.keys(CHORD_FREQ).find(k => k.toLowerCase() === chord.toLowerCase());
-    const freqs = CHORD_FREQ[chordKey] || [440];
-    freqs.forEach(freq => playNote(freq));
-  }, [playNote]);
+    if (!chordKey) {
+      // Never silently substitute a wrong note (issue #633). Surface the
+      // problem to the user instead of defaulting to A4 (440 Hz).
+      console.warn(`PracticeMode: chord "${chord}" not found in CHORD_FREQ — not playing a substitute note`);
+      addToast(`Audio unavailable: chord "${chord}" has no frequency data.`);
+      return;
+    }
+    CHORD_FREQ[chordKey].forEach(freq => playNote(freq));
+  }, [playNote, addToast]);
 
   // Auto-scroll the active line into view
   const scrollToLine = useCallback((idx) => {
@@ -561,7 +569,7 @@ function PracticeMode({ initialSongId, onDone }) {
         'AudioContext state is ' + audioCtxRef.current.state + ' after resume() (expected running). ' +
         'Cause: browser autoplay policy requires a user gesture to start audio, and some browsers ' +
         'resolve resume() without flipping state to running. This is an expected browser security ' +
-        'limitation, not an app bug - the user must interact with the page (tap Enable Audio) to ' +
+        'limitation, not an app bug — the user must interact with the page (tap Enable Audio) to ' +
         'start audio.'
       );
       // Close the AudioContext since it never reached 'running' (issue #578)
@@ -862,12 +870,10 @@ function PracticeMode({ initialSongId, onDone }) {
   // advanceLine() lets the user move between lines during playback without
   // resetting the session back to the Start screen (issue #519).
   const advanceLine = (nextIdx) => {
-    // Cancel any in-progress countdown so it cannot freeze the overlay (#351)
-    if (countdownRef.current) {
-      clearTimeout(countdownRef.current);
-      countdownRef.current = null;
-    }
-    setCountdown(null);
+    // Cancel any in-progress countdown (setTimeout or rAF-based) so it cannot
+    // freeze the overlay (#351, #639). cancelCountdown() handles both the rAF
+    // countdown loop used by startAutoplay() and any setTimeout fallback.
+    cancelCountdown();
     setCurrentIndex(nextIdx);
     currentIndexRef.current = nextIdx;
     setFeedback(null);
@@ -925,6 +931,9 @@ function PracticeMode({ initialSongId, onDone }) {
               const song = PRACTICE_SONGS.find(s => s.id === Number(e.target.value));
               setSelectedSong(song);
               resetSong();
+              // Keep the parent App's practiceSongId in sync so the selection
+              // persists across tab switches (issue #637).
+              onSongChange?.(song.id);
               // Load saved progress for the new song (issue #161)
               const p = loadProgress(song.id);
               setStreak(p ? p.streak : 0);
@@ -1287,7 +1296,7 @@ function PracticeMode({ initialSongId, onDone }) {
             onMouseEnter={(e) => (e.target.style.opacity = '1')}
             onMouseLeave={(e) => (e.target.style.opacity = '0.6')}
           >
-            Reset
+            Reset All Progress
           </button>
         )}
       </div>
