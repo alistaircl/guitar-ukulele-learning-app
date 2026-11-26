@@ -40,6 +40,13 @@ const NOTE_FREQ_MAP = {
   'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.0, 'G#4': 415.3, 'A4': 440.0, 'A#4': 466.16, 'B4': 493.88,
   'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.26, 'F5': 698.46, 'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.0, 'A#5': 932.33, 'B5': 987.77,
   'C6': 1046.5, 'C#6': 1108.73, 'D6': 1174.66, 'D#6': 1244.51, 'E6': 1318.51, 'F6': 1396.91, 'F#6': 1479.98, 'G6': 1567.98, 'G#6': 1661.22, 'A6': 1760.0, 'A#6': 1864.66, 'B6': 1975.53,
+  // Flat (enharmonic) equivalents at the same pitch so the tuner can show both
+  // spellings of black keys (issue #635).
+  'Db2': 69.30, 'Eb2': 77.78, 'Gb2': 92.50, 'Ab2': 103.83, 'Bb2': 116.54,
+  'Db3': 138.59, 'Eb3': 155.56, 'Gb3': 185.0, 'Ab3': 207.65, 'Bb3': 233.08,
+  'Db4': 277.18, 'Eb4': 311.13, 'Gb4': 369.99, 'Ab4': 415.3, 'Bb4': 466.16,
+  'Db5': 554.37, 'Eb5': 622.25, 'Gb5': 739.99, 'Ab5': 830.61, 'Bb5': 932.33,
+  'Db6': 1108.73, 'Eb6': 1244.51, 'Gb6': 1479.98, 'Ab6': 1661.22, 'Bb6': 1864.66,
 };
 
 function getNearestNote(freq) {
@@ -58,7 +65,16 @@ function getNearestNote(freq) {
   }
   // Calculate cents: 1200 * log2(detectedFreq / targetFreq)
   const cents = targetFreq > 0 ? Math.round(1200 * Math.log2(freq / targetFreq)) : 0;
-  return { note: nearest, diff: signedDiff, freq, targetFreq, cents };
+  // Collect enharmonic equivalents (same pitch, different spelling) so the
+  // display can show both, e.g. "C#4/Db4" (issue #635).
+  const enharmonics = [];
+  for (const [note, f] of Object.entries(NOTE_FREQ_MAP)) {
+    if (f === targetFreq && note !== nearest) {
+      enharmonics.push(note);
+    }
+  }
+  const noteLabel = enharmonics.length > 0 ? `${nearest}/${enharmonics[0]}` : nearest;
+  return { note: nearest, noteLabel, diff: signedDiff, freq, targetFreq, cents };
 }
 
 function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } = {}) {
@@ -516,7 +532,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
         </button>
       </div>
       <div className="tuner-display">
-        <div className="note-display">{detectedNote ? detectedNote.note : '—'}</div>
+        <div className="note-display">{detectedNote ? detectedNote.noteLabel || detectedNote.note : '—'}</div>
         <div className="frequency-display">{detectedNote ? `${detectedNote.freq.toFixed(1)} Hz` : '— Hz'}</div>
         <div className="cents-display">
           {detectedNote && detectedNote.note !== '?'
