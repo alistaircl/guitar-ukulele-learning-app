@@ -1288,7 +1288,7 @@ function PracticeMode({ initialSongId, onSongChange, onDone }) {
             onMouseEnter={(e) => (e.target.style.opacity = '1')}
             onMouseLeave={(e) => (e.target.style.opacity = '0.6')}
           >
-            Reset
+            Reset All Progress
           </button>
         )}
       </div>
