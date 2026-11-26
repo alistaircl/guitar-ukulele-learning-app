@@ -862,12 +862,10 @@ function PracticeMode({ initialSongId, onDone }) {
   // advanceLine() lets the user move between lines during playback without
   // resetting the session back to the Start screen (issue #519).
   const advanceLine = (nextIdx) => {
-    // Cancel any in-progress countdown so it cannot freeze the overlay (#351)
-    if (countdownRef.current) {
-      clearTimeout(countdownRef.current);
-      countdownRef.current = null;
-    }
-    setCountdown(null);
+    // Cancel any in-progress countdown (setTimeout or rAF-based) so it cannot
+    // freeze the overlay (#351, #639). cancelCountdown() handles both the rAF
+    // countdown loop used by startAutoplay() and any setTimeout fallback.
+    cancelCountdown();
     setCurrentIndex(nextIdx);
     currentIndexRef.current = nextIdx;
     setFeedback(null);
