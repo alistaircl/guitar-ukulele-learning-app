@@ -119,17 +119,17 @@ test('Reset requires confirmation before clearing all progress (issue #536)', ()
   const { getByText, queryByText } = render(<PracticeMode />);
 
   // First click opens the confirmation instead of resetting immediately
-  fireEvent.click(getByText('Reset'));
-  expect(queryByText('Reset')).toBeNull();
+  fireEvent.click(getByText('Reset All Progress'));
+  expect(queryByText('Reset All Progress')).toBeNull();
   expect(getByText(/cannot be undone/i)).toBeTruthy();
 
   // Cancel aborts the reset
   fireEvent.click(getByText('Cancel'));
   expect(queryByText(/cannot be undone/i)).toBeNull();
-  expect(getByText('Reset')).toBeTruthy();
+  expect(getByText('Reset All Progress')).toBeTruthy();
 
   // Confirm performs the reset and surfaces an info message
-  fireEvent.click(getByText('Reset'));
+  fireEvent.click(getByText('Reset All Progress'));
   fireEvent.click(getByText('Confirm Reset'));
   expect(getByText(/Progress reset for all songs/i)).toBeTruthy();
 });
