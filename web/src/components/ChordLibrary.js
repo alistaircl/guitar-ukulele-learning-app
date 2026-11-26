@@ -57,8 +57,9 @@ function ChordLibrary({ instrument: instrumentProp, setInstrument: setSharedInst
     if (instrumentProp !== undefined) {
       return;
     }
-    if (!safeStorageSet(PREFERENCE_KEY, instrument)) {
-      addToast('Unable to save your instrument preference (storage unavailable or full).');
+    const result = safeStorageSet(PREFERENCE_KEY, instrument);
+    if (!result.success) {
+      addToast(`Unable to save your instrument preference: ${result.error.message}`);
     }
   }, [instrument, instrumentProp, addToast]);
 

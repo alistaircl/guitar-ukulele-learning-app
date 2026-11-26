@@ -429,8 +429,9 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     if (!TUNINGS_BY_INSTRUMENT[activeInstrument].includes(tuning)) {
       return;
     }
-    if (!safeStorageSet(tuningStorageKey(activeInstrument), tuning)) {
-      addToast('Unable to save your tuner tuning (storage unavailable or full).');
+    const result = safeStorageSet(tuningStorageKey(activeInstrument), tuning);
+    if (!result.success) {
+      addToast(`Unable to save your tuner tuning: ${result.error.message}`);
     }
   }, [tuning, activeInstrument, addToast]);
 
@@ -453,8 +454,9 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     if (instrumentProp !== undefined) {
       return;
     }
-    if (!safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument)) {
-      addToast('Unable to save your instrument preference (storage unavailable or full).');
+    const result = safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
+    if (!result.success) {
+      addToast(`Unable to save your instrument preference: ${result.error.message}`);
     }
   }, [instrument, instrumentProp, addToast]);
 
