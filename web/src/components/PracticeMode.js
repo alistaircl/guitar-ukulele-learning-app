@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ChordDiagram from './ChordDiagram';
 import { getChordByInstrument } from '../data/chords';
+import { useToast } from './Toast';
 
 // Issue #161: Persist practice progress (streak, totalCorrect) per song in
 // localStorage so progress survives component unmount/remount (tab switches).
@@ -377,6 +378,7 @@ function PracticeMode({ initialSongId, onSongChange, onDone }) {
   const [beatPulse, setBeatPulse] = useState(false);
   const [audioReady, setAudioReady] = useState(true); // optimistic; flips to false when AudioContext can't reach 'running'
   const [isPlayingSound, setIsPlayingSound] = useState(false);
+  const { add: addToast } = useToast();
 
   // Ref mirrors of state that the rAF playback loop reads directly. Using refs
   // here avoids the stale-closure bug (#267) where the loop kept re-invoking the
@@ -487,9 +489,15 @@ function PracticeMode({ initialSongId, onSongChange, onDone }) {
     // Ensure AudioContext is initialized and resumed before playing
     await initAudioContext();
     const chordKey = Object.keys(CHORD_FREQ).find(k => k.toLowerCase() === chord.toLowerCase());
-    const freqs = CHORD_FREQ[chordKey] || [440];
-    freqs.forEach(freq => playNote(freq));
-  }, [playNote]);
+    if (!chordKey) {
+      // Never silently substitute a wrong note (issue #633). Surface the
+      // problem to the user instead of defaulting to A4 (440 Hz).
+      console.warn(`PracticeMode: chord "${chord}" not found in CHORD_FREQ — not playing a substitute note`);
+      addToast(`Audio unavailable: chord "${chord}" has no frequency data.`);
+      return;
+    }
+    CHORD_FREQ[chordKey].forEach(freq => playNote(freq));
+  }, [playNote, addToast]);
 
   // Auto-scroll the active line into view
   const scrollToLine = useCallback((idx) => {
