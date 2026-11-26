@@ -30,8 +30,9 @@ function App() {
     return 'ukulele';
   });
   useEffect(() => {
-    if (!safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument)) {
-      addToast('Unable to save your instrument preference (storage unavailable or full).');
+    const result = safeStorageSet(INSTRUMENT_PREFERENCE_KEY, instrument);
+    if (!result.success) {
+      addToast(`Unable to save your instrument preference: ${result.error.message}`);
     }
   }, [instrument, addToast]);
 
