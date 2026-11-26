@@ -350,7 +350,7 @@ lyrics: [
   }
 ];
 
-function PracticeMode({ initialSongId, onDone }) {
+function PracticeMode({ initialSongId, onSongChange, onDone }) {
   const [selectedSong, setSelectedSong] = useState(() => {
     if (initialSongId) {
       const found = PRACTICE_SONGS.find(s => s.id === initialSongId);
@@ -923,6 +923,9 @@ function PracticeMode({ initialSongId, onDone }) {
               const song = PRACTICE_SONGS.find(s => s.id === Number(e.target.value));
               setSelectedSong(song);
               resetSong();
+              // Keep the parent App's practiceSongId in sync so the selection
+              // persists across tab switches (issue #637).
+              onSongChange?.(song.id);
               // Load saved progress for the new song (issue #161)
               const p = loadProgress(song.id);
               setStreak(p ? p.streak : 0);
