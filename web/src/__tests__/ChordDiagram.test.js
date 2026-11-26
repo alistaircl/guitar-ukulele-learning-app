@@ -32,21 +32,31 @@ test('renders correct Nfr label for barre chord with no open strings', () => {
   expect(startFretLabels[0].textContent).toBe('2fr');
 });
 
-// Regression guard for issue #428: barre detection must identify barres on
-// non-consecutive strings (same finger, same fret, with a gap). E.g. finger 1
-// on strings 0 and 2 at fret 3 with string 1 open is a valid partial barre;
-// the red barre line should span from string 0 to string 2.
-test('renders barre line for non-consecutive same-finger same-fret strings', () => {
-  // finger 1 on strings 0 and 2 at fret 3; strings 1 and 3 open
+// Regression guard for issue #638: a barre line must only cover contiguous
+// strings. Same finger + same fret on non-adjacent strings (with an open or
+// muted string between) is NOT a barre, so no red line should be drawn.
+test('does not render barre line for non-consecutive same-finger same-fret strings', () => {
+  // finger 1 on strings 0 and 2 at fret 3; string 1 is open between them
   render(<ChordDiagram frets={[3, 0, 3, 0]} fingers={[1, 0, 1, 0]} size={100} />);
 
   const svg = screen.getByRole('img');
   const barreLines = Array.from(svg.querySelectorAll('line')).filter(
     el => el.getAttribute('stroke') === '#ef4444' && el.getAttribute('stroke-width') === '6'
   );
-  expect(barreLines.length).toBeGreaterThan(0);
+  expect(barreLines).toHaveLength(0);
+});
+
+// Adjacent same-finger same-fret strings still render a single barre line.
+test('renders a single barre line for adjacent same-finger same-fret strings', () => {
+  // finger 1 on strings 0 and 1 at fret 3 (adjacent); strings 2 and 3 open
+  render(<ChordDiagram frets={[3, 3, 0, 0]} fingers={[1, 1, 0, 0]} size={100} />);
+
+  const svg = screen.getByRole('img');
+  const barreLines = Array.from(svg.querySelectorAll('line')).filter(
+    el => el.getAttribute('stroke') === '#ef4444' && el.getAttribute('stroke-width') === '6'
+  );
+  expect(barreLines).toHaveLength(1);
   const [barre] = barreLines;
-  // Barre spans from string 0 to string 2
   expect(Number(barre.getAttribute('x1'))).toBeLessThanOrEqual(Number(barre.getAttribute('x2')));
 });
 
