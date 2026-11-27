@@ -64,7 +64,9 @@ function getNearestNote(freq) {
     }
   }
   // Calculate cents: 1200 * log2(detectedFreq / targetFreq)
-  const cents = targetFreq > 0 ? Math.round(1200 * Math.log2(freq / targetFreq)) : 0;
+  const cents = (targetFreq > 0 && freq > 0 && isFinite(freq) && isFinite(targetFreq))
+    ? Math.round(1200 * Math.log2(freq / targetFreq))
+    : 0;
   // Collect enharmonic equivalents (same pitch, different spelling) so the
   // display can show both, e.g. "C#4/Db4" (issue #635).
   const enharmonics = [];
@@ -424,7 +426,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     const buffer = new Float32Array(analyserRef.current.fftSize);
     analyserRef.current.getFloatTimeDomainData(buffer);
     const freq = autoCorrelate(buffer, audioCtxRef.current.sampleRate);
-    if (freq > 50 && freq < 2000) {
+    if (isFinite(freq) && freq > 50 && freq < 2000) {
       setDetectedNote(getNearestNote(freq));
     }
     rafRef.current = requestAnimationFrame(detectPitch);
