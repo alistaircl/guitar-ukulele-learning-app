@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FaMusic, FaGuitar, FaMicrophone, FaBullseye } from 'react-icons/fa';
 import Tuner from './components/Tuner';
 import ChordLibrary from './components/ChordLibrary';
 import SongLibrary from './components/SongLibrary';
@@ -7,10 +8,10 @@ import { useToast } from './components/Toast';
 import { safeStorageGet, safeStorageSet } from './utils/safeStorage';
 
 const TABS = [
-  { id: 'tuner', label: 'Tuner', icon: '🎵' },
-    { id: 'chords', label: 'Chord Library', icon: '🎸' },
-  { id: 'songs', label: 'Songs', icon: '🎤' },
-  { id: 'practice', label: 'Practice', icon: '🎯' },
+  { id: 'tuner', label: 'Tuner', icon: <FaMusic /> },
+  { id: 'chords', label: 'Chord Library', icon: <FaGuitar /> },
+  { id: 'songs', label: 'Songs', icon: <FaMicrophone /> },
+  { id: 'practice', label: 'Practice', icon: <FaBullseye /> },
 ];
 
 function App() {
