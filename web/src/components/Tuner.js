@@ -407,7 +407,8 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     }
 
     let T0 = maxPos;
-    if (T0 < 1 || T0 >= buf.length - 1) return sampleRate / T0;
+    if (T0 < 1) return -1; // No reliable pitch found; avoid division by zero (issue #660)
+    if (T0 >= buf.length - 1) return sampleRate / T0;
 
     // Interpolate for better accuracy
     let x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
