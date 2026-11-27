@@ -351,7 +351,7 @@ lyrics: [
   }
 ];
 
-function PracticeMode({ initialSongId, onSongChange, onDone }) {
+function PracticeMode({ instrument = 'ukulele', setInstrument: setInstrumentProp, initialSongId, onSongChange, onDone }) {
   const [selectedSong, setSelectedSong] = useState(() => {
     if (initialSongId) {
       const found = PRACTICE_SONGS.find(s => s.id === initialSongId);
