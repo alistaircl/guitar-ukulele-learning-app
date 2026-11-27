@@ -6,7 +6,7 @@ import { PRACTICE_SONGS } from './PracticeMode';
 import ChordDiagram from './ChordDiagram';
 import { getChordByInstrument } from '../data/chords';
 
-function SongDetail({ songId, onBack, onStartPractice, instrument = 'ukulele' }) {
+function SongDetail({ songId, onBack, onStartPractice, instrument = 'ukulele', onInstrumentSwitch }) {
   // Find the song by ID
   const song = PRACTICE_SONGS.find(s => s.id === songId);
 
@@ -22,6 +22,9 @@ function SongDetail({ songId, onBack, onStartPractice, instrument = 'ukulele' })
     name,
     chord: getChordByInstrument(name, instrument),
   }));
+  // The instrument whose library was searched, used to surface a helpful
+  // fallback message and optional cross-instrument quick switch (issue #655).
+  const otherInstrument = instrument === 'ukulele' ? 'guitar' : 'ukulele';
 
   return (
     <div className="section">
@@ -77,57 +80,82 @@ function SongDetail({ songId, onBack, onStartPractice, instrument = 'ukulele' })
             }}
             aria-label={`Chord diagrams for ${song.title}`}
           >
-            {resolvedChords.map(({ name, chord }) => (
-              <div
-                key={name}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  padding: '0.5rem 0.5rem 0.6rem',
-                  background: 'var(--bg-tertiary)',
-                  borderRadius: '8px',
-                  minWidth: '90px',
-                }}
-              >
+            {resolvedChords.map(({ name, chord }) => {
+              // When a chord is missing from the selected instrument's library,
+              // check whether the other instrument has it so we can offer a
+              // quick instrument switch (issue #655).
+              const chordInOther = chord ? null : getChordByInstrument(name, otherInstrument);
+              return (
                 <div
+                  key={name}
                   style={{
-                    fontWeight: '700',
-                    color: 'var(--accent-primary)',
-                    marginBottom: '0.25rem',
-                    fontSize: '0.95rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    padding: '0.5rem 0.5rem 0.6rem',
+                    background: 'var(--bg-tertiary)',
+                    borderRadius: '8px',
+                    minWidth: '90px',
                   }}
                 >
-                  {name}
-                </div>
-                {chord ? (
-                  <ChordDiagram
-                    frets={chord.frets}
-                    fingers={chord.fingers}
-                    size={90}
-                    className="chord-diagram"
-                    ariaLabel={`${name} chord diagram`}
-                  />
-                ) : (
                   <div
                     style={{
-                      width: 90,
-                      height: 90,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--text-secondary)',
-                      fontSize: '0.75rem',
-                      textAlign: 'center',
-                      padding: '0 0.25rem',
+                      fontWeight: '700',
+                      color: 'var(--accent-primary)',
+                      marginBottom: '0.25rem',
+                      fontSize: '0.95rem',
                     }}
-                    aria-label={`${name} chord diagram not available in library`}
                   >
-                    Diagram not in library
+                    {name}
                   </div>
-                )}
-              </div>
-            ))}
+                  {chord ? (
+                    <ChordDiagram
+                      frets={chord.frets}
+                      fingers={chord.fingers}
+                      size={90}
+                      className="chord-diagram"
+                      ariaLabel={`${name} chord diagram`}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 90,
+                        height: 90,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.75rem',
+                        textAlign: 'center',
+                        padding: '0 0.25rem',
+                      }}
+                      aria-label={`${name} chord diagram not available in ${instrument} library`}
+                    >
+                      Diagram not in {instrument} library
+                      {chordInOther && onInstrumentSwitch && (
+                        <button
+                          type="button"
+                          onClick={() => onInstrumentSwitch(otherInstrument)}
+                          aria-label={`Switch to ${otherInstrument} for ${name} diagram`}
+                          style={{
+                            marginTop: '0.25rem',
+                            fontSize: '0.65rem',
+                            padding: '0.15rem 0.5rem',
+                            background: 'var(--accent-primary)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Switch to {otherInstrument}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

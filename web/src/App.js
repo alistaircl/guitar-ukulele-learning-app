@@ -45,7 +45,7 @@ function App() {
     switch (activeTab) {
       case 'tuner': return <Tuner instrument={instrument} setInstrument={setInstrument} />;
       case 'chords': return <ChordLibrary instrument={instrument} setInstrument={setInstrument} />;
-      case 'songs': return <SongLibrary instrument={instrument} onStartPractice={handleStartPractice} />;
+      case 'songs': return <SongLibrary instrument={instrument} onStartPractice={handleStartPractice} onInstrumentSwitch={setInstrument} />;
       case 'practice': return <PracticeMode initialSongId={practiceSongId} onSongChange={setPracticeSongId} onDone={() => setPracticeSongId(null)} />;
       default: return <Tuner />;
     }
