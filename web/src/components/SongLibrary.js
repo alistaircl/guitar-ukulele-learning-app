@@ -16,7 +16,7 @@ const DIFFICULTY_CLASS_MAP = {
 // navigating away from the Songs tab and returning (issue #482).
 const SONG_FILTERS_KEY = 'guitar-ukulele-song-filters';
 
-function SongLibrary({ instrument = 'ukulele', onStartPractice }) {
+function SongLibrary({ instrument = 'ukulele', onStartPractice, onInstrumentSwitch }) {
   const { add: addToast } = useToast();
   const [selectedSongId, setSelectedSongId] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'detail'
@@ -159,6 +159,7 @@ function SongLibrary({ instrument = 'ukulele', onStartPractice }) {
           onBack={handleBackToGrid}
           onStartPractice={onStartPractice}
           instrument={instrument}
+          onInstrumentSwitch={onInstrumentSwitch}
         />
       )}
 
