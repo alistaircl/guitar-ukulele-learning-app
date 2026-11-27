@@ -4,6 +4,7 @@ import SongDetail from './SongDetail';
 import { PRACTICE_SONGS } from './PracticeMode';
 import { safeStorageGet, safeStorageSet } from '../utils/safeStorage';
 import { useToast } from './Toast';
+import { FaSearch } from 'react-icons/fa';
 
 // Map difficulty values to CSS class names
 const DIFFICULTY_CLASS_MAP = {
@@ -87,7 +88,7 @@ function SongLibrary({ instrument = 'ukulele', onStartPractice }) {
       {/* Search and Filter Bar (hidden while a song detail is open - issue #315) */}
       {viewMode === 'grid' && (
         <div className="search-bar" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <div className="search-icon">🔍</div>
+          <FaSearch className="search-icon" aria-hidden="true" />
           <input
             type="text"
             className="search-input"
