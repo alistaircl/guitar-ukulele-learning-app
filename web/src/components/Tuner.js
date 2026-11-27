@@ -157,6 +157,7 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
   const analyserRef = useRef(null);
   const streamRef = useRef(null);
   const rafRef = useRef(null);
+  const referenceCtxRef = useRef(null); // Reused AudioContext for reference tones (issue #658)
   const silenceThresholdRef = useRef(0.01); // Default threshold, will be calibrated
   const [playingToneNote, setPlayingToneNote] = useState(null);
 
@@ -287,19 +288,25 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     // Set visual feedback state before playing (issue #610)
     setPlayingToneNote(noteName);
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Reuse a single AudioContext for reference tones instead of creating a new
+    // one on every call (issue #658). This avoids resource waste and race
+    // conditions when the user clicks multiple tones in rapid succession.
+    let audioCtx = referenceCtxRef.current;
+    if (!audioCtx) {
+      audioCtx = new AudioContext();
+      referenceCtxRef.current = audioCtx;
+    }
 
-    // New AudioContexts start in 'suspended' state on most browsers and MUST be
-    // resumed on a user gesture (or the click that triggered this call) before any
-    // scheduled audio will be audible. Without this, mobile Safari silently fails
-    // to play the reference tone (issue #166).
+    // AudioContexts start in 'suspended' state on most browsers and MUST be
+    // resumed on a user gesture (the click that triggered this call) before any
+    // scheduled audio is audible (issue #166). Reusing the context means resume
+    // is only needed once; after that it stays running.
     if (audioCtx.state === 'suspended') {
       try {
         await audioCtx.resume();
       } catch (resumeErr) {
         console.error('Failed to resume AudioContext for reference tone:', resumeErr);
         setReferenceToneError('Could not start audio. Please interact with the page first, then try again.');
-        audioCtx.close();
         return;
       }
     }
@@ -329,9 +336,9 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     oscillator.start();
     oscillator.stop(audioCtx.currentTime + 1);
 
-    // Close the AudioContext after the tone finishes to prevent memory leaks
+    // Let the visual feedback fade out once the tone finishes; keep the
+    // AudioContext alive so the next tone plays immediately (issue #658).
     setTimeout(() => {
-      audioCtx.close();
       setPlayingToneNote(null);
     }, 1100);
   };
@@ -434,6 +441,11 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
   useEffect(() => {
     return () => {
       stopTuner();
+      // Close the reference-tone AudioContext on unmount (issue #658)
+      if (referenceCtxRef.current) {
+        referenceCtxRef.current.close();
+        referenceCtxRef.current = null;
+      }
     };
   }, []);
 
