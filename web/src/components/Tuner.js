@@ -407,7 +407,11 @@ function Tuner({ instrument: instrumentProp, setInstrument: setInstrumentProp } 
     }
 
     let T0 = maxPos;
-    if (T0 < 1 || T0 >= buf.length - 1) return sampleRate / T0;
+    // Guard: T0 === 0 means no reliable periodic peak was found. Returning
+    // sampleRate / T0 here would divide by zero (Infinity), and falling
+    // through to the interpolation would access c[-1] (undefined). Return -1
+    // so callers treat it as "no pitch detected" (issue #660).
+    if (T0 < 1 || T0 >= buf.length - 1) return -1;
 
     // Interpolate for better accuracy
     let x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
